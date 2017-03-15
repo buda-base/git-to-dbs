@@ -1,8 +1,8 @@
 package io.brdc.fusekicouchdb;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -19,7 +19,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
-import org.apache.jena.riot.RIOT;
 import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.riot.system.StreamRDFLib;
 import org.apache.jena.sparql.util.Context;
@@ -27,12 +26,10 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
 import org.ektorp.http.HttpClient;
+import org.ektorp.http.HttpResponse;
 import org.ektorp.http.StdHttpClient;
 import org.ektorp.impl.StdCouchDbConnector;
 import org.ektorp.impl.StdCouchDbInstance;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class TransferHelpers {
 
@@ -54,26 +51,6 @@ public class TransferHelpers {
 	public static final String RDF_PREFIX = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 	public static final String RDFS_PREFIX = "http://www.w3.org/2000/01/rdf-schema#";
 	public static final String XSD_PREFIX = "http://www.w3.org/2001/XMLSchema#";
-	
-	public static void setPrefixes(Model m) {
-		m.setNsPrefix("com", COMMON_PREFIX);
-		m.setNsPrefix("", ROOT_PREFIX);
-		m.setNsPrefix("per", PERSON_PREFIX);
-		m.setNsPrefix("prd", PRODUCT_PREFIX);
-		m.setNsPrefix("wor", WORK_PREFIX);
-		m.setNsPrefix("out", OUTLINE_PREFIX);
-		m.setNsPrefix("plc", PLACE_PREFIX);
-		m.setNsPrefix("top", TOPIC_PREFIX);
-		m.setNsPrefix("lin", LINEAGE_PREFIX);
-		m.setNsPrefix("vol", VOLUMES_PREFIX);
-		m.setNsPrefix("crp", CORPORATION_PREFIX);
-		m.setNsPrefix("ofc", OFFICE_PREFIX);
-		m.setNsPrefix("owl", OWL_PREFIX);
-		m.setNsPrefix("rdf", RDF_PREFIX);
-		m.setNsPrefix("rdfs", RDFS_PREFIX);
-		m.setNsPrefix("xsd", XSD_PREFIX);
-		m.setNsPrefix("desc", DESCRIPTION_PREFIX);
-	}
 	
 	public static Map<String,String> jsonLdContext = new LinkedHashMap<String, String>();
 	static {
@@ -125,7 +102,6 @@ public class TransferHelpers {
 	
 	public static void transferOneDoc(String docId) {
 		Model m = ModelFactory.createDefaultModel();
-		setPrefixes(m);
 		addDocIdInModel(docId, m);
 		printModel(m);
 		transferModel(m);
@@ -136,31 +112,21 @@ public class TransferHelpers {
 	}
 
 	public static void addDocIdInModel(String docId, Model m) {
-		// this part is really frustrating: we have to convert
-		// to object (through db.get) then remove the _id and _rev
-		// fields to convert it back to string to give it to jena, which will
-		// in term convert it back to object. If we don't do that, jsonld-java
-		// gets confused by these fields and does not parse the file correctly.
-		// A solution would have been to use a show couchdb function, but
 		// https://github.com/helun/Ektorp/issues/263
-		Map<String,Object> doc = db.get(Map.class, docId);
-		doc.remove("_id");
-		doc.remove("_rev");
-		doc.put("@context", jsonLdContext);
-		ObjectMapper mapper = new ObjectMapper();
-		String docstring;
-		try {
-			docstring = mapper.writeValueAsString(doc);
-		} catch (JsonProcessingException e) {
+		String uri = "/test/_design/jsonld/_show/jsonld/" + docId;
+	    HttpResponse r = db.getConnection().get(uri);
+	    InputStream stuff = r.getContent();
+	    // feeding the inputstream directly to jena for json-ld parsing
+	    // instead of ektorp json parsing
+	    StreamRDF dest = StreamRDFLib.graph(m.getGraph()) ;
+	    Context ctx = new Context();
+	    RDFDataMgr.parse(dest, stuff, "", Lang.JSONLD, ctx);
+	    try {
+			stuff.close();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return;
 		}
-		System.out.println(docstring);
-		StringReader docreader = new StringReader(docstring);
-		m.read(docreader, "", "JSON-LD");
-		//StreamRDF dest = StreamRDFLib.graph(m.getGraph()) ;
-		//RDFDataMgr.parse(dest, docreader, "", Lang.JSONLD, ctx);
 	}
 	
 	// for debugging purposes only

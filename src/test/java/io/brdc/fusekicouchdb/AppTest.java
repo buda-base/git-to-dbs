@@ -21,7 +21,7 @@ public class AppTest
 	@Test
     public void testP1331()
     {
-		TransferHelpers.transferOneDoc("crp:C1");
+		TransferHelpers.transferOneDoc("plc:G00AG01618");
 		assertTrue(true);
     }
 
