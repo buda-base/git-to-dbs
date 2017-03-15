@@ -21,7 +21,10 @@ public class AppTest
 	@Test
     public void testP1331()
     {
-		TransferHelpers.transferOneDoc("plc:G00AG01618");
+		
+		TransferHelpers.transferCompleteDB();
+		//TransferHelpers.transferOntology();
+		//TransferHelpers.transferOneDoc("plc:G00AG01618");
 		assertTrue(true);
     }
 

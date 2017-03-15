@@ -4,7 +4,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.jena.ontology.DatatypeProperty;
@@ -25,11 +28,17 @@ import org.apache.jena.sparql.util.Context;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
+import org.ektorp.DbAccessException;
+import org.ektorp.StreamingViewResult;
+import org.ektorp.ViewQuery;
+import org.ektorp.ViewResult.Row;
 import org.ektorp.http.HttpClient;
 import org.ektorp.http.HttpResponse;
 import org.ektorp.http.StdHttpClient;
 import org.ektorp.impl.StdCouchDbConnector;
 import org.ektorp.impl.StdCouchDbInstance;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class TransferHelpers {
 
@@ -96,6 +105,39 @@ public class TransferHelpers {
     	return res;
 	}
 	
+    private static boolean safeHasNext(Iterator<Row> rowIterator) {
+        try {
+            return rowIterator.hasNext();
+        } catch (DbAccessException e) {
+            System.err.println("Failed to move to next row while detecting table");
+            return false;
+        }
+    }
+	
+	public static List<String> getAllIds() {
+		List<String> res = new ArrayList<String>();
+		final StreamingViewResult streamingView = db.queryForStreamingView(new ViewQuery().allDocs());
+        try {
+            final Iterator<Row> rowIterator = streamingView.iterator();
+            while (safeHasNext(rowIterator)) {
+                Row row = rowIterator.next();
+                String Id = row.getId();
+                if (!Id.startsWith("_"))
+                	res.add(Id);
+            }
+        } catch (Exception e) {
+       		e.printStackTrace();
+       	} finally {
+       		streamingView.close();
+       	}
+        return res;
+	}
+	
+	public static void transferCompleteDB () {
+		List<String> Ids = getAllIds();
+		Ids.parallelStream().forEach( (id) -> transferOneDoc(id) );
+	}
+	
 	public static DatasetAccessor connectFuseki() {
 		return DatasetAccessorFactory.createHTTP(FusekiUrl);
 	}
@@ -103,7 +145,7 @@ public class TransferHelpers {
 	public static void transferOneDoc(String docId) {
 		Model m = ModelFactory.createDefaultModel();
 		addDocIdInModel(docId, m);
-		printModel(m);
+		//printModel(m);
 		transferModel(m);
 	}
 	
@@ -162,7 +204,7 @@ public class TransferHelpers {
 	{
 		OntModel ontoModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM, null);
 	    try {
-	        InputStream inputStream = new FileInputStream("src/main/resources/owl/bdrc.owl");
+	        InputStream inputStream = new FileInputStream("src/main/resources/bdrc.owl");
 	        ontoModel.read(inputStream, "", "RDF/XML");
 	        inputStream.close();
 	    } catch (Exception e) {
@@ -173,6 +215,10 @@ public class TransferHelpers {
 	    rdf10tordf11(ontoModel);
 	    return ontoModel;
 	}
-	
+
+	public static void transferOntology() {
+		OntModel m = getOntologyModel();
+		transferModel(m);
+	}
 	
 }
