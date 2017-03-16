@@ -81,8 +81,8 @@ public class TransferHelpers {
 		jsonLdContext.put("desc", DESCRIPTION_PREFIX);
 	}
 	
-	public static final String FusekiUrl = "http://localhost:13180/fuseki/test/data";
-	public static final String CouchDBUrl = "http://localhost:5984";
+	public static final String FusekiUrl = "http://localhost:13180/fuseki/bdrcrw/data";
+	public static final String CouchDBUrl = "http://localhost:13598";
 	
 	public static CouchDbConnector db = connectCouchDB();
 	public static DatasetAccessor fu = connectFuseki();
