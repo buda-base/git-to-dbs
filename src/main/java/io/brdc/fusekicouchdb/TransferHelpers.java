@@ -46,7 +46,7 @@ public class TransferHelpers {
 	public static final String DESCRIPTION_PREFIX = "http://onto.bdrc.io/ontology/description#";
 	public static final String ROOT_PREFIX = "http://purl.bdrc.io/ontology/root/";
 	public static final String COMMON_PREFIX = "http://purl.bdrc.io/ontology/common#";
-	public static final String CORPORATION_PREFIX = "http://purl.bdrc.io/ontology/coroporation#";
+	public static final String CORPORATION_PREFIX = "http://purl.bdrc.io/ontology/corporation#";
 	public static final String LINEAGE_PREFIX = "http://purl.bdrc.io/ontology/lineage#";
 	public static final String OFFICE_PREFIX = "http://purl.bdrc.io/ontology/office#";
 	public static final String PRODUCT_PREFIX = "http://purl.bdrc.io/ontology/product#";
@@ -55,7 +55,7 @@ public class TransferHelpers {
 	public static final String PLACE_PREFIX = "http://purl.bdrc.io/ontology/place#";
 	public static final String TOPIC_PREFIX = "http://purl.bdrc.io/ontology/topic#";
 	public static final String VOLUMES_PREFIX = "http://purl.bdrc.io/ontology/volumes#";
-	public static final String WORK_PREFIX = "http://purl.bdrc.io/ontology/work/";
+	public static final String WORK_PREFIX = "http://purl.bdrc.io/ontology/work#";
 	public static final String OWL_PREFIX = "http://www.w3.org/2002/07/owl#";
 	public static final String RDF_PREFIX = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 	public static final String RDFS_PREFIX = "http://www.w3.org/2000/01/rdf-schema#";
