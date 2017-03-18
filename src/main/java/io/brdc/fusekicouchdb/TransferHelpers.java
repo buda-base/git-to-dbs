@@ -159,14 +159,18 @@ public class TransferHelpers {
 	public static DatasetAccessor connectFuseki() {
 		return DatasetAccessorFactory.createHTTP(FusekiUrl);
 	}
-	
+
 	public static void transferOneDoc(String docId) {
-		Model m = ModelFactory.createDefaultModel();
-		addDocIdInModel(docId, m);
-		//printModel(m);
-		transferModel(m);
+		try {
+			Model m = ModelFactory.createDefaultModel();
+			addDocIdInModel(docId, m);
+			//printModel(m);
+			transferModel(m);
+		} catch (Exception ex) {
+			System.err.println("Processing: " + docId + " throws " + ex.toString());
+		}
 	}
-	
+
 	private static void transferModel(Model m) {
 		fu.add(m);
 	}
