@@ -135,7 +135,25 @@ public class TransferHelpers {
 	
 	public static void transferCompleteDB () {
 		List<String> Ids = getAllIds();
-		Ids.parallelStream().forEach( (id) -> transferOneDoc(id) );
+		System.out.println("Transferring " + Ids.size() + " docs to Fuseki");
+//		Ids.parallelStream().forEach( (id) -> transferOneDoc(id) );
+		
+		String id ="start";
+		int i = 0;
+		for (i = 0; i < Ids.size();) {
+			id = Ids.get(i);
+			transferOneDoc(id);
+			if (++i % 100 == 0) {
+				if (i % 1000 == 0) {
+					System.out.println(id + ":" + i + ", ");
+				} else {
+					System.out.print(id + ":" + i + ", ");
+				}
+			}
+		}
+		
+		System.out.println("\nLast doc transferred: " + id);
+		System.out.println("Transferred " + i + " docs to Fuseki");
 	}
 	
 	public static DatasetAccessor connectFuseki() {
