@@ -38,8 +38,6 @@ import org.ektorp.http.StdHttpClient;
 import org.ektorp.impl.StdCouchDbConnector;
 import org.ektorp.impl.StdCouchDbInstance;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 public class TransferHelpers {
 
 	public static final String CORE_PREFIX = "http://onto.bdrc.io/ontologies/bdrc/";
@@ -81,11 +79,16 @@ public class TransferHelpers {
 		jsonLdContext.put("desc", DESCRIPTION_PREFIX);
 	}
 	
-	public static final String FusekiUrl = "http://localhost:13180/fuseki/bdrcrw/data";
-	public static final String CouchDBUrl = "http://localhost:13598";
+	public static String FusekiUrl = "http://localhost:13180/fuseki/bdrcrw/data";
+	public static String CouchDBUrl = "http://localhost:13598";
 	
 	public static CouchDbConnector db = connectCouchDB();
 	public static DatasetAccessor fu = connectFuseki();
+	
+	public static void init(String fusekiHost, String fusekiPort, String couchdbHost, String couchdbPort) {
+		FusekiUrl = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/bdrcrw/data";
+		CouchDBUrl = "http://" + couchdbHost + ":" +  couchdbPort + "/fuseki/bdrcrw/data";
+	}
 	
 	public static CouchDbConnector connectCouchDB() {
 		HttpClient httpClient;
@@ -146,6 +149,7 @@ public class TransferHelpers {
 			if (++i % 100 == 0) {
 				if (i % 1000 == 0) {
 					System.out.println(id + ":" + i + ", ");
+					System.exit(1);
 				} else {
 					System.out.print(id + ":" + i + ", ");
 				}
@@ -222,12 +226,19 @@ public class TransferHelpers {
 	    }
 	}
 	
-	public static OntModel getOntologyModel()
+	public static OntModel getOntologyModel(String onto)
 	{
 		OntModel ontoModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM, null);
 	    try {
-	        InputStream inputStream = new FileInputStream("src/main/resources/bdrc.owl");
-	        ontoModel.read(inputStream, "", "RDF/XML");
+	    	InputStream inputStream;
+
+	    	if (onto != null) {
+	    		inputStream = new FileInputStream(onto);
+	    	} else {
+	    		inputStream = new TransferHelpers().getClass().getResourceAsStream("/resources/bdrc.owl");
+	    	}
+	       
+	    	ontoModel.read(inputStream, "", "RDF/XML");
 	        inputStream.close();
 	    } catch (Exception e) {
 	        System.err.println(e.getMessage());
@@ -239,8 +250,12 @@ public class TransferHelpers {
 	}
 
 	public static void transferOntology() {
-		OntModel m = getOntologyModel();
+		OntModel m = getOntologyModel("src/main/resources/bdrc.owl");
 		transferModel(m);
 	}
-	
+
+	public static void transferOntology(String path) {
+		OntModel m = getOntologyModel(path);
+		transferModel(m);
+	}
 }

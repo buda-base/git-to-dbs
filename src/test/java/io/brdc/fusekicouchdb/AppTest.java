@@ -1,12 +1,9 @@
 package io.brdc.fusekicouchdb;
 
-import io.brdc.fusekicouchdb.TransferHelpers;
-
-import org.junit.Test;
-import org.junit.Before;
-
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Unit test for simple App.
