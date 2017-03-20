@@ -1533,38 +1533,6 @@ Thus crp:region maps crp:Corporation directly to plc:Place without any additiona
     
 
 
-    <!-- http://purl.bdrc.io/ontology/description#bon_bka_gyur_number -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#bon_bka_gyur_number">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#catalogue_number -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#catalogue_number">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#chapters -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#chapters">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#colophon -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#colophon">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
     <!-- http://purl.bdrc.io/ontology/description#completionDate -->
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#completionDate">
@@ -1584,14 +1552,6 @@ Thus crp:region maps crp:Corporation directly to plc:Place without any additiona
     <!-- http://purl.bdrc.io/ontology/description#date -->
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#date">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#dist_py -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#dist_py">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
     </owl:DatatypeProperty>
     
@@ -1621,49 +1581,9 @@ Thus crp:region maps crp:Corporation directly to plc:Place without any additiona
     
 
 
-    <!-- http://purl.bdrc.io/ontology/description#extent -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#extent">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
     <!-- http://purl.bdrc.io/ontology/description#featured -->
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#featured">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#gbdist -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#gbdist">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#gonpaPer1000 -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#gonpaPer1000">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#gonpaPerEcumen -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#gonpaPerEcumen">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#gser_bris_number -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#gser_bris_number">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
     </owl:DatatypeProperty>
     
@@ -1677,33 +1597,9 @@ Thus crp:region maps crp:Corporation directly to plc:Place without any additiona
     
 
 
-    <!-- http://purl.bdrc.io/ontology/description#incipit -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#incipit">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
     <!-- http://purl.bdrc.io/ontology/description#isIAO -->
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#isIAO">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#lhasa_number -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#lhasa_number">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#libraryOfCongress -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#libraryOfCongress">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
     </owl:DatatypeProperty>
     
@@ -1720,14 +1616,6 @@ Thus crp:region maps crp:Corporation directly to plc:Place without any additiona
     <!-- http://purl.bdrc.io/ontology/description#location -->
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#location">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#nameKR -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#nameKR">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
     </owl:DatatypeProperty>
     
@@ -1757,73 +1645,9 @@ Thus crp:region maps crp:Corporation directly to plc:Place without any additiona
     
 
 
-    <!-- http://purl.bdrc.io/ontology/description#otani -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#otani">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#otani_beijing -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#otani_beijing">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#prov_py -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#prov_py">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#rKTsReference -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#rKTsReference">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#sde_dge_number -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#sde_dge_number">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#shey_number -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#shey_number">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#snar_thang_number -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#snar_thang_number">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
     <!-- http://purl.bdrc.io/ontology/description#status -->
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#status">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#stog_number -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#stog_number">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
     </owl:DatatypeProperty>
     
@@ -1853,57 +1677,9 @@ Thus crp:region maps crp:Corporation directly to plc:Place without any additiona
     
 
 
-    <!-- http://purl.bdrc.io/ontology/description#toh -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#toh">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#town_ch -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#town_ch">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#town_py -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#town_py">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#town_syl -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#town_syl">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
     <!-- http://purl.bdrc.io/ontology/description#toyoBunko -->
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#toyoBunko">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#urga_number -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#urga_number">
-        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.bdrc.io/ontology/description#vinayottaragrantha -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/description#vinayottaragrantha">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/root#description"/>
     </owl:DatatypeProperty>
     
@@ -1967,6 +1743,14 @@ Thus crp:region maps crp:Corporation directly to plc:Place without any additiona
     
 
 
+    <!-- http://purl.bdrc.io/ontology/outline#bon_bka_gyur_number -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#bon_bka_gyur_number">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#ref_number"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.bdrc.io/ontology/outline#browserDataProperty -->
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#browserDataProperty">
@@ -2009,9 +1793,73 @@ Thus crp:region maps crp:Corporation directly to plc:Place without any additiona
     
 
 
+    <!-- http://purl.bdrc.io/ontology/outline#catalogue_number -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#catalogue_number">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#ref_number"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/outline#chapters -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#chapters">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#dataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/outline#colophon -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#colophon">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#dataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.bdrc.io/ontology/outline#dataProperty -->
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#dataProperty"/>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/outline#extent -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#extent">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#dataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/outline#gser_bris_number -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#gser_bris_number">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#ref_number"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/outline#incipit -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#incipit">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#dataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/outline#lhasa_number -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#lhasa_number">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#ref_number"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/outline#libraryOfCongress -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#libraryOfCongress">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#dataProperty"/>
+    </owl:DatatypeProperty>
     
 
 
@@ -2021,6 +1869,22 @@ Thus crp:region maps crp:Corporation directly to plc:Place without any additiona
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#dataProperty"/>
         <rdfs:domain rdf:resource="http://purl.bdrc.io/ontology/outline#Node"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/outline#otani -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#otani">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#ref_number"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/outline#otani_beijing -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#otani_beijing">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#ref_number"/>
     </owl:DatatypeProperty>
     
 
@@ -2051,12 +1915,76 @@ Thus crp:region maps crp:Corporation directly to plc:Place without any additiona
     
 
 
+    <!-- http://purl.bdrc.io/ontology/outline#rKTsReference -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#rKTsReference">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#ref_number"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/outline#ref_number -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#ref_number">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#dataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/outline#sde_dge_number -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#sde_dge_number">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#ref_number"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/outline#shey_number -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#shey_number">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#ref_number"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.bdrc.io/ontology/outline#site_circa -->
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#site_circa">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#dataProperty"/>
         <rdfs:domain rdf:resource="http://purl.bdrc.io/ontology/outline#Site"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/outline#snar_thang_number -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#snar_thang_number">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#ref_number"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/outline#stog_number -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#stog_number">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#ref_number"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/outline#toh -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#toh">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#ref_number"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/outline#urga_number -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#urga_number">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#ref_number"/>
     </owl:DatatypeProperty>
     
 
@@ -2106,6 +2034,14 @@ Thus crp:region maps crp:Corporation directly to plc:Place without any additiona
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#viewIn_target">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#viewInDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/outline#vinayottaragrantha -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/outline#vinayottaragrantha">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/outline#ref_number"/>
     </owl:DatatypeProperty>
     
 
@@ -2578,6 +2514,14 @@ In any event, when a per:Person is being migrated with info/@type = nonActor the
     
 
 
+    <!-- http://purl.bdrc.io/ontology/place#dist_py -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/place#dist_py">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/place#dataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.bdrc.io/ontology/place#event_circa -->
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/place#event_circa">
@@ -2612,6 +2556,14 @@ In any event, when a per:Person is being migrated with info/@type = nonActor the
     
 
 
+    <!-- http://purl.bdrc.io/ontology/place#gbdist -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/place#gbdist">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/place#dataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.bdrc.io/ontology/place#gisId -->
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/place#gisId">
@@ -2626,6 +2578,22 @@ In any event, when a per:Person is being migrated with info/@type = nonActor the
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/place#gisProperty">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/place#dataProperty"/>
         <rdfs:domain rdf:resource="http://purl.bdrc.io/ontology/place#Place"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/place#gonpaPer1000 -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/place#gonpaPer1000">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/place#dataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/place#gonpaPerEcumen -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/place#gonpaPerEcumen">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/place#dataProperty"/>
     </owl:DatatypeProperty>
     
 
@@ -2719,12 +2687,52 @@ In any event, when a per:Person is being migrated with info/@type = nonActor the
     
 
 
+    <!-- http://purl.bdrc.io/ontology/place#nameKR -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/place#nameKR">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/place#dataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/place#prov_py -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/place#prov_py">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/place#dataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.bdrc.io/ontology/place#regionPoly -->
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/place#regionPoly">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/place#gisProperty"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:comment>The object of this property is an xsd:string representing a geoJSON Polygon or Mulit-Polygon. See http://geojson.org/geojson-spec.html</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/place#town_ch -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/place#town_ch">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/place#dataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/place#town_py -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/place#town_py">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/place#dataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.bdrc.io/ontology/place#town_syl -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/place#town_syl">
+        <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/place#dataProperty"/>
     </owl:DatatypeProperty>
     
 
@@ -2922,7 +2930,14 @@ In any event, when a per:Person is being migrated with info/@type = nonActor the
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/volumes#number">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/volumes#dataProperty"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#positiveInteger"/>
+        <rdfs:range>
+            <rdfs:Datatype>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.w3.org/2001/XMLSchema#positiveInteger"/>
+                    <rdf:Description rdf:about="http://www.w3.org/2001/XMLSchema#string"/>
+                </owl:unionOf>
+            </rdfs:Datatype>
+        </rdfs:range>
     </owl:DatatypeProperty>
     
 
@@ -3425,7 +3440,14 @@ Every Work has a license with an associated access type. The most common case is
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#line">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#locationDataProperty"/>
         <rdfs:domain rdf:resource="http://purl.bdrc.io/ontology/work#Location"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#positiveInteger"/>
+        <rdfs:range>
+            <rdfs:Datatype>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.w3.org/2001/XMLSchema#positiveInteger"/>
+                    <rdf:Description rdf:about="http://www.w3.org/2001/XMLSchema#string"/>
+                </owl:unionOf>
+            </rdfs:Datatype>
+        </rdfs:range>
     </owl:DatatypeProperty>
     
 
@@ -3451,7 +3473,14 @@ Every Work has a license with an associated access type. The most common case is
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#page">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#locationDataProperty"/>
         <rdfs:domain rdf:resource="http://purl.bdrc.io/ontology/work#Location"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#positiveInteger"/>
+        <rdfs:range>
+            <rdfs:Datatype>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.w3.org/2001/XMLSchema#positiveInteger"/>
+                    <rdf:Description rdf:about="http://www.w3.org/2001/XMLSchema#string"/>
+                </owl:unionOf>
+            </rdfs:Datatype>
+        </rdfs:range>
     </owl:DatatypeProperty>
     
 
@@ -3460,7 +3489,14 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#phrase">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#locationDataProperty"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#positiveInteger"/>
+        <rdfs:range>
+            <rdfs:Datatype>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.w3.org/2001/XMLSchema#positiveInteger"/>
+                    <rdf:Description rdf:about="http://www.w3.org/2001/XMLSchema#string"/>
+                </owl:unionOf>
+            </rdfs:Datatype>
+        </rdfs:range>
     </owl:DatatypeProperty>
     
 
@@ -3478,7 +3514,6 @@ Every Work has a license with an associated access type. The most common case is
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfoDataProperty">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#dataProperty"/>
         <rdfs:domain rdf:resource="http://purl.bdrc.io/ontology/work#Work"/>
-        <rdfs:range rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral"/>
     </owl:DatatypeProperty>
     
 
@@ -3487,6 +3522,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_authorshipStatement">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral"/>
     </owl:DatatypeProperty>
     
 
@@ -3495,6 +3531,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_biblioNote">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral"/>
     </owl:DatatypeProperty>
     
 
@@ -3503,6 +3540,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_dateOfWriting">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
 
@@ -3511,6 +3549,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_dimensions">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
 
@@ -3519,6 +3558,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_editionStatement">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral"/>
     </owl:DatatypeProperty>
     
 
@@ -3527,6 +3567,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_encoding">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
 
@@ -3535,6 +3576,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_extent">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
 
@@ -3543,6 +3585,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_hollis">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
 
@@ -3551,6 +3594,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_illustrations">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
 
@@ -3559,6 +3603,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_isbn">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
 
@@ -3567,6 +3612,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_lcCallNumber">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
 
@@ -3575,6 +3621,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_lccn">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
 
@@ -3583,6 +3630,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_pl480">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
 
@@ -3646,6 +3694,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_printery">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral"/>
     </owl:DatatypeProperty>
     
 
@@ -3654,6 +3703,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_publisherDate">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
 
@@ -3662,6 +3712,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_publisherLocation">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral"/>
     </owl:DatatypeProperty>
     
 
@@ -3670,6 +3721,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_publisherName">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral"/>
     </owl:DatatypeProperty>
     
 
@@ -3678,6 +3730,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_seeHarvard">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
 
@@ -3695,6 +3748,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_seriesName">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral"/>
     </owl:DatatypeProperty>
     
 
@@ -3703,6 +3757,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_seriesNumber">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
 
@@ -3738,6 +3793,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_sourceNote">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral"/>
     </owl:DatatypeProperty>
     
 
@@ -3746,6 +3802,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_sourcePrintery_string">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
 
@@ -3754,6 +3811,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_tbrcHoldings">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
 
@@ -3762,6 +3820,7 @@ Every Work has a license with an associated access type. The most common case is
 
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#pubinfo_volumes">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#pubinfoDataProperty"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
 
@@ -3851,7 +3910,14 @@ The wrk:title(s) are applicable to Work resources and Outline Node facets</rdfs:
     <owl:DatatypeProperty rdf:about="http://purl.bdrc.io/ontology/work#volume">
         <rdfs:subPropertyOf rdf:resource="http://purl.bdrc.io/ontology/work#locationDataProperty"/>
         <rdfs:domain rdf:resource="http://purl.bdrc.io/ontology/work#Location"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#positiveInteger"/>
+        <rdfs:range>
+            <rdfs:Datatype>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.w3.org/2001/XMLSchema#positiveInteger"/>
+                    <rdf:Description rdf:about="http://www.w3.org/2001/XMLSchema#string"/>
+                </owl:unionOf>
+            </rdfs:Datatype>
+        </rdfs:range>
     </owl:DatatypeProperty>
     
 
