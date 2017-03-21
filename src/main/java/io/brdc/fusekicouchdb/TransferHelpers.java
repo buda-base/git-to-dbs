@@ -235,7 +235,8 @@ public class TransferHelpers {
 	    	if (onto != null) {
 	    		inputStream = new FileInputStream(onto);
 	    	} else {
-	    		inputStream = new TransferHelpers().getClass().getResourceAsStream("/resources/bdrc.owl");
+	    		ClassLoader classLoader = TransferHelpers.class.getClassLoader();
+	    		inputStream = classLoader.getResourceAsStream("bdrc.owl");
 	    	}
 	       
 	    	ontoModel.read(inputStream, "", "RDF/XML");
