@@ -2,6 +2,8 @@
 
 CouchDB - Fuseki interface (specific to BDRC data)
 
+This repository has a [submodule](http://paynedigital.com/articles/2011/10/introduction-to-git-submodules).
+
 ## Compiling and running
 
 Simple run:
