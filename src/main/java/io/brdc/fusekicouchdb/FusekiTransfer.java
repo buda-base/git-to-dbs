@@ -3,17 +3,14 @@ package io.brdc.fusekicouchdb;
 import java.util.StringTokenizer;
 
 public class FusekiTransfer {
-	static String VERSION = "1.0.3";	
+	static String VERSION =  TransferHelpers.class.getPackage().getImplementationVersion();
+
 	public static String fusekiHost = "localhost";
 	public static String fusekiPort = "13180";
 	public static String couchdbHost = "localhost";
 	public static String couchdbPort = "13598";
 	static boolean debug = false;
-
-	public FusekiTransfer() {
-		// TODO Auto-generated constructor stub
-	}
-
+	
 	private static void printHelp() {
 		System.err.print("java -jar FusekiTransfer.jar OPTIONS\r\n"
 				+ "Transfers all JSONLD documents in couchdb to fuseki\r\n"

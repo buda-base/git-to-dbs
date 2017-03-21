@@ -18,6 +18,19 @@
           <cleanupDaemonThreads>false</cleanupDaemonThreads>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.0.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
       <!-- Low obviousness: maven needs to concatenate the 
             META-INF/services/org.apache.jena.system.JenaSubsystemLifecycl
           in the jar in order for it to initialize jena properly.
