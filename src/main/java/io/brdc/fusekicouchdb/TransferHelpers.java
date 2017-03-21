@@ -149,7 +149,6 @@ public class TransferHelpers {
 			if (++i % 100 == 0) {
 				if (i % 1000 == 0) {
 					System.out.println(id + ":" + i + ", ");
-					System.exit(1);
 				} else {
 					System.out.print(id + ":" + i + ", ");
 				}
