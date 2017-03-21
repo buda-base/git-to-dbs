@@ -10,23 +10,56 @@
   <build>
     <plugins>
       <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.6.0</version>
         <configuration>
-          <archive>
-            <manifest>
-              <mainClass>io.bdrc.xmltoldmigration.MigrationApp</mainClass>
-            </manifest>
-          </archive>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
+          <mainClass>io.brdc.fusekicouchdb.FusekiTransfer</mainClass>
+          <cleanupDaemonThreads>false</cleanupDaemonThreads>
+        </configuration>
+      </plugin>
+      <!-- Low obviousness: maven needs to concatenate the 
+            META-INF/services/org.apache.jena.system.JenaSubsystemLifecycl
+          in the jar in order for it to initialize jena properly.
+          See http://jena.apache.org/documentation/notes/jena-repack.html
+          This is a copy/paste from the given example (fuseki pom).
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.0.0</version>
+        <configuration>
+          <shadedArtifactAttached>false</shadedArtifactAttached>
+          <transformers>
+            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+              <mainClass>io.brdc.fusekicouchdb.FusekiTransfer</mainClass>
+            </transformer>
+            <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+            <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
+            <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+              <addHeader>false</addHeader>
+            </transformer>
+          </transformers>
+          <filters>
+            <filter>
+              <artifact>*:*</artifact>
+              <excludes>
+                <!-- Some jars are signed but shading breaks that.
+                     Don't include signing files.
+                -->
+                <exclude>META-INF/*.SF</exclude>
+                <exclude>META-INF/*.DSA</exclude>
+                <exclude>META-INF/*.RSA</exclude>
+              </excludes>
+            </filter>
+          </filters>
         </configuration>
         <executions>
           <execution>
-            <id>make-assembly</id> <!-- this is used for inheritance merges -->
-            <phase>package</phase> <!-- bind to the packaging phase -->
+            <phase>package</phase>
+            <!--<phase /><!- - Switch off -->
             <goals>
-              <goal>single</goal>
+              <goal>shade</goal>
             </goals>
           </execution>
         </executions>
