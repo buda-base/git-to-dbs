@@ -39,7 +39,8 @@ import org.ektorp.impl.StdCouchDbConnector;
 import org.ektorp.impl.StdCouchDbInstance;
 
 public class TransferHelpers {
-
+	static boolean debug = false;
+	
 	public static final String CORE_PREFIX = "http://onto.bdrc.io/ontologies/bdrc/";
 	public static final String DESCRIPTION_PREFIX = "http://onto.bdrc.io/ontology/description#";
 	public static final String ROOT_PREFIX = "http://purl.bdrc.io/ontology/root/";
@@ -85,7 +86,8 @@ public class TransferHelpers {
 	public static CouchDbConnector db = connectCouchDB();
 	public static DatasetAccessor fu = connectFuseki();
 	
-	public static void init(String fusekiHost, String fusekiPort, String couchdbHost, String couchdbPort) {
+	public static void init(String fusekiHost, String fusekiPort, String couchdbHost, String couchdbPort, boolean d) {
+		debug = d;
 		FusekiUrl = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/bdrcrw/data";
 		CouchDBUrl = "http://" + couchdbHost + ":" +  couchdbPort + "/fuseki/bdrcrw/data";
 	}
@@ -136,17 +138,18 @@ public class TransferHelpers {
         return res;
 	}
 	
-	public static void transferCompleteDB () {
+	public static void transferCompleteDB (int n) {
 		List<String> Ids = getAllIds();
 		System.out.println("Transferring " + Ids.size() + " docs to Fuseki");
 //		Ids.parallelStream().forEach( (id) -> transferOneDoc(id) );
 		
 		String id ="start";
 		int i = 0;
-		for (i = 0; i < Ids.size();) {
+		int lim = Integer.min(Ids.size(), n);
+		for (i = 0; i < lim;) {
 			id = Ids.get(i);
 			transferOneDoc(id);
-			if (++i % 100 == 0) {
+			if (++i % 100 == 0 && debug) {
 				if (i % 1000 == 0) {
 					System.out.println(id + ":" + i + ", ");
 				} else {
@@ -157,6 +160,10 @@ public class TransferHelpers {
 		
 		System.out.println("\nLast doc transferred: " + id);
 		System.out.println("Transferred " + i + " docs to Fuseki");
+	}
+	
+	public static void transferCompleteDB () {
+		transferCompleteDB(Integer.MAX_VALUE);
 	}
 	
 	public static DatasetAccessor connectFuseki() {
