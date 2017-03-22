@@ -140,12 +140,12 @@ public class TransferHelpers {
 	
 	public static void transferCompleteDB (int n) {
 		List<String> Ids = getAllIds();
-		System.out.println("Transferring " + Ids.size() + " docs to Fuseki");
+		int lim = Integer.min(Ids.size(), n);
+		System.out.println("Transferring " + lim + " docs to Fuseki");
 //		Ids.parallelStream().forEach( (id) -> transferOneDoc(id) );
 		
 		String id ="start";
 		int i = 0;
-		int lim = Integer.min(Ids.size(), n);
 		for (i = 0; i < lim;) {
 			id = Ids.get(i);
 			transferOneDoc(id);
