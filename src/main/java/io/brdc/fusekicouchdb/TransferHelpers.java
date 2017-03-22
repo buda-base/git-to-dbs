@@ -185,7 +185,7 @@ public class TransferHelpers {
 	}
 
 	private static void transferModel(String graphName, Model m) {
-		fu.add(graphName, m);
+		fu.putModel(graphName, m);
 	}
 
 	public static void addDocIdInModel(String docId, Model m) {
