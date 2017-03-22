@@ -162,20 +162,30 @@ public class TransferHelpers {
 	public static DatasetAccessor connectFuseki() {
 		return DatasetAccessorFactory.createHTTP(FusekiUrl);
 	}
+	
+	public static String getFullUrlFromDocId(String docId) {
+		int colonIndex = docId.indexOf(":");
+		if (colonIndex < 0) return docId;
+		String prefix = docId.substring(0 , colonIndex);
+		String finalPart = docId.substring(colonIndex+1);
+		if (prefix.isEmpty()) prefix = "@vocab";
+		return jsonLdContext.get(prefix)+finalPart;
+	}
 
 	public static void transferOneDoc(String docId) {
 		try {
 			Model m = ModelFactory.createDefaultModel();
 			addDocIdInModel(docId, m);
 			//printModel(m);
-			transferModel(m);
+			String graphName = getFullUrlFromDocId(docId);
+			transferModel(graphName, m);
 		} catch (Exception ex) {
 			System.err.println("Processing: " + docId + " throws " + ex.toString());
 		}
 	}
 
-	private static void transferModel(Model m) {
-		fu.add(m);
+	private static void transferModel(String graphName, Model m) {
+		fu.add(graphName, m);
 	}
 
 	public static void addDocIdInModel(String docId, Model m) {
@@ -251,11 +261,11 @@ public class TransferHelpers {
 
 	public static void transferOntology() {
 		OntModel m = getOntologyModel("src/main/resources/bdrc.owl");
-		transferModel(m);
+		transferModel(ROOT_PREFIX+"baseontology", m);
 	}
 
 	public static void transferOntology(String path) {
 		OntModel m = getOntologyModel(path);
-		transferModel(m);
+		transferModel(ROOT_PREFIX+"baseontology", m);
 	}
 }
