@@ -9,6 +9,7 @@ public class FusekiTransfer {
 	public static String fusekiPort = "13180";
 	public static String couchdbHost = "localhost";
 	public static String couchdbPort = "13598";
+	public static int howMany = Integer.MAX_VALUE;
 	static boolean debug = false;
 	
 	private static void printHelp() {
@@ -19,6 +20,7 @@ public class FusekiTransfer {
 				+ "-fusekiPort <port> - port fuseki is running on. Defaults to 13180\r\n"
 				+ "-couchdbHost <host> - host couchdb is running on. Defaults to localhost\r\n"
 				+ "-couchdbPort <port> - port couchdb is running on. Defaults to 13598\r\n"
+				+ "-n <int> - specify how many docs to transfer. Defaults to all of the docs\r\n"
 				+ "-debug - if present then much more additional information is displayed during execution.\r\n"
 				+ "-help - print this message and exits\r\n"
 				+ "-version - prints the version and exits\r\n"
@@ -37,6 +39,8 @@ public class FusekiTransfer {
 				couchdbHost = (++i < args.length ? args[i] : null);
 			} else if (arg.equals("-couchdbPort")) {
 				couchdbPort = (++i < args.length ? args[i] : null);
+			} else if (arg.equals("-n")) {
+				howMany = (++i < args.length ? Integer.parseInt(args[i]) : null);
 			} else if (arg.equals("-help")) {
 				printHelp();
 				System.exit(0);
@@ -60,10 +64,10 @@ public class FusekiTransfer {
 
 		try {
 			
-			TransferHelpers.init(fusekiHost, fusekiPort, couchdbHost, couchdbPort);
+			TransferHelpers.init(fusekiHost, fusekiPort, couchdbHost, couchdbPort, debug);
 
 			TransferHelpers.transferOntology(null); // use ontology from jar
-			TransferHelpers.transferCompleteDB();
+			TransferHelpers.transferCompleteDB(howMany);
 		
 		} catch (Exception ex) {
 			ex.printStackTrace();
