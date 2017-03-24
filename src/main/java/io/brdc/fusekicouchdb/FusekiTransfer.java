@@ -9,12 +9,12 @@ import org.ektorp.changes.DocumentChange;
 public class FusekiTransfer {
 	static String VERSION =  TransferHelpers.class.getPackage().getImplementationVersion();
 
-	public static String fusekiHost = "localhost";
-	public static String fusekiPort = "13180";
-	public static String couchdbHost = "localhost";
-	public static String couchdbPort = "13598";
-	public static int howMany = Integer.MAX_VALUE;
-	static boolean debug = false;
+	static String fusekiHost = "localhost";
+	static String fusekiPort = "13180";
+	static String couchdbHost = "localhost";
+	static String couchdbPort = "13598";
+	static String couchdbName = "test";
+	static int howMany = Integer.MAX_VALUE;
 	static boolean transferAllDB = false;
 	static boolean listenToChanges = true;
 	
@@ -26,12 +26,13 @@ public class FusekiTransfer {
 				+ "-fusekiPort <port> - port fuseki is running on. Defaults to 13180\n"
 				+ "-couchdbHost <host> - host couchdb is running on. Defaults to localhost\n"
 				+ "-couchdbPort <port> - port couchdb is running on. Defaults to 13598\n"
+				+ "-couchdbName <name> - name of the couchdb database. Defaults to 'test'\n"
 				+ "-transferAllDB - transfer the whole database\n"
 				+ "-doNotListen - do not listen to changes\n"
 				+ "-n <int> - specify how many docs to transfer. Defaults to all of the docs\n"
-				+ "-debug - if present then much more additional information is displayed during execution.\n"
 				+ "-help - print this message and exits\n"
 				+ "-version - prints the version and exits\n"
+				+ "\nset log level with -Dorg.slf4j.simpleLogger.defaultLogLevel=XXX\n"
 				+ "\nFusekiTransfer version: " + VERSION + "\n"
 				);
 	}
@@ -47,6 +48,8 @@ public class FusekiTransfer {
 				couchdbHost = (++i < args.length ? args[i] : null);
 			} else if (arg.equals("-couchdbPort")) {
 				couchdbPort = (++i < args.length ? args[i] : null);
+			} else if (arg.equals("-couchdbName")) {
+				couchdbName = (++i < args.length ? args[i] : null);
 			} else if (arg.equals("-n")) {
 				howMany = (++i < args.length ? Integer.parseInt(args[i]) : null);
 			} else if (arg.equals("-transferAllDB")) {
@@ -56,12 +59,10 @@ public class FusekiTransfer {
 			} else if (arg.equals("-help")) {
 				printHelp();
 				System.exit(0);
-			} else if (arg.equals("-debug")) {
-				debug = true;;
 			} else if (arg.equals("-version")) {
 				System.err.println("FusekiTransfer version: " + VERSION);
 
-				if (debug) {
+				if (TransferHelpers.logger.isDebugEnabled()) {
 					System.err.println("Current java.library.path:");
 					String property = System.getProperty("java.library.path");
 					StringTokenizer parser = new StringTokenizer(property, ";");
@@ -74,20 +75,27 @@ public class FusekiTransfer {
 			}
 		}
 		
-		TransferHelpers.init(fusekiHost, fusekiPort, couchdbHost, couchdbPort, debug);
+		try {
+			TransferHelpers.init(fusekiHost, fusekiPort, couchdbHost, couchdbPort, couchdbName);
+		} catch (Exception e) {
+			TransferHelpers.logger.error("error in initialization", e);
+			System.exit(1);
+		}
 
 		if (transferAllDB) {		
 			try {
 				TransferHelpers.transferOntology(null); // use ontology from jar
 				TransferHelpers.transferCompleteDB(howMany);
-			
 			} catch (Exception ex) {
-				ex.printStackTrace();
+				TransferHelpers.logger.error("error in complete transfer", ex);
+				System.exit(1);
 			}
 		}
 		
 		if (listenToChanges) {
 			String lastFusekiSequence = TransferHelpers.getLastFusekiSequence();
+			
+			TransferHelpers.logger.info("listening to couchdb changes...");
 			
 			ChangesCommand cmd = new ChangesCommand.Builder()
 					.includeDocs(true)
@@ -105,15 +113,15 @@ public class FusekiTransfer {
 					change = feed.next();
 					id = change.getId();
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					TransferHelpers.logger.error("error while listening to changes, quitting", e);
+					System.exit(1);
 					return;
 				}
 				try {
 					TransferHelpers.transferChange(change);
 				} catch (Exception e) {
-					System.err.println("error transfering doc "+id);
-					e.printStackTrace();
+					TransferHelpers.logger.error("error transfering doc "+id, e);
+					System.exit(1);
 				}
 			}
 		}

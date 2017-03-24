@@ -35,14 +35,15 @@ import org.ektorp.http.HttpResponse;
 import org.ektorp.http.StdHttpClient;
 import org.ektorp.impl.StdCouchDbConnector;
 import org.ektorp.impl.StdCouchDbInstance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class TransferHelpers {
-	static boolean debug = false;
-	
 	public static final String CORE_PREFIX = "http://onto.bdrc.io/ontologies/bdrc/";
 	public static final String DESCRIPTION_PREFIX = "http://onto.bdrc.io/ontology/description#";
 	public static final String ROOT_PREFIX = "http://purl.bdrc.io/ontology/root/";
@@ -61,6 +62,8 @@ public class TransferHelpers {
 	public static final String RDF_PREFIX = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 	public static final String RDFS_PREFIX = "http://www.w3.org/2000/01/rdf-schema#";
 	public static final String XSD_PREFIX = "http://www.w3.org/2001/XMLSchema#";
+	
+	final public static Logger logger = LoggerFactory.getLogger("fuseki-couchdb");
 	
 	public static ObjectMapper objectMapper = new ObjectMapper();
 	public static ObjectNode jsonLdContext = objectMapper.createObjectNode();
@@ -89,41 +92,32 @@ public class TransferHelpers {
 	public static CouchDbConnector db = null;
 	public static DatasetAccessor fu = null;
 	
-	public static void init(String fusekiHost, String fusekiPort, String couchdbHost, String couchdbPort, boolean d) {
-		debug = d;
+	public static void init(String fusekiHost, String fusekiPort, String couchdbHost, String couchdbPort, String couchdbName) throws MalformedURLException {
 		FusekiUrl = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/bdrcrw/data";
 		CouchDBUrl = "http://" + couchdbHost + ":" +  couchdbPort + "/fuseki/bdrcrw/data";
-		db = connectCouchDB();
+		logger.info("connecting to couchdb on "+CouchDBUrl);
+		db = connectCouchDB(couchdbName);
+		logger.info("connecting to fuseki on "+FusekiUrl);
 		fu = connectFuseki();
 	}
 	
-	public static CouchDbConnector connectCouchDB() {
+	public static CouchDbConnector connectCouchDB(String couchdbName) throws MalformedURLException {
 		HttpClient httpClient;
 		CouchDbInstance dbInstance;
 		CouchDbConnector res = null;
-    	try {
-            httpClient = new StdHttpClient.Builder()
-                    .url(CouchDBUrl)
-                    .build();
-            dbInstance = new StdCouchDbInstance(httpClient);
-            // http://localhost:5984/test/_design/jsonld/_show/jsonld/
-            res = new StdCouchDbConnector("test", dbInstance);
-        } catch (MalformedURLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        httpClient = new StdHttpClient.Builder()
+                .url(CouchDBUrl)
+                .build();
+        dbInstance = new StdCouchDbInstance(httpClient);
+        res = new StdCouchDbConnector(couchdbName, dbInstance);
     	return res;
 	}
 	
-	public static List<String> getAllIds() {
-		return db.getAllDocIds();
-	}
-	
 	public static void transferCompleteDB (int n) {
-		List<String> Ids = getAllIds();
+		List<String> Ids = db.getAllDocIds();
 		int lim = Integer.min(Ids.size(), n);
 		String lastSequence = (lim < Ids.size()) ? "0" : getLastCouchDBChangeSeq();
-		System.out.println("Transferring " + lim + " docs to Fuseki");
+		logger.info("Transferring " + lim + " docs to Fuseki");
 //		Ids.parallelStream().forEach( (id) -> transferOneDoc(id) );
 		
 		String id ="start";
@@ -131,18 +125,18 @@ public class TransferHelpers {
 		for (i = 0; i < lim;) {
 			id = Ids.get(i);
 			transferOneDoc(id);
-			if (++i % 100 == 0 && debug) {
+			if (++i % 100 == 0 && logger.isDebugEnabled()) {
 				if (i % 1000 == 0) {
-					System.out.println(id + ":" + i + ", ");
+					logger.debug(id + ":" + i + ", ");
 				} else {
-					System.out.print(id + ":" + i + ", ");
+					logger.debug(id + ":" + i + ", ");
 				}
 			}
 		}
-		System.out.println("\nLast doc transferred: " + id);
-		System.out.println("Transferred " + i + " docs to Fuseki");
+		logger.info("Last doc transferred: " + id);
+		logger.info("Transferred " + i + " docs to Fuseki");
 		updateFusekiLastSequence(lastSequence);
-		System.out.println("updating sequence to "+lastSequence);
+		logger.info("Updating sequence to "+lastSequence);
 	}
 	
 	public static void transferCompleteDB () {
@@ -171,17 +165,12 @@ public class TransferHelpers {
 			String graphName = getFullUrlFromDocId(docId);
 			transferModel(graphName, m);
 		} catch (Exception ex) {
-			System.err.println("Processing: " + docId + " throws " + ex.toString());
+			logger.error("Error transfering "+docId, ex);
 		}
 	}
 
 	private static void transferModel(String graphName, Model m) {
-		try {
-			fu.putModel(graphName, m);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return;
-		}
+		fu.putModel(graphName, m);
 	}
 
 	public static void addDocIdInModel(String docId, Model m) {
@@ -197,8 +186,7 @@ public class TransferHelpers {
 	    try {
 			stuff.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("This really shouldn't happen!", e);
 		}
 	}
 	
@@ -247,7 +235,7 @@ public class TransferHelpers {
 				DocumentChange change = feed.next();
 				return change.getStringSequence();
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				logger.error("Error fetching couchDB changes", e);
 			}
 		}
 		return null;
@@ -264,8 +252,7 @@ public class TransferHelpers {
 		try {
 			docstring = objectMapper.writeValueAsString(doc);
 		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("This really shouldn't happen!", e);
 			return null;
 		}
 		StringReader docreader = new StringReader(docstring);
@@ -281,18 +268,18 @@ public class TransferHelpers {
 		String fullId = getFullUrlFromDocId(id);
 		String sequence = change.getStringSequence();
 		if (change.isDeleted()) {
-			System.out.println("deleting " + id);
+			logger.info("deleting " + fullId);
 			fu.deleteModel(fullId);
 			updateFusekiLastSequence(sequence);
 			return;
 		}
-		System.out.println("updating "+fullId);
+		logger.info("updating " + fullId);
 		JsonNode o = change.getDocAsNode();
 		Model m = couchDocToModel((ObjectNode) o);
 		o = null; change = null;//gc
 		transferModel(fullId, m);
 		updateFusekiLastSequence(sequence);
-		System.out.println("last sequence set to "+sequence);
+		logger.info("last sequence set to "+sequence);
 	}
 	
 	// for debugging purposes only
@@ -340,7 +327,7 @@ public class TransferHelpers {
 	    	ontoModel.read(inputStream, "", "RDF/XML");
 	        inputStream.close();
 	    } catch (Exception e) {
-	        System.err.println(e.getMessage());
+	    	logger.error("Error reading ontology file", e);
 	    }
 	    // then we fix it by removing the individuals and converting rdf10 to rdf11
 	    removeIndividuals(ontoModel);
