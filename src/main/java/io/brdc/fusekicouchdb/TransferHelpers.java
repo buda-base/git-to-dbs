@@ -3,22 +3,21 @@ package io.brdc.fusekicouchdb;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-
 import org.apache.jena.ontology.DatatypeProperty;
 import org.apache.jena.ontology.Individual;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.query.DatasetAccessor;
 import org.apache.jena.query.DatasetAccessorFactory;
+import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
@@ -28,15 +27,18 @@ import org.apache.jena.sparql.util.Context;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
-import org.ektorp.DbAccessException;
-import org.ektorp.StreamingViewResult;
-import org.ektorp.ViewQuery;
-import org.ektorp.ViewResult.Row;
+import org.ektorp.changes.ChangesCommand;
+import org.ektorp.changes.ChangesFeed;
+import org.ektorp.changes.DocumentChange;
 import org.ektorp.http.HttpClient;
 import org.ektorp.http.HttpResponse;
 import org.ektorp.http.StdHttpClient;
 import org.ektorp.impl.StdCouchDbConnector;
 import org.ektorp.impl.StdCouchDbInstance;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class TransferHelpers {
 	static boolean debug = false;
@@ -60,7 +62,8 @@ public class TransferHelpers {
 	public static final String RDFS_PREFIX = "http://www.w3.org/2000/01/rdf-schema#";
 	public static final String XSD_PREFIX = "http://www.w3.org/2001/XMLSchema#";
 	
-	public static Map<String,String> jsonLdContext = new LinkedHashMap<String, String>();
+	public static ObjectMapper objectMapper = new ObjectMapper();
+	public static ObjectNode jsonLdContext = objectMapper.createObjectNode();
 	static {
 		jsonLdContext.put("@vocab", ROOT_PREFIX);
 		jsonLdContext.put("com", COMMON_PREFIX);
@@ -83,13 +86,15 @@ public class TransferHelpers {
 	public static String FusekiUrl = "http://localhost:13180/fuseki/bdrcrw/data";
 	public static String CouchDBUrl = "http://localhost:13598";
 	
-	public static CouchDbConnector db = connectCouchDB();
-	public static DatasetAccessor fu = connectFuseki();
+	public static CouchDbConnector db = null;
+	public static DatasetAccessor fu = null;
 	
 	public static void init(String fusekiHost, String fusekiPort, String couchdbHost, String couchdbPort, boolean d) {
 		debug = d;
 		FusekiUrl = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/bdrcrw/data";
 		CouchDBUrl = "http://" + couchdbHost + ":" +  couchdbPort + "/fuseki/bdrcrw/data";
+		db = connectCouchDB();
+		fu = connectFuseki();
 	}
 	
 	public static CouchDbConnector connectCouchDB() {
@@ -110,37 +115,14 @@ public class TransferHelpers {
     	return res;
 	}
 	
-    private static boolean safeHasNext(Iterator<Row> rowIterator) {
-        try {
-            return rowIterator.hasNext();
-        } catch (DbAccessException e) {
-            System.err.println("Failed to move to next row while detecting table");
-            return false;
-        }
-    }
-	
 	public static List<String> getAllIds() {
-		List<String> res = new ArrayList<String>();
-		final StreamingViewResult streamingView = db.queryForStreamingView(new ViewQuery().allDocs());
-        try {
-            final Iterator<Row> rowIterator = streamingView.iterator();
-            while (safeHasNext(rowIterator)) {
-                Row row = rowIterator.next();
-                String Id = row.getId();
-                if (!Id.startsWith("_"))
-                	res.add(Id);
-            }
-        } catch (Exception e) {
-       		e.printStackTrace();
-       	} finally {
-       		streamingView.close();
-       	}
-        return res;
+		return db.getAllDocIds();
 	}
 	
 	public static void transferCompleteDB (int n) {
 		List<String> Ids = getAllIds();
 		int lim = Integer.min(Ids.size(), n);
+		String lastSequence = (lim < Ids.size()) ? "0" : getLastCouchDBChangeSeq();
 		System.out.println("Transferring " + lim + " docs to Fuseki");
 //		Ids.parallelStream().forEach( (id) -> transferOneDoc(id) );
 		
@@ -157,9 +139,10 @@ public class TransferHelpers {
 				}
 			}
 		}
-		
 		System.out.println("\nLast doc transferred: " + id);
 		System.out.println("Transferred " + i + " docs to Fuseki");
+		updateFusekiLastSequence(lastSequence);
+		System.out.println("updating sequence to "+lastSequence);
 	}
 	
 	public static void transferCompleteDB () {
@@ -176,7 +159,8 @@ public class TransferHelpers {
 		String prefix = docId.substring(0 , colonIndex);
 		String finalPart = docId.substring(colonIndex+1);
 		if (prefix.isEmpty()) prefix = "@vocab";
-		return jsonLdContext.get(prefix)+finalPart;
+		String longPrefix = jsonLdContext.get(prefix).asText();
+		return longPrefix+finalPart;
 	}
 
 	public static void transferOneDoc(String docId) {
@@ -192,7 +176,12 @@ public class TransferHelpers {
 	}
 
 	private static void transferModel(String graphName, Model m) {
-		fu.putModel(graphName, m);
+		try {
+			fu.putModel(graphName, m);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
 	}
 
 	public static void addDocIdInModel(String docId, Model m) {
@@ -211,6 +200,99 @@ public class TransferHelpers {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public static void updateFusekiLastSequence(String sequence) {
+		Model m = getSyncModel();
+		Resource res = m.getResource(ROOT_PREFIX+"CouchdbSyncInfo");
+		Property p = m.getProperty(ROOT_PREFIX+"has_last_sequence");
+		Literal l = m.createLiteral(sequence);
+		Statement s = m.getProperty(res, p);
+		if (s == null) {
+			m.add(res, p, l);
+		} else {
+			s.changeObject(sequence);
+		}
+		transferModel(ROOT_PREFIX+"system", m);
+	}
+	
+	private static Model syncModel = null;
+	
+	public static synchronized Model getSyncModel() {
+		if (syncModel != null) return syncModel;
+		syncModel = fu.getModel(ROOT_PREFIX+"system");
+		if (syncModel == null) {
+			syncModel = ModelFactory.createDefaultModel();
+		}
+		return syncModel;
+	}
+	
+	public static String getLastFusekiSequence() { 
+		Model m = getSyncModel();
+		Resource res = m.getResource(ROOT_PREFIX+"CouchdbSyncInfo");
+		Property p = m.getProperty(ROOT_PREFIX+"has_last_sequence");
+		Statement s = m.getProperty(res, p);
+		if (s == null) return null;
+		return s.getString();
+	}
+	
+	public static String getLastCouchDBChangeSeq() {
+		ChangesCommand cmd = new ChangesCommand.Builder()
+				.param("descending", "true")
+				.limit(1)
+				.build();
+		ChangesFeed feed = db.changesFeed(cmd);
+		while (feed.isAlive()) {
+			try {
+				DocumentChange change = feed.next();
+				return change.getStringSequence();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
+	
+	public static Model couchDocToModel(ObjectNode doc) {
+		Model m = ModelFactory.createDefaultModel();
+		doc.remove("_id");
+		doc.remove("_rev");
+		doc.put("@context", jsonLdContext);
+		// quite inefficient: we have to convert the doc to string
+		// to feed it to jena json-ld parser...
+		String docstring;
+		try {
+			docstring = objectMapper.writeValueAsString(doc);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+		StringReader docreader = new StringReader(docstring);
+		m.read(docreader, "", "JSON-LD");
+		return m;
+	}
+	
+	public static void transferChange(DocumentChange change) {
+		String id = change.getId();
+		if (change.getId().startsWith("_design")) {
+			return;
+		}
+		String fullId = getFullUrlFromDocId(id);
+		String sequence = change.getStringSequence();
+		if (change.isDeleted()) {
+			System.out.println("deleting " + id);
+			fu.deleteModel(fullId);
+			updateFusekiLastSequence(sequence);
+			return;
+		}
+		System.out.println("updating "+fullId);
+		JsonNode o = change.getDocAsNode();
+		Model m = couchDocToModel((ObjectNode) o);
+		o = null; change = null;//gc
+		transferModel(fullId, m);
+		updateFusekiLastSequence(sequence);
+		System.out.println("last sequence set to "+sequence);
 	}
 	
 	// for debugging purposes only
