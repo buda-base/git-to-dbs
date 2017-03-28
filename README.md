@@ -1,29 +1,27 @@
 # fuseki-couchdb
 
-CouchDB - Fuseki interface (specific to BDRC data)
+This repository contains code to transfer BDRC data from CouchDB to Fuseki. It can transfer the whole database or just listen to changes in CouchDB.
 
-After cloning: 
+## Downloading
 
-```
-git submodule update --init
-```
+You can either clone this repository (and then the submodule: `git submodule update --init`) or fetch the latest .jar file on the [release page](https://github.com/BuddhistDigitalResourceCenter/fuseki-couchdb/releases).
 
 ## Compiling and running
 
-Simple run:
+##### from the jar file 
+
+```
+java -jar target/fusekicouchdb-0.2.jar -help
+```
+
+##### from the java code
 
 ```
 mvn compile exec:java -Dexec.args="-help"
 ```
 
-Compiling and generating jar file:
+To compile a jar file:
 
 ```
 mvn clean package
-```
-
-Running the jar file:
-
-```
-java -jar target/fusekicouchdb-0.1.jar -help
 ```
