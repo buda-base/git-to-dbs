@@ -4,7 +4,7 @@
   <groupId>io.bdrc.fusekicouchdb</groupId>
   <artifactId>fusekicouchdb</artifactId>
   <packaging>jar</packaging>
-  <version>0.4</version>
+  <version>0.5</version>
   <name>fusekicouchdb</name>
   <url>https://github.com/BuddhistDigitalResourceCenter/fuseki-couchdb</url>
   <scm>

@@ -71,7 +71,7 @@ public class TransferHelpers {
 	public static final String RDFS_PREFIX = "http://www.w3.org/2000/01/rdf-schema#";
 	public static final String XSD_PREFIX = "http://www.w3.org/2001/XMLSchema#";
 	
-	final public static Logger logger = LoggerFactory.getLogger("fuseki-couchdb");
+	public static Logger logger = LoggerFactory.getLogger("fuseki-couchdb");
 	
 	public static boolean progress = false;
 	
