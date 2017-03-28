@@ -6,6 +6,14 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.apache.jena.ontology.DatatypeProperty;
 import org.apache.jena.ontology.Individual;
 import org.apache.jena.ontology.OntModel;
@@ -64,6 +72,8 @@ public class TransferHelpers {
 	public static final String XSD_PREFIX = "http://www.w3.org/2001/XMLSchema#";
 	
 	final public static Logger logger = LoggerFactory.getLogger("fuseki-couchdb");
+	
+	public static ExecutorService executor = Executors.newCachedThreadPool();
 	
 	public static ObjectMapper objectMapper = new ObjectMapper();
 	public static ObjectNode jsonLdContext = objectMapper.createObjectNode();
@@ -168,9 +178,47 @@ public class TransferHelpers {
 			logger.error("Error transfering "+docId, ex);
 		}
 	}
-
-	private static void transferModel(String graphName, Model m) {
-		fu.putModel(graphName, m);
+	
+	private static void transferModel(String graphName, Model m) throws TimeoutException {
+		callFuseki("putModel", graphName, m);
+	}
+	
+	private static void deleteModel(String graphName) throws TimeoutException {
+		callFuseki("deleteModel", graphName, null);
+	}
+	
+	private static Model getModel(String graphName) throws TimeoutException {
+		return callFuseki("getModel", graphName, null);
+	}
+	
+	private static Model callFuseki(String operation, String graphName, Model m) throws TimeoutException {
+		Model res = null;
+		Callable<Model> task = new Callable<Model>() {
+		   public Model call() throws InterruptedException {
+			  switch (operation) {
+			  case "putModel":
+				  fu.putModel(graphName, m);
+				  return null;
+			  case "deleteModel":
+				  fu.deleteModel(graphName);
+				  return null;
+			  default:
+				  return fu.getModel(graphName);
+			  }
+		   }
+		};
+		Future<Model> future = executor.submit(task);
+		try {
+		   res = future.get(4, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			logger.error("interrupted during "+operation+" of "+graphName, e);
+		} catch (ExecutionException e) {
+		   logger.error("execution error during "+operation+" of "+graphName+", this shouldn't happen, quitting...", e);
+		   System.exit(1);
+		} finally {
+		   future.cancel(true); // this kills the transfer
+		}
+		return res;
 	}
 
 	public static void addDocIdInModel(String docId, Model m) {
@@ -201,14 +249,23 @@ public class TransferHelpers {
 		} else {
 			s.changeObject(sequence);
 		}
-		transferModel(ROOT_PREFIX+"system", m);
+		try {
+			transferModel(ROOT_PREFIX+"system", m);
+		} catch (TimeoutException e) {
+			logger.warn("Timeout sending sequence to fuseki (not fatal): "+sequence, e);
+		}
 	}
 	
 	private static Model syncModel = null;
 	
 	public static synchronized Model getSyncModel() {
 		if (syncModel != null) return syncModel;
-		syncModel = fu.getModel(ROOT_PREFIX+"system");
+		try {
+			syncModel = getModel(ROOT_PREFIX+"system");
+		} catch (TimeoutException e) {
+			logger.error("Time out while fetching system model, quitting...", e);
+			System.exit(1);
+		}
 		if (syncModel == null) {
 			syncModel = ModelFactory.createDefaultModel();
 		}
@@ -235,7 +292,7 @@ public class TransferHelpers {
 				DocumentChange change = feed.next();
 				return change.getStringSequence();
 			} catch (InterruptedException e) {
-				logger.error("Error fetching couchDB changes", e);
+				logger.warn("Interruption while fetching couchDB changes", e);
 			}
 		}
 		return null;
@@ -269,15 +326,23 @@ public class TransferHelpers {
 		String sequence = change.getStringSequence();
 		if (change.isDeleted()) {
 			logger.info("deleting " + fullId);
-			fu.deleteModel(fullId);
+			try {
+				deleteModel(fullId);
+			} catch (TimeoutException e) {
+				logger.error("Timeout deleting model: "+fullId, e);
+			}
 			updateFusekiLastSequence(sequence);
 			return;
 		}
 		logger.info("updating " + fullId);
 		JsonNode o = change.getDocAsNode();
 		Model m = couchDocToModel((ObjectNode) o);
-		o = null; change = null;//gc
-		transferModel(fullId, m);
+		o = null; change = null;//gc?
+		try {
+			transferModel(fullId, m);
+		} catch (TimeoutException e) {
+			logger.error("Timeout sending model: "+fullId, e);
+		}
 		updateFusekiLastSequence(sequence);
 		logger.info("last sequence set to "+sequence);
 	}
@@ -337,11 +402,19 @@ public class TransferHelpers {
 
 	public static void transferOntology() {
 		OntModel m = getOntologyModel("src/main/resources/bdrc.owl");
-		transferModel(ROOT_PREFIX+"baseontology", m);
+		try {
+			transferModel(ROOT_PREFIX+"baseontology", m);
+		} catch (TimeoutException e) {
+			logger.error("Timeout sending ontology model", e);
+		}
 	}
 
 	public static void transferOntology(String path) {
 		OntModel m = getOntologyModel(path);
-		transferModel(ROOT_PREFIX+"baseontology", m);
+		try {
+			transferModel(ROOT_PREFIX+"baseontology", m);
+		} catch (TimeoutException e) {
+			logger.error("Timeout sending ontology model", e);
+		}
 	}
 }

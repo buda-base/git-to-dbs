@@ -32,7 +32,7 @@ public class FusekiTransfer {
 				+ "-n <int> - specify how many docs to transfer. Defaults to all of the docs\n"
 				+ "-help - print this message and exits\n"
 				+ "-version - prints the version and exits\n"
-				+ "\nset log level with -Dorg.slf4j.simpleLogger.defaultLogLevel=XXX\n"
+				+ "\nset log level with the VM argument -Dorg.slf4j.simpleLogger.defaultLogLevel=XXX\n"
 				+ "\nFusekiTransfer version: " + VERSION + "\n"
 				);
 	}
