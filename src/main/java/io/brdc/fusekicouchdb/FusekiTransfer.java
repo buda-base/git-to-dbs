@@ -5,6 +5,7 @@ import java.util.StringTokenizer;
 import org.ektorp.changes.ChangesCommand;
 import org.ektorp.changes.ChangesFeed;
 import org.ektorp.changes.DocumentChange;
+import org.slf4j.LoggerFactory;
 
 public class FusekiTransfer {
 	static String VERSION =  TransferHelpers.class.getPackage().getImplementationVersion();
@@ -30,6 +31,7 @@ public class FusekiTransfer {
 				+ "-transferAllDB - transfer the whole database\n"
 				+ "-doNotListen - do not listen to changes\n"
 				+ "-n <int> - specify how many docs to transfer. Defaults to all of the docs\n"
+				+ "-progress - enables progress output during transfer\n"
 				+ "-help - print this message and exits\n"
 				+ "-version - prints the version and exits\n"
 				+ "\nset log level with the VM argument -Dorg.slf4j.simpleLogger.defaultLogLevel=XXX\n"
@@ -56,6 +58,8 @@ public class FusekiTransfer {
 				transferAllDB = true;
 			} else if (arg.equals("-doNotListen")) {
 				listenToChanges = false;
+			} else if (arg.equals("-progress")) {
+		        TransferHelpers.progress = true;
 			} else if (arg.equals("-help")) {
 				printHelp();
 				System.exit(0);
