@@ -5,6 +5,7 @@ import java.util.StringTokenizer;
 import org.ektorp.changes.ChangesCommand;
 import org.ektorp.changes.ChangesFeed;
 import org.ektorp.changes.DocumentChange;
+import org.slf4j.LoggerFactory;
 
 public class FusekiTransfer {
 	static String VERSION =  TransferHelpers.class.getPackage().getImplementationVersion();
@@ -32,6 +33,9 @@ public class FusekiTransfer {
 				+ "-transferAllDB - transfer the whole database\n"
 				+ "-doNotListen - do not listen to changes\n"
 				+ "-n <int> - specify how many docs to transfer. Defaults to all of the docs\n"
+				+ "-progress - enables progress output during transfer\n"
+				+ "-debug - enables DEBUG log level - mostly jena logging\n"
+				+ "-trace - enables TRACE log level - mostly jena logging\n"
 				+ "-help - print this message and exits\n"
 				+ "-version - prints the version and exits\n"
 				+ "\nset log level with the VM argument -Dorg.slf4j.simpleLogger.defaultLogLevel=XXX\n"
@@ -60,6 +64,14 @@ public class FusekiTransfer {
 				transferAllDB = true;
 			} else if (arg.equals("-doNotListen")) {
 				listenToChanges = false;
+			} else if (arg.equals("-progress")) {
+		        TransferHelpers.progress = true;
+			} else if (arg.equals("-debug")) {
+		        System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "DEBUG");
+		        TransferHelpers.logger = LoggerFactory.getLogger("fuseki-couchdb");
+			} else if (arg.equals("-trace")) {
+		        System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "TRACE");
+		        TransferHelpers.logger = LoggerFactory.getLogger("fuseki-couchdb");
 			} else if (arg.equals("-help")) {
 				printHelp();
 				System.exit(0);

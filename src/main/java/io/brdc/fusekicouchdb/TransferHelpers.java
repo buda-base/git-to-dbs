@@ -78,7 +78,9 @@ public class TransferHelpers {
 	public static final String RDFS_PREFIX = "http://www.w3.org/2000/01/rdf-schema#";
 	public static final String XSD_PREFIX = "http://www.w3.org/2001/XMLSchema#";
 	
-	final public static Logger logger = LoggerFactory.getLogger("fuseki-couchdb");
+	public static Logger logger = LoggerFactory.getLogger("fuseki-couchdb");
+	
+	public static boolean progress = false;
 	
 	public static ExecutorService executor = Executors.newCachedThreadPool();
 	
@@ -157,12 +159,8 @@ public class TransferHelpers {
 		for (i = 0; i < lim;) {
 			id = Ids.get(i);
 			transferOneDoc(id);
-			if (++i % 100 == 0 && logger.isDebugEnabled()) {
-				if (i % 1000 == 0) {
-					logger.debug(id + ":" + i + ", ");
-				} else {
-					logger.debug(id + ":" + i + ", ");
-				}
+			if (++i % 100 == 0 && progress) {
+				logger.info(id + ":" + i);
 			}
 		}
 		logger.info("Last doc transferred: " + id);
