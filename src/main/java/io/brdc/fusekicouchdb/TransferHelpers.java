@@ -5,7 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.net.MalformedURLException;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -20,6 +23,9 @@ import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.query.DatasetAccessor;
 import org.apache.jena.query.DatasetAccessorFactory;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -31,6 +37,7 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.riot.system.StreamRDFLib;
+import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.ektorp.CouchDbConnector;
@@ -77,8 +84,10 @@ public class TransferHelpers {
 	
 	public static ObjectMapper objectMapper = new ObjectMapper();
 	public static ObjectNode jsonLdContext = objectMapper.createObjectNode();
+	
+	public static PrefixMapping pm = null;
+	
 	static {
-		jsonLdContext.put("@vocab", ROOT_PREFIX);
 		jsonLdContext.put("com", COMMON_PREFIX);
 		jsonLdContext.put("crp", CORPORATION_PREFIX);
 		jsonLdContext.put("prd", PRODUCT_PREFIX);
@@ -86,6 +95,7 @@ public class TransferHelpers {
 		jsonLdContext.put("plc", PLACE_PREFIX);
 		jsonLdContext.put("xsd", XSD_PREFIX);
 		jsonLdContext.put("rdfs", RDFS_PREFIX);
+		jsonLdContext.put("rdf", RDF_PREFIX);
 		jsonLdContext.put("ofc", OFFICE_PREFIX);
 		jsonLdContext.put("out", OUTLINE_PREFIX);
 		jsonLdContext.put("lin", LINEAGE_PREFIX);
@@ -94,21 +104,33 @@ public class TransferHelpers {
 		jsonLdContext.put("per", PERSON_PREFIX);
 		jsonLdContext.put("vol", VOLUMES_PREFIX);
 		jsonLdContext.put("desc", DESCRIPTION_PREFIX);
+		jsonLdContext.put("@vocab", ROOT_PREFIX);
 	}
 	
 	public static String FusekiUrl = "http://localhost:13180/fuseki/bdrcrw/data";
 	public static String CouchDBUrl = "http://localhost:13598";
+	public static String FusekiSparqlEndpoint = "http://localhost:13180/fuseki/bdrcrw/query"; 
 	
 	public static CouchDbConnector db = null;
 	public static DatasetAccessor fu = null;
 	
-	public static void init(String fusekiHost, String fusekiPort, String couchdbHost, String couchdbPort, String couchdbName) throws MalformedURLException {
-		FusekiUrl = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/bdrcrw/data";
-		CouchDBUrl = "http://" + couchdbHost + ":" +  couchdbPort + "/fuseki/bdrcrw/data";
+	public static void init(String fusekiHost, String fusekiPort, String couchdbHost, String couchdbPort, String couchdbName, String fusekiEndpoint) throws MalformedURLException {
+		FusekiUrl = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/"+fusekiEndpoint+"/data";
+		FusekiSparqlEndpoint = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/"+fusekiEndpoint+"/query";
+		CouchDBUrl = "http://" + couchdbHost + ":" +  couchdbPort;
 		logger.info("connecting to couchdb on "+CouchDBUrl);
 		db = connectCouchDB(couchdbName);
 		logger.info("connecting to fuseki on "+FusekiUrl);
 		fu = connectFuseki();
+		pm = PrefixMapping.Factory.create();
+		Iterator<Entry<String, JsonNode>> nodes = jsonLdContext.fields();
+		while (nodes.hasNext()) {
+		  Map.Entry<String, JsonNode> entry = (Map.Entry<String, JsonNode>) nodes.next();
+		  String key = entry.getKey();
+		  key = (key == "@vocab") ? "" : key;
+		  pm.setNsPrefix(key, entry.getValue().asText());
+		}
+		
 	}
 	
 	public static CouchDbConnector connectCouchDB(String couchdbName) throws MalformedURLException {
@@ -374,6 +396,11 @@ public class TransferHelpers {
 			if (i.getLocalName().equals("UNKNOWN")) continue;
 			i.remove();
 	    }
+	}
+	
+	public static ResultSet selectSparql(String query) {
+		QueryExecution qe = QueryExecutionFactory.sparqlService(FusekiSparqlEndpoint, query);
+		return qe.execSelect();
 	}
 	
 	public static OntModel getOntologyModel(String onto)

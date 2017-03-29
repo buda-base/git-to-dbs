@@ -13,7 +13,8 @@ public class FusekiTransfer {
 	static String fusekiPort = "13180";
 	static String couchdbHost = "localhost";
 	static String couchdbPort = "13598";
-	static String couchdbName = "test";
+	static String couchdbName = "bdrc";
+	static String fusekiName = "bdrcrw";
 	static int howMany = Integer.MAX_VALUE;
 	static boolean transferAllDB = false;
 	static boolean listenToChanges = true;
@@ -24,9 +25,10 @@ public class FusekiTransfer {
 				+ "Options:\n" 
 				+ "-fusekiHost <host> - host fuseki is running on. Defaults to localhost\n"
 				+ "-fusekiPort <port> - port fuseki is running on. Defaults to 13180\n"
+				+ "-fusekiName <name> - name of the fuseki endpoint. Defaults to 'bdrc'\n"
 				+ "-couchdbHost <host> - host couchdb is running on. Defaults to localhost\n"
 				+ "-couchdbPort <port> - port couchdb is running on. Defaults to 13598\n"
-				+ "-couchdbName <name> - name of the couchdb database. Defaults to 'test'\n"
+				+ "-couchdbName <name> - name of the couchdb database. Defaults to 'bdrcrw'\n"
 				+ "-transferAllDB - transfer the whole database\n"
 				+ "-doNotListen - do not listen to changes\n"
 				+ "-n <int> - specify how many docs to transfer. Defaults to all of the docs\n"
@@ -44,6 +46,8 @@ public class FusekiTransfer {
 				fusekiHost = (++i < args.length ? args[i] : null);
 			} else if (arg.equals("-fusekiPort")) {
 				fusekiPort = (++i < args.length ? args[i] : null);
+			} else if (arg.equals("-fusekiName")) {
+				fusekiName = (++i < args.length ? args[i] : null);
 			} else if (arg.equals("-couchdbHost")) {
 				couchdbHost = (++i < args.length ? args[i] : null);
 			} else if (arg.equals("-couchdbPort")) {
@@ -76,7 +80,7 @@ public class FusekiTransfer {
 		}
 		
 		try {
-			TransferHelpers.init(fusekiHost, fusekiPort, couchdbHost, couchdbPort, couchdbName);
+			TransferHelpers.init(fusekiHost, fusekiPort, couchdbHost, couchdbPort, couchdbName, fusekiName);
 		} catch (Exception e) {
 			TransferHelpers.logger.error("error in initialization", e);
 			System.exit(1);
