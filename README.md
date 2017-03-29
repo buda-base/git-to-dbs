@@ -29,3 +29,7 @@ To compile a jar file:
 ```
 mvn clean package
 ```
+or
+```
+mvn clean package -Dmaven.test.skip=true
+```
