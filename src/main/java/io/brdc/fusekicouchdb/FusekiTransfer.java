@@ -142,5 +142,7 @@ public class FusekiTransfer {
 			}
 		}
 		
+		TransferHelpers.executor.shutdown();
+
 	}
 }
