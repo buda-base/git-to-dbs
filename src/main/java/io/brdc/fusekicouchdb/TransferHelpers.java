@@ -111,19 +111,21 @@ public class TransferHelpers {
 	
 	public static String FusekiUrl = "http://localhost:13180/fuseki/bdrcrw/data";
 	public static String CouchDBUrl = "http://localhost:13598";
-	public static String FusekiSparqlEndpoint = "http://localhost:13180/fuseki/bdrcrw/query"; 
+	public static String FusekiSparqlEndpoint = "http://localhost:13180/fuseki/bdrcrw/query";
+	public static String couchdbName = null;
 	
 	public static CouchDbConnector db = null;
 	public static DatasetAccessor fu = null;
 	
-	public static void init(String fusekiHost, String fusekiPort, String couchdbHost, String couchdbPort, String couchdbName, String fusekiEndpoint) throws MalformedURLException {
+	public static void init(String fusekiHost, String fusekiPort, String couchdbHost, String couchdbPort, String dbName, String fusekiEndpoint) throws MalformedURLException {
 		FusekiUrl = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/"+fusekiEndpoint+"/data";
 		FusekiSparqlEndpoint = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/"+fusekiEndpoint+"/query";
 		CouchDBUrl = "http://" + couchdbHost + ":" +  couchdbPort;
 		logger.info("connecting to couchdb on "+CouchDBUrl);
-		db = connectCouchDB(couchdbName);
+		db = connectCouchDB(dbName);
 		logger.info("connecting to fuseki on "+FusekiUrl);
 		fu = connectFuseki();
+		couchdbName = dbName;
 		pm = PrefixMapping.Factory.create();
 		Iterator<Entry<String, JsonNode>> nodes = jsonLdContext.fields();
 		while (nodes.hasNext()) {
@@ -218,6 +220,7 @@ public class TransferHelpers {
 			  switch (operation) {
 			  case "putModel":
 				  fu.putModel(graphName, m);
+				  //fu.putModel(m);
 				  return null;
 			  case "deleteModel":
 				  fu.deleteModel(graphName);
@@ -243,7 +246,7 @@ public class TransferHelpers {
 
 	public static void addDocIdInModel(String docId, Model m) {
 		// https://github.com/helun/Ektorp/issues/263
-		String uri = "/test/_design/jsonld/_show/jsonld/" + docId;
+		String uri = "/"+couchdbName+"/_design/jsonld/_show/jsonld/" + docId;
 	    HttpResponse r = db.getConnection().get(uri);
 	    InputStream stuff = r.getContent();
 	    // feeding the inputstream directly to jena for json-ld parsing
