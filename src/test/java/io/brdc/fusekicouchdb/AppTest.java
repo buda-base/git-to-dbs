@@ -4,12 +4,20 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
+import org.apache.jena.rdf.model.InfModel;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.reasoner.Derivation;
 import org.ektorp.DocumentNotFoundException;
 import org.junit.After;
 import org.junit.Before;
@@ -60,28 +68,55 @@ public class AppTest
 			e.printStackTrace();
 			System.exit(1);
 		}
+		TransferHelpers.transferOntology();
 	}
 	
 	@After
 	public void finish() {
-		TransferHelpers.db.delete("plc:test0", placeRev);
-		TransferHelpers.fu.deleteDefault();
-		for (String graphName : graphNames) {
-			TransferHelpers.fu.deleteModel(graphName);
-		}
+//		TransferHelpers.db.delete("plc:test0", placeRev);
+//		TransferHelpers.fu.deleteDefault();
+//		for (String graphName : graphNames) {
+//			TransferHelpers.fu.deleteModel(graphName);
+//		}
+		TransferHelpers.executor.shutdown();
 	}
 	
+//	@Test
+//    public void test1()
+//    {
+//		String fullId = TransferHelpers.getFullUrlFromDocId("plc:test0");
+//		//	TransferHelpers.fu.deleteModel(fullId);
+//		TransferHelpers.transferOneDoc("plc:test0");
+//		graphNames.add(fullId);
+//		String query = "SELECT ?p ?l "
+//				+ "WHERE {  <"+fullId+"> ?p ?l }";
+//		ResultSet rs = TransferHelpers.selectSparql(query);
+//		ResultSetFormatter.out(System.out, rs, TransferHelpers.pm);
+//		assertTrue(rs.getRowNumber() == 4);
+//    }
+	
 	@Test
-    public void test1()
+    public void test2()
     {
-		TransferHelpers.transferOneDoc("plc:test0");
-		String fullId = TransferHelpers.getFullUrlFromDocId("plc:test0");
-		graphNames.add(fullId);
-		String query = "SELECT ?p ?l "
-				+ "WHERE {  <"+fullId+"> ?p ?l }";
-		ResultSet rs = TransferHelpers.selectSparql(query);
-		ResultSetFormatter.out(System.out, rs, TransferHelpers.pm);
-		assertTrue(rs.getRowNumber() == 4);
+		Model m = ModelFactory.createDefaultModel();
+		TransferHelpers.addDocIdInModel("plc:test0", m);
+		InfModel im = ModelFactory.createInfModel(TransferHelpers.bdrcReasoner, m);
+		//im.setDerivationLogging(true);
+		im.prepare();
+		Model dm = im.getDeductionsModel();
+		System.out.println("deduced triples:");
+		TransferHelpers.printModel(dm);
+		// shows all deducted rules for the whole ontology (not very interesting)
+//		PrintWriter out = new PrintWriter(System.out);
+//		for (StmtIterator i = im.listStatements(); i.hasNext(); ) {
+//		    Statement s = i.nextStatement();
+//		    System.out.println("Statement is " + s);
+//		    for (Iterator<Derivation> id = im.getDerivation(s); id.hasNext(); ) {
+//		        Derivation deriv = id.next();
+//		        deriv.printTrace(out, true);
+//		    }
+//		}
+//		out.flush();
     }
 
 }

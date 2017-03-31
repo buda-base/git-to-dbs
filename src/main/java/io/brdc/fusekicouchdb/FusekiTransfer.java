@@ -100,7 +100,7 @@ public class FusekiTransfer {
 
 		if (transferAllDB) {		
 			try {
-				TransferHelpers.transferOntology(null); // use ontology from jar
+				TransferHelpers.transferOntology(); // use ontology from jar
 				TransferHelpers.transferCompleteDB(howMany);
 			} catch (Exception ex) {
 				TransferHelpers.logger.error("error in complete transfer", ex);

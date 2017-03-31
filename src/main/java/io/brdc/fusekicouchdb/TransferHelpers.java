@@ -32,6 +32,8 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.reasoner.Reasoner;
+import org.apache.jena.reasoner.rulesys.RDFSRuleReasonerFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
@@ -40,6 +42,7 @@ import org.apache.jena.riot.system.StreamRDFLib;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.ReasonerVocabulary;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
 import org.ektorp.changes.ChangesCommand;
@@ -116,6 +119,8 @@ public class TransferHelpers {
 	
 	public static CouchDbConnector db = null;
 	public static DatasetAccessor fu = null;
+	public static OntModel ontModel = null;
+	public static Reasoner bdrcReasoner = null;
 	
 	public static void init(String fusekiHost, String fusekiPort, String couchdbHost, String couchdbPort, String dbName, String fusekiEndpoint) throws MalformedURLException {
 		FusekiUrl = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/"+fusekiEndpoint+"/data";
@@ -134,7 +139,12 @@ public class TransferHelpers {
 		  key = (key == "@vocab") ? "" : key;
 		  pm.setNsPrefix(key, entry.getValue().asText());
 		}
-		
+		ontModel = getOntologyModel(null);
+		Resource config = ModelFactory.createDefaultModel()
+                .createResource()
+                .addProperty(ReasonerVocabulary.PROPsetRDFSLevel, "simple");
+		bdrcReasoner = RDFSRuleReasonerFactory.theInstance().create(config);
+		bdrcReasoner = bdrcReasoner.bindSchema(ontModel);
 	}
 	
 	public static CouchDbConnector connectCouchDB(String couchdbName) throws MalformedURLException {
@@ -158,10 +168,11 @@ public class TransferHelpers {
 		
 		String id ="start";
 		int i = 0;
-		for (i = 0; i < lim;) {
+		for (i = 0; i < lim; i++) {
 			id = Ids.get(i);
+			if (id.startsWith("_design")) continue;
 			transferOneDoc(id);
-			if (++i % 100 == 0 && progress) {
+			if (i % 100 == 0 && progress) {
 				logger.info(id + ":" + i);
 			}
 		}
@@ -429,18 +440,8 @@ public class TransferHelpers {
 	}
 
 	public static void transferOntology() {
-		OntModel m = getOntologyModel("src/main/resources/bdrc.owl");
 		try {
-			transferModel(ROOT_PREFIX+"baseontology", m);
-		} catch (TimeoutException e) {
-			logger.error("Timeout sending ontology model", e);
-		}
-	}
-
-	public static void transferOntology(String path) {
-		OntModel m = getOntologyModel(path);
-		try {
-			transferModel(ROOT_PREFIX+"baseontology", m);
+			transferModel(ROOT_PREFIX+"baseontology", ontModel);
 		} catch (TimeoutException e) {
 			logger.error("Timeout sending ontology model", e);
 		}
