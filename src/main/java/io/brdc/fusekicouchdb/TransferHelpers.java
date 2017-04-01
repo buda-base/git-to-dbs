@@ -85,6 +85,8 @@ public class TransferHelpers {
 	
 	public static boolean progress = false;
 	
+	public static long TRANSFER_TO = 15; // seconds
+	
 	public static ExecutorService executor = Executors.newCachedThreadPool();
 	
 	public static ObjectMapper objectMapper = new ObjectMapper();
@@ -243,7 +245,7 @@ public class TransferHelpers {
 		};
 		Future<Model> future = executor.submit(task);
 		try {
-		   res = future.get(4, TimeUnit.SECONDS);
+		   res = future.get(TRANSFER_TO, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
 			logger.error("interrupted during "+operation+" of "+graphName, e);
 		} catch (ExecutionException e) {

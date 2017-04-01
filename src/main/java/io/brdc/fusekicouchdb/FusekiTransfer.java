@@ -33,6 +33,7 @@ public class FusekiTransfer {
 				+ "-transferAllDB - transfer the whole database\n"
 				+ "-doNotListen - do not listen to changes\n"
 				+ "-n <int> - specify how many docs to transfer. Defaults to all of the docs\n"
+				+ "-timeout <int> - specify how secondws to wait for a doc transfer to complete. Defaults to 15 seconds\n"
 				+ "-progress - enables progress output during transfer\n"
 				+ "-debug - enables DEBUG log level - mostly jena logging\n"
 				+ "-trace - enables TRACE log level - mostly jena logging\n"
@@ -60,6 +61,8 @@ public class FusekiTransfer {
 				couchdbName = (++i < args.length ? args[i] : null);
 			} else if (arg.equals("-n")) {
 				howMany = (++i < args.length ? Integer.parseInt(args[i]) : null);
+			} else if (arg.equals("-timeout")) {
+				TransferHelpers.TRANSFER_TO = (++i < args.length ? Integer.parseInt(args[i]) : null);
 			} else if (arg.equals("-transferAllDB")) {
 				transferAllDB = true;
 			} else if (arg.equals("-doNotListen")) {
