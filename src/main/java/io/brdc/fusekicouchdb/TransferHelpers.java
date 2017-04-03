@@ -62,10 +62,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class TransferHelpers {
-	public static final String CORE_PREFIX = "http://onto.bdrc.io/ontologies/bdrc/";
 	public static final String DESCRIPTION_PREFIX = "http://onto.bdrc.io/ontology/description#";
-	public static final String ROOT_PREFIX = "http://purl.bdrc.io/ontology/root/";
-	public static final String COMMON_PREFIX = "http://purl.bdrc.io/ontology/common#";
+	public static final String ROOT_PREFIX = "http://purl.bdrc.io/ontology/root#";
 	public static final String CORPORATION_PREFIX = "http://purl.bdrc.io/ontology/corporation#";
 	public static final String LINEAGE_PREFIX = "http://purl.bdrc.io/ontology/lineage#";
 	public static final String OFFICE_PREFIX = "http://purl.bdrc.io/ontology/office#";
@@ -95,7 +93,6 @@ public class TransferHelpers {
 	public static PrefixMapping pm = null;
 	
 	static {
-		jsonLdContext.put("com", COMMON_PREFIX);
 		jsonLdContext.put("crp", CORPORATION_PREFIX);
 		jsonLdContext.put("prd", PRODUCT_PREFIX);
 		jsonLdContext.put("owl", OWL_PREFIX);
