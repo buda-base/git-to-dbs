@@ -21,6 +21,7 @@ import org.apache.jena.ontology.DatatypeProperty;
 import org.apache.jena.ontology.Individual;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
+import org.apache.jena.ontology.Restriction;
 import org.apache.jena.query.DatasetAccessor;
 import org.apache.jena.query.DatasetAccessorFactory;
 import org.apache.jena.query.QueryExecution;
@@ -42,6 +43,7 @@ import org.apache.jena.riot.system.StreamRDFLib;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.OWL2;
 import org.apache.jena.vocabulary.ReasonerVocabulary;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
@@ -386,18 +388,26 @@ public class TransferHelpers {
 	}
 
 	// change Range Datatypes from rdf:PlainLitteral to rdf:langString
-	// Warning: only works for 
 	public static void rdf10tordf11(OntModel o) {
 		Resource RDFPL = o.getResource("http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral");
 		Resource RDFLS = o.getResource("http://www.w3.org/1999/02/22-rdf-syntax-ns#langString");
 		ExtendedIterator<DatatypeProperty> it = o.listDatatypeProperties();
 	    while(it.hasNext()) {
 			DatatypeProperty p = it.next();
-			Resource r = p.getRange();
-			if (r != null && r.equals(RDFPL)) {
-				p.setRange(RDFLS);
+			if (p.hasRange(RDFPL)) {
+			    p.removeRange(RDFPL);
+			    p.addRange(RDFLS);
 			}
 	    }
+	    ExtendedIterator<Restriction> it2 = o.listRestrictions();
+	    while(it2.hasNext()) {
+            Restriction r = it2.next();
+            Statement s = r.getProperty(OWL2.onDataRange); // is that code obvious? no
+            if (s != null && s.getObject().asResource().equals(RDFPL)) {
+                s.changeObject(RDFLS);
+
+            }
+        }
 	}
 	
 	public static void removeIndividuals(OntModel o) {
