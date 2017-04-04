@@ -89,7 +89,7 @@ public class AppTest
 				+ "WHERE {  <"+fullId+"> ?p ?l }";
 		ResultSet rs = TransferHelpers.selectSparql(query);
 		ResultSetFormatter.out(System.out, rs, TransferHelpers.pm);
-		assertTrue(rs.getRowNumber() == 3);
+		assertTrue(rs.getRowNumber() > 0);
     }
 	
 	@Test
@@ -97,14 +97,13 @@ public class AppTest
     {
 		Model m = ModelFactory.createDefaultModel();
 		TransferHelpers.addDocIdInModel("plc:test0", m);
-		InfModel im = ModelFactory.createInfModel(TransferHelpers.bdrcReasoner, m);
-		Model dm = im.getDeductionsModel();
-		//TransferHelpers.printModel(dm);
-		Resource test0 = dm.getResource(TransferHelpers.PLACE_PREFIX+"test0");
-		Resource place = dm.getResource(TransferHelpers.PLACE_PREFIX+"Place");
-		Resource brtenPaGnasKhang = dm.getResource(TransferHelpers.PLACE_PREFIX+"BrtenPaGnasKhang");
-		assertTrue(dm.contains(test0, RDF.type, place));
-		assertTrue(dm.contains(test0, RDF.type, brtenPaGnasKhang));
+		InfModel im = TransferHelpers.getInferredModel(m);
+		//TransferHelpers.printModel(im);
+		Resource test0 = im.getResource(TransferHelpers.PLACE_PREFIX+"test0");
+		Resource place = im.getResource(TransferHelpers.PLACE_PREFIX+"Place");
+		Resource brtenPaGnasKhang = im.getResource(TransferHelpers.PLACE_PREFIX+"BrtenPaGnasKhang");
+		assertTrue(im.contains(test0, RDF.type, place));
+		assertTrue(im.contains(test0, RDF.type, brtenPaGnasKhang));
     }
 
 }

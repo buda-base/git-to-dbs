@@ -27,6 +27,7 @@ import org.apache.jena.query.DatasetAccessorFactory;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.ResultSet;
+import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -202,6 +203,7 @@ public class TransferHelpers {
 		try {
 			Model m = ModelFactory.createDefaultModel();
 			addDocIdInModel(docId, m);
+			m = getInferredModel(m);
 			//printModel(m);
 			String graphName = getFullUrlFromDocId(docId);
 			transferModel(graphName, m);
@@ -253,6 +255,10 @@ public class TransferHelpers {
 		return res;
 	}
 
+	public static InfModel getInferredModel(Model m) {
+		return ModelFactory.createInfModel(TransferHelpers.bdrcReasoner, m);
+	}
+	
 	public static void addDocIdInModel(String docId, Model m) {
 		// https://github.com/helun/Ektorp/issues/263
 		String uri = "/"+couchdbName+"/_design/jsonld/_show/jsonld/" + docId;
