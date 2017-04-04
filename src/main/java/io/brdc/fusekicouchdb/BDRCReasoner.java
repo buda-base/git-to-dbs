@@ -59,7 +59,6 @@ public class BDRCReasoner {
 	        QuerySolution soln = results.nextSolution() ;
 	        String ancestorString = soln.get("ancestor").asResource().getURI();
 	        String childString = soln.get("child").asResource().getURI();
-	        System.out.println(soln.get("type").asLiteral().getString());
 	        boolean isClass = soln.get("type").asLiteral().getString().equals("c");
 	        String ruleString;
 	        if (isClass)

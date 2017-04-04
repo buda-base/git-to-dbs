@@ -110,6 +110,7 @@ public class TransferHelpers {
 		jsonLdContext.put("per", PERSON_PREFIX);
 		jsonLdContext.put("vol", VOLUMES_PREFIX);
 		jsonLdContext.put("desc", DESCRIPTION_PREFIX);
+		jsonLdContext.put("", ROOT_PREFIX);
 		jsonLdContext.put("@vocab", ROOT_PREFIX);
 	}
 	
@@ -137,15 +138,11 @@ public class TransferHelpers {
 		while (nodes.hasNext()) {
 		  Map.Entry<String, JsonNode> entry = (Map.Entry<String, JsonNode>) nodes.next();
 		  String key = entry.getKey();
-		  key = (key == "@vocab") ? "" : key;
+		  if (key == "@vocab") continue;
 		  pm.setNsPrefix(key, entry.getValue().asText());
 		}
 		ontModel = getOntologyModel(null);
-		Resource config = ModelFactory.createDefaultModel()
-                .createResource()
-                .addProperty(ReasonerVocabulary.PROPsetRDFSLevel, "simple");
-		bdrcReasoner = RDFSRuleReasonerFactory.theInstance().create(config);
-		bdrcReasoner = bdrcReasoner.bindSchema(ontModel);
+		bdrcReasoner = BDRCReasoner.getReasoner(ontModel);
 	}
 	
 	public static CouchDbConnector connectCouchDB(String couchdbName) throws MalformedURLException {
