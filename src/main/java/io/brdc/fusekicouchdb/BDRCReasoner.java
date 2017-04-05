@@ -41,6 +41,10 @@ public class BDRCReasoner {
 	    		+ "  	?child owl:inverseOf ?ancestor .\n"
 	    		+ "     BIND (\"i\" AS ?type)\n"
 	    		+ "  } UNION {\n"
+	    		+ "  	?ancestor a owl:SymmetricProperty .\n"
+	    		+ "     BIND (\"s\" AS ?type).\n"
+	    		+ "     BIND (?ancestor AS ?child)\n"
+	    		+ "  } UNION {\n"
 	    		+ "  	?ancestor root:inferSubTree \"true\"^^xsd:boolean .\n"
 	    		+ "  	?child rdfs:subPropertyOf+ ?ancestor .\n"
 	    		+ "     BIND (\"p\" AS ?type)\n"
@@ -77,6 +81,10 @@ public class BDRCReasoner {
 	        	break;
 	        case "p":
 	        	ruleString = "[r"+i+": (?a "+childString+" ?b) -> (?a "+ancestorString+" ?b)] ";
+		        res.add(Rule.parseRule(ruleString));
+	        	break;
+	        case "s":
+	        	ruleString = "[r"+i+": (?a "+ancestorString+" ?b) -> (?b "+ancestorString+" ?a)] ";
 		        res.add(Rule.parseRule(ruleString));
 	        	break;
 	        default:
