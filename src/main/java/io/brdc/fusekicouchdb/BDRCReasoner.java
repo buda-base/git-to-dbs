@@ -29,9 +29,13 @@ public class BDRCReasoner {
 	    String queryString = "PREFIX root: <"+TransferHelpers.ROOT_PREFIX+">\n"
 	    		+ "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
 	    		+ "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n"
+	    		+ "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n"
 	    		+ "SELECT distinct ?ancestor ?child ?type\n"
 	    		+ "WHERE {\n"
 	    		+ "  {\n"
+	    		+ "  	?child owl:inverseOf ?ancestor .\n"
+	    		+ "     BIND (\"i\" AS ?type)\n"
+	    		+ "  } UNION {\n"
 	    		+ "  	?ancestor root:inferSubTree \"true\"^^xsd:boolean .\n"
 	    		+ "  	?child rdfs:subPropertyOf+ ?ancestor .\n"
 	    		+ "     BIND (\"p\" AS ?type)\n"
@@ -59,14 +63,25 @@ public class BDRCReasoner {
 	        QuerySolution soln = results.nextSolution() ;
 	        String ancestorString = soln.get("ancestor").asResource().getURI();
 	        String childString = soln.get("child").asResource().getURI();
-	        boolean isClass = soln.get("type").asLiteral().getString().equals("c");
+	        String type = soln.get("type").asLiteral().getString();
 	        String ruleString;
-	        if (isClass)
+	        switch(type) {
+	        case "c":
 	        	ruleString = "[r"+i+": (?a "+RDF.type+" "+childString+") -> (?a "+RDF.type+" "+ancestorString+")] ";
-	        else
+		        res.add(Rule.parseRule(ruleString));
+	        	break;
+	        case "p":
 	        	ruleString = "[r"+i+": (?a "+childString+" ?b) -> (?a "+ancestorString+" ?b)] ";
-	        Rule r = Rule.parseRule(ruleString);
-	        res.add(r);
+		        res.add(Rule.parseRule(ruleString));
+	        	break;
+	        default:
+	        	ruleString = "[r"+i+": (?a "+childString+" ?b) -> (?b "+ancestorString+" ?a)] ";
+		        res.add(Rule.parseRule(ruleString));
+		        i++;
+	        	ruleString = "[r"+i+": (?a "+ancestorString+" ?b) -> (?b "+childString+" ?a)] ";
+		        res.add(Rule.parseRule(ruleString));
+	        	break;
+	        }
 	      }
 	    }
 		return res;

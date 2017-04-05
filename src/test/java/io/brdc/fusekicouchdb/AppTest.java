@@ -13,6 +13,7 @@ import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.ektorp.DocumentNotFoundException;
@@ -33,7 +34,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class AppTest 
 {
-	private static String placeJsonString = "{\"_id\":\"plc:test0\",\"@graph\":[{\"rdfs:label\":{\"@language\":\"bo\",\"@value\":\"རྒྱ་མཁར་གསང་སྔགས་ཆོས་གླིང\"},\"@id\":\"plc:test0\",\"@type\":[\"plc:DgonPa\"],\"plc:isLocatedIn\":{\"@id\":\"plc:G4250\"}}]}";
+	private static String placeJsonString = "{\"_id\":\"plc:test0\",\"@graph\":[{\"rdfs:label\":{\"@language\":\"bo\",\"@value\":\"རྒྱ་མཁར་གསང་སྔགས་ཆོས་གླིང\"},\"@id\":\"plc:test0\",\"@type\":[\"plc:DgonPa\"],\"plc:isLocatedIn\":{\"@id\":\"plc:test1\"}}]}";
 	private static String placeRev = null;
 	private static List<String> graphNames = new ArrayList<String>();
 	
@@ -100,10 +101,13 @@ public class AppTest
 		InfModel im = TransferHelpers.getInferredModel(m);
 		//TransferHelpers.printModel(im);
 		Resource test0 = im.getResource(TransferHelpers.PLACE_PREFIX+"test0");
+		Resource test1 = im.getResource(TransferHelpers.PLACE_PREFIX+"test1");
 		Resource place = im.getResource(TransferHelpers.PLACE_PREFIX+"Place");
+		Property contains = im.getProperty(TransferHelpers.PLACE_PREFIX+"contains");
 		Resource brtenPaGnasKhang = im.getResource(TransferHelpers.PLACE_PREFIX+"BrtenPaGnasKhang");
 		assertTrue(im.contains(test0, RDF.type, place));
 		assertTrue(im.contains(test0, RDF.type, brtenPaGnasKhang));
+		assertTrue(im.contains(test1, contains, test0));
     }
 
 }

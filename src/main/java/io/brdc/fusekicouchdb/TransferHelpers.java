@@ -35,6 +35,7 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.reasoner.Reasoner;
+import org.apache.jena.reasoner.ReasonerRegistry;
 import org.apache.jena.reasoner.rulesys.RDFSRuleReasonerFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
@@ -207,6 +208,7 @@ public class TransferHelpers {
 			//printModel(m);
 			String graphName = getFullUrlFromDocId(docId);
 			transferModel(graphName, m);
+			m.close();
 		} catch (Exception ex) {
 			logger.error("Error transfering "+docId, ex);
 		}
@@ -378,6 +380,7 @@ public class TransferHelpers {
 		o = null; change = null;//gc?
 		try {
 			transferModel(fullId, m);
+			m.close();
 		} catch (TimeoutException e) {
 			logger.error("Timeout sending model: "+fullId, e);
 		}
@@ -429,7 +432,7 @@ public class TransferHelpers {
 	
 	public static OntModel getOntologyModel(String onto)
 	{
-		OntModel ontoModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM, null);
+		OntModel ontoModel;;
 	    try {
 	    	InputStream inputStream;
 
@@ -439,11 +442,16 @@ public class TransferHelpers {
 	    		ClassLoader classLoader = TransferHelpers.class.getClassLoader();
 	    		inputStream = classLoader.getResourceAsStream("owl-file/bdrc.owl");
 	    	}
-	       
-	    	ontoModel.read(inputStream, "", "RDF/XML");
+	        Model m = ModelFactory.createDefaultModel();
+	    	m.read(inputStream, "", "RDF/XML");
 	        inputStream.close();
+	        // if you want inferred triples:
+	        //Reasoner reasoner = ReasonerRegistry.getOWLReasoner();
+	        //InfModel infModel = ModelFactory.createInfModel(reasoner, m);
+	        ontoModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM, m);
 	    } catch (Exception e) {
 	    	logger.error("Error reading ontology file", e);
+	    	return null;
 	    }
 	    // then we fix it by removing the individuals and converting rdf10 to rdf11
 	    removeIndividuals(ontoModel);
