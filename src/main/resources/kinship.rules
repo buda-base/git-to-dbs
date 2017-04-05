@@ -1,0 +1,21 @@
+@prefix per: <http://purl.bdrc.io/ontology/person#>.
+
+#
+# Sister / Brother
+#
+
+[obm: (?a per:hasOlderBrother ?b), (?a per:gender 'male') -> (?b per:hasYoungerBrother ?a)]
+[ybm: (?a per:hasYoungerBrother ?b), (?a per:gender 'male') -> (?b per:hasOlderBrother ?a)]
+[bm: (?a per:hasBrother ?b), (?a per:gender 'male') -> (?b per:hasBrother ?a)]
+
+[obf: (?a per:hasOlderBrother ?b), (?a per:gender 'female') -> (?b per:hasYoungerSister ?a)]
+[ybf: (?a per:hasYoungerBrother ?b), (?a per:gender 'female') -> (?b per:hasOlderSister ?a)]
+[bf: (?a per:hasBrother ?b), (?a per:gender 'female') -> (?b per:hasSister ?a)]
+
+[osm: (?a per:hasOlderSister ?b), (?a per:gender 'male') -> (?b per:hasYoungerBrother ?a)]
+[ysm: (?a per:hasYoungerSister ?b), (?a per:gender 'male') -> (?b per:hasOlderBrother ?a)]
+[sm: (?a per:hasSister ?b), (?a per:gender 'male') -> (?b per:hasBrother ?a)]
+
+[osf: (?a per:hasOlderSister ?b), (?a per:gender 'female') -> (?b per:hasYoungerSister ?a)]
+[ysf: (?a per:hasYoungerSister ?b), (?a per:gender 'female') -> (?b per:hasOlderSister ?a)]
+[sf: (?a per:hasSister ?b), (?a per:gender 'female') -> (?b per:hasSister ?a)]

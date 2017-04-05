@@ -1,8 +1,12 @@
 package io.brdc.fusekicouchdb;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.jena.ontology.DatatypeProperty;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.query.Query;
@@ -17,6 +21,7 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
 import org.apache.jena.reasoner.rulesys.Rule;
+import org.apache.jena.reasoner.rulesys.Rule.ParserException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.ReasonerVocabulary;
@@ -87,8 +92,19 @@ public class BDRCReasoner {
 		return res;
 	}
 	
+	
+	
 	public static Reasoner getReasoner(OntModel ontoModel) {
-		List<Rule> rules = getRulesFromModel(ontoModel);
+		ClassLoader classLoader = BDRCReasoner.class.getClassLoader();
+		URL ruleFilesUrl = classLoader.getResource("kinship.rules");
+		List<Rule> rules = new ArrayList<Rule>();
+		try {
+			rules = Rule.rulesFromURL(ruleFilesUrl.toString());
+		} catch(ParserException e) {
+			System.err.println("error parsing "+ruleFilesUrl.toString());
+			e.printStackTrace(System.err);
+		}
+		rules.addAll(getRulesFromModel(ontoModel));
 		Reasoner reasoner = new GenericRuleReasoner(rules);
 		reasoner.setParameter(ReasonerVocabulary.PROPruleMode, "forward");
 		return reasoner;

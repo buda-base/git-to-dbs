@@ -35,8 +35,26 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class AppTest 
 {
 	private static String placeJsonString = "{\"_id\":\"plc:test0\",\"@graph\":[{\"rdfs:label\":{\"@language\":\"bo\",\"@value\":\"རྒྱ་མཁར་གསང་སྔགས་ཆོས་གླིང\"},\"@id\":\"plc:test0\",\"@type\":[\"plc:DgonPa\"],\"plc:isLocatedIn\":{\"@id\":\"plc:test1\"}}]}";
+	private static String personJsonString = "{\"_id\":\"per:testp0\",\"@graph\":[{\"@id\":\"per:testp0\",\"@type\":\"per:Person\",\"per:primaryName\":{\"@language\":\"bo\",\"@value\":\"བློ་བཟང་ཚུལ་ཁྲིམས་བྱམས་པ་རྒྱ་མཚོ\"},\"per:studentOf\":[{\"@id\":\"per:testp1\"}],\"per:teacherOf\":[{\"@id\":\"per:testp2\"}],\"per:gender\":\"male\",\"per:hasOlderBrother\":[{\"@id\":\"per:testp3\"}]}]}";
 	private static String placeRev = null;
+	private static String personRev = null;
 	private static List<String> graphNames = new ArrayList<String>();
+	
+	public static String overwriteDoc(ObjectNode object, String id) throws JsonProcessingException, IOException {
+		String res;
+		try {
+			InputStream oldDocStream = TransferHelpers.db.getAsStream(id);
+			JsonNode oldDoc = TransferHelpers.objectMapper.readTree(oldDocStream);
+			res = oldDoc.get("_rev").asText();
+			object.put("_rev", res);
+			TransferHelpers.db.update(object);
+			res = object.get("_rev").asText();
+		} catch (DocumentNotFoundException e) {
+			TransferHelpers.db.create(object);
+			res = object.get("_rev").asText();
+		}
+		return res;
+	}
 	
 	@BeforeClass
 	public static void init() {
@@ -45,17 +63,9 @@ public class AppTest
 			TransferHelpers.fu.deleteDefault();
 			ObjectMapper om = TransferHelpers.objectMapper;
 			ObjectNode placeObject = (ObjectNode)om.readTree(placeJsonString);
-			try {
-				InputStream oldDocStream = TransferHelpers.db.getAsStream("plc:test0");
-				JsonNode oldDoc = om.readTree(oldDocStream);
-				placeRev = oldDoc.get("_rev").asText();
-				placeObject.put("_rev", placeRev);
-				TransferHelpers.db.update(placeObject);
-				placeRev = placeObject.get("_rev").asText();
-			} catch (DocumentNotFoundException e) {
-				TransferHelpers.db.create(placeObject);
-				placeRev = placeObject.get("_rev").asText();
-			}
+			ObjectNode personObject = (ObjectNode)om.readTree(personJsonString);
+			placeRev = overwriteDoc(placeObject, "plc:test0");
+			personRev = overwriteDoc(personObject, "per:testp0");
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -72,6 +82,7 @@ public class AppTest
 	@AfterClass
 	public static void finish() {
 		TransferHelpers.db.delete("plc:test0", placeRev);
+		TransferHelpers.db.delete("per:testp0", personRev);
 		TransferHelpers.fu.deleteDefault();
 		for (String graphName : graphNames) {
 			TransferHelpers.fu.deleteModel(graphName);
@@ -89,8 +100,8 @@ public class AppTest
 		String query = "SELECT ?p ?l "
 				+ "WHERE {  <"+fullId+"> ?p ?l }";
 		ResultSet rs = TransferHelpers.selectSparql(query);
-		ResultSetFormatter.out(System.out, rs, TransferHelpers.pm);
-		assertTrue(rs.getRowNumber() > 0);
+		assertTrue(rs.hasNext());
+		//ResultSetFormatter.out(System.out, rs, TransferHelpers.pm);
     }
 	
 	@Test
@@ -110,4 +121,20 @@ public class AppTest
 		assertTrue(im.contains(test1, contains, test0));
     }
 
+	@Test
+    public void test3()
+    {
+		Model m = ModelFactory.createDefaultModel();
+		TransferHelpers.addDocIdInModel("per:testp0", m);
+		InfModel im = TransferHelpers.getInferredModel(m);
+		//TransferHelpers.printModel(im);
+		Resource testp0 = im.getResource(TransferHelpers.PERSON_PREFIX+"testp0");
+		Resource testp1 = im.getResource(TransferHelpers.PERSON_PREFIX+"testp1");
+		Resource testp3 = im.getResource(TransferHelpers.PERSON_PREFIX+"testp3");
+		Property teacherOf = im.getProperty(TransferHelpers.PERSON_PREFIX+"teacherOf");
+		Property hasYoungerBrother = im.getProperty(TransferHelpers.PERSON_PREFIX+"hasYoungerBrother");
+		assertTrue(im.contains(testp1, teacherOf, testp0));
+		assertTrue(im.contains(testp3, hasYoungerBrother, testp0));
+    }
+	
 }
