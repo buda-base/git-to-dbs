@@ -104,7 +104,7 @@ public class BDRCReasoner {
 	
 	public static Reasoner getReasoner(OntModel ontoModel) {
 		ClassLoader classLoader = BDRCReasoner.class.getClassLoader();
-		URL ruleFilesUrl = classLoader.getResource("kinship.rules");
+		URL ruleFilesUrl = classLoader.getResource("owl-schema/reasoning/kinship.rules");
 		List<Rule> rules = new ArrayList<Rule>();
 		try {
 			rules = Rule.rulesFromURL(ruleFilesUrl.toString());
