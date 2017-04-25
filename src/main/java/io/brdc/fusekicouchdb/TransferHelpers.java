@@ -440,7 +440,7 @@ public class TransferHelpers {
 	    		inputStream = new FileInputStream(onto);
 	    	} else {
 	    		ClassLoader classLoader = TransferHelpers.class.getClassLoader();
-	    		inputStream = classLoader.getResourceAsStream("owl-file/bdrc.owl");
+	    		inputStream = classLoader.getResourceAsStream("owl-schema/bdrc.owl");
 	    	}
 	        Model m = ModelFactory.createDefaultModel();
 	    	m.read(inputStream, "", "RDF/XML");
