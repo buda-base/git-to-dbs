@@ -1,7 +1,9 @@
 package io.brdc.fusekicouchdb;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,7 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
 import org.apache.jena.reasoner.rulesys.Rule;
+import org.apache.jena.reasoner.rulesys.Rule.Parser;
 import org.apache.jena.reasoner.rulesys.Rule.ParserException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
@@ -104,12 +107,15 @@ public class BDRCReasoner {
 	
 	public static Reasoner getReasoner(OntModel ontoModel) {
 		ClassLoader classLoader = BDRCReasoner.class.getClassLoader();
-		URL ruleFilesUrl = classLoader.getResource("owl-schema/reasoning/kinship.rules");
+//        URL ruleFilesUrl = classLoader.getResource("owl-schema/reasoning/kinship.rules");
+        InputStream rulesFile = classLoader.getResourceAsStream("owl-schema/reasoning/kinship.rules");
 		List<Rule> rules = new ArrayList<Rule>();
 		try {
-			rules = Rule.rulesFromURL(ruleFilesUrl.toString());
+		    BufferedReader in = new BufferedReader(new InputStreamReader(rulesFile));
+            Parser p = Rule.rulesParserFromReader(in);
+            rules = p.getRulesPreload();
 		} catch(ParserException e) {
-			System.err.println("error parsing "+ruleFilesUrl.toString());
+			System.err.println("error parsing "+rulesFile.toString());
 			e.printStackTrace(System.err);
 		}
 		rules.addAll(getRulesFromModel(ontoModel));
