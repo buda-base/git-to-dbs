@@ -1,6 +1,7 @@
 package io.brdc.fusekicouchdb;
 
 import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
 
 import org.ektorp.changes.ChangesCommand;
 import org.ektorp.changes.ChangesFeed;
@@ -145,7 +146,13 @@ public class FusekiTransfer {
 			}
 		}
 		
-		TransferHelpers.executor.shutdown();
+		try {
 
+	        TransferHelpers.logger.info("FusekiTranser shutting down!");
+		    TransferHelpers.executor.awaitTermination(TransferHelpers.TRANSFER_TO, TimeUnit.SECONDS);
+		
+		} catch (InterruptedException ie) { 
+		    
+		}
 	}
 }
