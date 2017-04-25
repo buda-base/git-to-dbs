@@ -47,6 +47,16 @@ public class FusekiTransfer {
 				);
 	}
 
+	/*
+	 * This is taken from the javadocs for ExecutorService trying in vain to get the
+	 * process to actually terminate, but this isn't the issue. Apparently there is a
+	 * thread somewhere that is hanging the process and it isn't in the 
+	 * ExecutorService.newCachedThreadPool(). I know this because I put a shutdownNow
+	 * after this routine is called and logged the number of straggler threads from
+	 * the shutdownNow and it was always zero, and yet, the program still didn't terminate!
+	 * 
+	 * This is left here to prod investigation whenever one of us gets terribly bored -;)
+	 */
 	static void shutdownAndAwaitTermination(ExecutorService pool) {
 	    pool.shutdown(); // Disable new tasks from being submitted
 	    try {
@@ -55,7 +65,7 @@ public class FusekiTransfer {
 	            pool.shutdownNow(); // Cancel currently executing tasks
 	            // Wait a while for tasks to respond to being cancelled
 	            if (!pool.awaitTermination(60, TimeUnit.SECONDS))
-	                System.err.println("Pool did not terminate");
+	                TransferHelpers.logger.warn("Pool did not terminate");
 	        }
 	    } catch (InterruptedException ie) {
 	        // (Re-)Cancel if current thread also interrupted
