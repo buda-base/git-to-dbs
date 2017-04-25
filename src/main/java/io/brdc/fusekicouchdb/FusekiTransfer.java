@@ -1,6 +1,8 @@
 package io.brdc.fusekicouchdb;
 
+import java.util.List;
 import java.util.StringTokenizer;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.ektorp.changes.ChangesCommand;
@@ -43,6 +45,24 @@ public class FusekiTransfer {
 				+ "\nset log level with the VM argument -Dorg.slf4j.simpleLogger.defaultLogLevel=XXX\n"
 				+ "\nFusekiTransfer version: " + VERSION + "\n"
 				);
+	}
+
+	static void shutdownAndAwaitTermination(ExecutorService pool) {
+	    pool.shutdown(); // Disable new tasks from being submitted
+	    try {
+	        // Wait a while for existing tasks to terminate
+	        if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+	            pool.shutdownNow(); // Cancel currently executing tasks
+	            // Wait a while for tasks to respond to being cancelled
+	            if (!pool.awaitTermination(60, TimeUnit.SECONDS))
+	                System.err.println("Pool did not terminate");
+	        }
+	    } catch (InterruptedException ie) {
+	        // (Re-)Cancel if current thread also interrupted
+	        pool.shutdownNow();
+	        // Preserve interrupt status
+	        Thread.currentThread().interrupt();
+	    }
 	}
 
 	public static void main(String[] args) {
@@ -145,14 +165,13 @@ public class FusekiTransfer {
 				}
 			}
 		}
-		
-		try {
 
-	        TransferHelpers.logger.info("FusekiTranser shutting down!");
-		    TransferHelpers.executor.awaitTermination(TransferHelpers.TRANSFER_TO, TimeUnit.SECONDS);
+		TransferHelpers.logger.info("FusekiTranser shutting down");
+		shutdownAndAwaitTermination(TransferHelpers.executor);
+        TransferHelpers.logger.info("FusekiTranser " + couchdbName + " done");
 		
-		} catch (InterruptedException ie) { 
-		    
-		}
+		// for an unknown reason, when execution reaches this point, if there is not
+		// an explicit exit the program simply hangs indefinitely?!
+		System.exit(0);
 	}
 }
