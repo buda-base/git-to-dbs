@@ -3,7 +3,7 @@
 java -jar target/fusekicouchdb-0.7.jar -transferAllDB -progress -doNotListen -couchdbName bdrc_corporation
 java -jar target/fusekicouchdb-0.7.jar -transferAllDB -progress -doNotListen -couchdbName bdrc_lineage
 java -jar target/fusekicouchdb-0.7.jar -transferAllDB -progress -doNotListen -couchdbName bdrc_office
-java -jar target/fusekicouchdb-0.7.jar -transferAllDB -progress -doNotListen -couchdbName -timeout 30 bdrc_outline
+java -jar target/fusekicouchdb-0.7.jar -transferAllDB -progress -doNotListen -timeout 30 -couchdbName bdrc_outline
 java -jar target/fusekicouchdb-0.7.jar -transferAllDB -progress -doNotListen -couchdbName bdrc_person
 java -jar target/fusekicouchdb-0.7.jar -transferAllDB -progress -doNotListen -couchdbName bdrc_place
 java -jar target/fusekicouchdb-0.7.jar -transferAllDB -progress -doNotListen -couchdbName bdrc_topic
