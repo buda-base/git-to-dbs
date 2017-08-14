@@ -62,6 +62,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class TransferHelpers {
 	public static final String RESOURCE_PREFIX = "http://purl.bdrc.io/resource/";
 	public static final String CORE_PREFIX = "http://purl.bdrc.io/ontology/core/";
+	public static final String CONTEXT_URL = "http://purl.bdrc.io/context.jsonld";
 	public static final String ADMIN_PREFIX = "http://purl.bdrc.io/ontology/admin/";
 	public static final String OWL_PREFIX = "http://www.w3.org/2002/07/owl#";
 	public static final String RDF_PREFIX = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
