@@ -1,6 +1,5 @@
 package io.brdc.fusekicouchdb;
 
-import java.util.List;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;

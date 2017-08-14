@@ -1,15 +1,11 @@
 package io.brdc.fusekicouchdb;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.jena.ontology.DatatypeProperty;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -17,15 +13,11 @@ import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
 import org.apache.jena.reasoner.rulesys.Rule;
 import org.apache.jena.reasoner.rulesys.Rule.Parser;
 import org.apache.jena.reasoner.rulesys.Rule.ParserException;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.ReasonerVocabulary;
 
@@ -103,20 +95,22 @@ public class BDRCReasoner {
 		return res;
 	}
 	
-	
-	
-	public static Reasoner getReasoner(OntModel ontoModel) {
+	public static void addRulesFromFile(String fileName, List<Rule> rules) {
 		ClassLoader classLoader = BDRCReasoner.class.getClassLoader();
-        InputStream rulesFile = classLoader.getResourceAsStream("owl-schema/reasoning/kinship.rules");
-		List<Rule> rules = new ArrayList<Rule>();
-		try {
+        InputStream rulesFile = classLoader.getResourceAsStream(fileName);
+        try {
 		    BufferedReader in = new BufferedReader(new InputStreamReader(rulesFile));
             Parser p = Rule.rulesParserFromReader(in);
-            rules = p.getRulesPreload();
+            rules.addAll(p.getRulesPreload());
 		} catch(ParserException e) {
 			System.err.println("error parsing "+rulesFile.toString());
 			e.printStackTrace(System.err);
 		}
+	}
+	
+	public static Reasoner getReasoner(OntModel ontoModel) {
+		List<Rule> rules = new ArrayList<Rule>();
+		//addRulesFromFile("owl-schema/reasoning/kinship.rules", rules);
 		rules.addAll(getRulesFromModel(ontoModel));
 		Reasoner reasoner = new GenericRuleReasoner(rules);
 		reasoner.setParameter(ReasonerVocabulary.PROPruleMode, "forward");
