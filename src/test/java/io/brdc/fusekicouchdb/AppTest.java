@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class AppTest 
 {
-	private static String placeJsonString = "{\"_id\":\"plc:test0\",\"@graph\":[{\"rdfs:label\":{\"@language\":\"bo\",\"@value\":\"རྒྱ་མཁར་གསང་སྔགས་ཆོས་གླིང\"},\"@id\":\"plc:test0\",\"@type\":[\"plc:DgonPa\"],\"plc:isLocatedIn\":{\"@id\":\"plc:test1\"}}]}";
+	private static String placeJsonString = "{\"_id\":\"bdr:test0\",\"@graph\":[{\"rdfs:label\":{\"@language\":\"bo\",\"@value\":\"རྒྱ་མཁར་གསང་སྔགས་ཆོས་གླིང\"},\"@id\":\"bdr:test0\",\"@type\":[\"plc:DgonPa\"],\"plc:isLocatedIn\":{\"@id\":\"plc:test1\"}}]}";
 	private static String personJsonString = "{\"_id\":\"per:testp0\",\"@graph\":[{\"@id\":\"per:testp0\",\"@type\":\"per:Person\",\"per:primaryName\":{\"@language\":\"bo\",\"@value\":\"བློ་བཟང་ཚུལ་ཁྲིམས་བྱམས་པ་རྒྱ་མཚོ\"},\"per:studentOf\":[{\"@id\":\"per:testp1\"}],\"per:teacherOf\":[{\"@id\":\"per:testp2\"}],\"per:gender\":\"male\",\"per:hasOlderBrother\":[{\"@id\":\"per:testp3\"}]}]}";
 	private static String placeRev = null;
 	private static String personRev = null;
@@ -110,13 +110,11 @@ public class AppTest
 		TransferHelpers.addDocIdInModel("plc:test0", m);
 		InfModel im = TransferHelpers.getInferredModel(m);
 		//TransferHelpers.printModel(im);
-		Resource test0 = im.getResource(TransferHelpers.PLACE_PREFIX+"test0");
-		Resource test1 = im.getResource(TransferHelpers.PLACE_PREFIX+"test1");
-		Resource place = im.getResource(TransferHelpers.PLACE_PREFIX+"Place");
-		Property contains = im.getProperty(TransferHelpers.PLACE_PREFIX+"contains");
-		Resource brtenPaGnasKhang = im.getResource(TransferHelpers.PLACE_PREFIX+"BrtenPaGnasKhang");
+		Resource test0 = im.getResource(TransferHelpers.RESOURCE_PREFIX+"test0");
+		Resource test1 = im.getResource(TransferHelpers.RESOURCE_PREFIX+"test1");
+		Resource place = im.getResource(TransferHelpers.RESOURCE_PREFIX+"Place");
+		Property contains = im.getProperty(TransferHelpers.CORE_PREFIX+"contains");
 		assertTrue(im.contains(test0, RDF.type, place));
-		assertTrue(im.contains(test0, RDF.type, brtenPaGnasKhang));
 		assertTrue(im.contains(test1, contains, test0));
     }
 
@@ -127,13 +125,11 @@ public class AppTest
 		TransferHelpers.addDocIdInModel("per:testp0", m);
 		InfModel im = TransferHelpers.getInferredModel(m);
 		//TransferHelpers.printModel(im);
-		Resource testp0 = im.getResource(TransferHelpers.PERSON_PREFIX+"testp0");
-		Resource testp1 = im.getResource(TransferHelpers.PERSON_PREFIX+"testp1");
-		Resource testp3 = im.getResource(TransferHelpers.PERSON_PREFIX+"testp3");
-		Property teacherOf = im.getProperty(TransferHelpers.PERSON_PREFIX+"teacherOf");
-		Property hasYoungerBrother = im.getProperty(TransferHelpers.PERSON_PREFIX+"hasYoungerBrother");
+		Resource testp0 = im.getResource(TransferHelpers.RESOURCE_PREFIX+"testp0");
+		Resource testp1 = im.getResource(TransferHelpers.RESOURCE_PREFIX+"testp1");
+		Resource testp3 = im.getResource(TransferHelpers.RESOURCE_PREFIX+"testp3");
+		Property teacherOf = im.getProperty(TransferHelpers.CORE_PREFIX+"teacherOf");
 		assertTrue(im.contains(testp1, teacherOf, testp0));
-		assertTrue(im.contains(testp3, hasYoungerBrother, testp0));
     }
 	
 }

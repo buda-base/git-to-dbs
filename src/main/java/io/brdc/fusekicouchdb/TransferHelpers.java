@@ -5,10 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.net.MalformedURLException;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -38,9 +35,9 @@ import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
+import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.riot.system.StreamRDFLib;
-import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.OWL2;
@@ -63,18 +60,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class TransferHelpers {
-	public static final String DESCRIPTION_PREFIX = "http://onto.bdrc.io/ontology/description#";
-	public static final String ROOT_PREFIX = "http://purl.bdrc.io/ontology/root#";
-	public static final String CORPORATION_PREFIX = "http://purl.bdrc.io/ontology/corporation#";
-	public static final String LINEAGE_PREFIX = "http://purl.bdrc.io/ontology/lineage#";
-	public static final String OFFICE_PREFIX = "http://purl.bdrc.io/ontology/office#";
-	public static final String PRODUCT_PREFIX = "http://purl.bdrc.io/ontology/product#";
-	public static final String OUTLINE_PREFIX = "http://purl.bdrc.io/ontology/outline#";
-	public static final String PERSON_PREFIX = "http://purl.bdrc.io/ontology/person#";
-	public static final String PLACE_PREFIX = "http://purl.bdrc.io/ontology/place#";
-	public static final String TOPIC_PREFIX = "http://purl.bdrc.io/ontology/topic#";
-	public static final String VOLUMES_PREFIX = "http://purl.bdrc.io/ontology/volumes#";
-	public static final String WORK_PREFIX = "http://purl.bdrc.io/ontology/work#";
+	public static final String RESOURCE_PREFIX = "http://purl.bdrc.io/resource/";
+	public static final String CORE_PREFIX = "http://purl.bdrc.io/ontology/core/";
+	public static final String ADMIN_PREFIX = "http://purl.bdrc.io/ontology/admin/";
 	public static final String OWL_PREFIX = "http://www.w3.org/2002/07/owl#";
 	public static final String RDF_PREFIX = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 	public static final String RDFS_PREFIX = "http://www.w3.org/2000/01/rdf-schema#";
@@ -90,28 +78,6 @@ public class TransferHelpers {
 	
 	public static ObjectMapper objectMapper = new ObjectMapper();
 	public static ObjectNode jsonLdContext = objectMapper.createObjectNode();
-	
-	public static PrefixMapping pm = null;
-	
-	static {
-		jsonLdContext.put("crp", CORPORATION_PREFIX);
-		jsonLdContext.put("prd", PRODUCT_PREFIX);
-		jsonLdContext.put("owl", OWL_PREFIX);
-		jsonLdContext.put("plc", PLACE_PREFIX);
-		jsonLdContext.put("xsd", XSD_PREFIX);
-		jsonLdContext.put("rdfs", RDFS_PREFIX);
-		jsonLdContext.put("rdf", RDF_PREFIX);
-		jsonLdContext.put("ofc", OFFICE_PREFIX);
-		jsonLdContext.put("out", OUTLINE_PREFIX);
-		jsonLdContext.put("lin", LINEAGE_PREFIX);
-		jsonLdContext.put("top", TOPIC_PREFIX);
-		jsonLdContext.put("wor", WORK_PREFIX);
-		jsonLdContext.put("per", PERSON_PREFIX);
-		jsonLdContext.put("vol", VOLUMES_PREFIX);
-		jsonLdContext.put("desc", DESCRIPTION_PREFIX);
-		jsonLdContext.put("", ROOT_PREFIX);
-		jsonLdContext.put("@vocab", ROOT_PREFIX);
-	}
 	
 	public static String FusekiUrl = "http://localhost:13180/fuseki/bdrcrw/data";
 	public static String CouchDBUrl = "http://localhost:13598";
@@ -132,14 +98,6 @@ public class TransferHelpers {
 		logger.info("connecting to fuseki on "+FusekiUrl);
 		fu = connectFuseki();
 		couchdbName = dbName;
-		pm = PrefixMapping.Factory.create();
-		Iterator<Entry<String, JsonNode>> nodes = jsonLdContext.fields();
-		while (nodes.hasNext()) {
-		  Map.Entry<String, JsonNode> entry = (Map.Entry<String, JsonNode>) nodes.next();
-		  String key = entry.getKey();
-		  if (key == "@vocab") continue;
-		  pm.setNsPrefix(key, entry.getValue().asText());
-		}
 		ontModel = getOntologyModel(null);
 		bdrcReasoner = BDRCReasoner.getReasoner(ontModel);
 	}
@@ -190,11 +148,7 @@ public class TransferHelpers {
 	public static String getFullUrlFromDocId(String docId) {
 		int colonIndex = docId.indexOf(":");
 		if (colonIndex < 0) return docId;
-		String prefix = docId.substring(0 , colonIndex);
-		String finalPart = docId.substring(colonIndex+1);
-		if (prefix.isEmpty()) prefix = "@vocab";
-		String longPrefix = jsonLdContext.get(prefix).asText();
-		return longPrefix+finalPart;
+		return RESOURCE_PREFIX+docId.substring(colonIndex+1);
 	}
 
 	public static void transferOneDoc(String docId) {
@@ -267,7 +221,7 @@ public class TransferHelpers {
 	    // instead of ektorp json parsing
 	    StreamRDF dest = StreamRDFLib.graph(m.getGraph()) ;
 	    Context ctx = new Context();
-	    RDFDataMgr.parse(dest, stuff, "", Lang.JSONLD, ctx);
+	    RDFParser.source(stuff).lang(Lang.JSONLD).context(ctx).parse(dest);
 	    try {
 			stuff.close();
 		} catch (IOException e) {
@@ -277,8 +231,8 @@ public class TransferHelpers {
 	
 	public static void updateFusekiLastSequence(String sequence) {
 		Model m = getSyncModel();
-		Resource res = m.getResource(ROOT_PREFIX+"CouchdbSyncInfo");
-		Property p = m.getProperty(ROOT_PREFIX+"has_last_sequence");
+		Resource res = m.getResource(ADMIN_PREFIX+"CouchdbSyncInfo");
+		Property p = m.getProperty(ADMIN_PREFIX+"has_last_sequence");
 		Literal l = m.createLiteral(sequence);
 		Statement s = m.getProperty(res, p);
 		if (s == null) {
@@ -287,7 +241,7 @@ public class TransferHelpers {
 			s.changeObject(sequence);
 		}
 		try {
-			transferModel(ROOT_PREFIX+"system", m);
+			transferModel(ADMIN_PREFIX+"system", m);
 		} catch (TimeoutException e) {
 			logger.warn("Timeout sending sequence to fuseki (not fatal): "+sequence, e);
 		}
@@ -298,7 +252,7 @@ public class TransferHelpers {
 	public static synchronized Model getSyncModel() {
 		if (syncModel != null) return syncModel;
 		try {
-			syncModel = getModel(ROOT_PREFIX+"system");
+			syncModel = getModel(ADMIN_PREFIX+"system");
 		} catch (TimeoutException e) {
 			logger.error("Time out while fetching system model, quitting...", e);
 			System.exit(1);
@@ -311,8 +265,8 @@ public class TransferHelpers {
 	
 	public static String getLastFusekiSequence() { 
 		Model m = getSyncModel();
-		Resource res = m.getResource(ROOT_PREFIX+"CouchdbSyncInfo");
-		Property p = m.getProperty(ROOT_PREFIX+"has_last_sequence");
+		Resource res = m.getResource(ADMIN_PREFIX+"CouchdbSyncInfo");
+		Property p = m.getProperty(ADMIN_PREFIX+"has_last_sequence");
 		Statement s = m.getProperty(res, p);
 		if (s == null) return null;
 		return s.getString();
@@ -339,7 +293,7 @@ public class TransferHelpers {
 		Model m = ModelFactory.createDefaultModel();
 		doc.remove("_id");
 		doc.remove("_rev");
-		doc.put("@context", jsonLdContext);
+		//doc.put("@context", jsonLdContext);
 		// quite inefficient: we have to convert the doc to string
 		// to feed it to jena json-ld parser...
 		String docstring;
@@ -451,14 +405,14 @@ public class TransferHelpers {
 	    	return null;
 	    }
 	    // then we fix it by removing the individuals and converting rdf10 to rdf11
-	    removeIndividuals(ontoModel);
+	    //removeIndividuals(ontoModel);
 	    rdf10tordf11(ontoModel);
 	    return ontoModel;
 	}
 
 	public static void transferOntology() {
 		try {
-			transferModel(ROOT_PREFIX+"baseontology", ontModel);
+			transferModel(CORE_PREFIX+"ontologySchema", ontModel);
 		} catch (TimeoutException e) {
 			logger.error("Timeout sending ontology model", e);
 		}
