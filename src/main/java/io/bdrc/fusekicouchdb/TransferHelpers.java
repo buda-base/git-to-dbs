@@ -1,4 +1,4 @@
-package io.brdc.fusekicouchdb;
+package io.bdrc.fusekicouchdb;
 
 import java.io.FileInputStream;
 import java.io.IOException;

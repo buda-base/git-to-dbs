@@ -1,4 +1,4 @@
-package io.brdc.fusekicouchdb;
+package io.bdrc.fusekicouchdb;
 
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutorService;
