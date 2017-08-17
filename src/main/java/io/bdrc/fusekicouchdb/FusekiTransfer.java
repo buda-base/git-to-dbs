@@ -134,7 +134,7 @@ public class FusekiTransfer {
 		if (transferAllDB) {		
 			try {
 				//TransferHelpers.transferOntology(); // use ontology from jar
-				TransferHelpers.transferCompleteDB(howMany);
+				TransferHelpers.transferAllDBs(howMany);
 			} catch (Exception ex) {
 				TransferHelpers.logger.error("error in complete transfer", ex);
 				System.exit(1);
@@ -142,37 +142,37 @@ public class FusekiTransfer {
 		}
 		
 		if (listenToChanges) {
-			String lastFusekiSequence = TransferHelpers.getLastFusekiSequence();
-			
-			TransferHelpers.logger.info("listening to couchdb changes...");
-			
-			ChangesCommand cmd = new ChangesCommand.Builder()
-					.includeDocs(true)
-	                .continuous(true)
-	                .since(lastFusekiSequence)
-	                .heartbeat(5000)
-					.build();
-	
-			ChangesFeed feed = TransferHelpers.db.changesFeed(cmd);
-	
-			while (feed.isAlive()) {
-			    DocumentChange change;
-			    String id;
-				try {
-					change = feed.next();
-					id = change.getId();
-				} catch (InterruptedException e) {
-					TransferHelpers.logger.error("error while listening to changes, quitting", e);
-					System.exit(1);
-					return;
-				}
-				try {
-					TransferHelpers.transferChange(change);
-				} catch (Exception e) {
-					TransferHelpers.logger.error("error transfering doc "+id, e);
-					System.exit(1);
-				}
-			}
+//			String lastFusekiSequence = TransferHelpers.getLastFusekiSequence();
+//			
+//			TransferHelpers.logger.info("listening to couchdb changes...");
+//			
+//			ChangesCommand cmd = new ChangesCommand.Builder()
+//					.includeDocs(true)
+//	                .continuous(true)
+//	                .since(lastFusekiSequence)
+//	                .heartbeat(5000)
+//					.build();
+//	
+//			ChangesFeed feed = TransferHelpers.db.changesFeed(cmd);
+//	
+//			while (feed.isAlive()) {
+//			    DocumentChange change;
+//			    String id;
+//				try {
+//					change = feed.next();
+//					id = change.getId();
+//				} catch (InterruptedException e) {
+//					TransferHelpers.logger.error("error while listening to changes, quitting", e);
+//					System.exit(1);
+//					return;
+//				}
+//				try {
+//					TransferHelpers.transferChange(change);
+//				} catch (Exception e) {
+//					TransferHelpers.logger.error("error transfering doc "+id, e);
+//					System.exit(1);
+//				}
+//			}
 		}
 
 		TransferHelpers.logger.info("FusekiTranser shutting down");

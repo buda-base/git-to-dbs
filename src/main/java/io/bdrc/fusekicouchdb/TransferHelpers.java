@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -90,15 +91,26 @@ public class TransferHelpers {
 	public static OntModel ontModel = null;
 	public static Reasoner bdrcReasoner = null;
 	
+	public static List<String> database_list = new ArrayList<String>();
+	static {
+		database_list.add("bdrc_corporation");
+		database_list.add("bdrc_lineage");
+		database_list.add("bdrc_office");
+		database_list.add("bdrc_corporation");
+		database_list.add("bdrc_person");
+		database_list.add("bdrc_place");
+		database_list.add("bdrc_topic");
+		database_list.add("bdrc_item");
+		database_list.add("bdrc_work");
+	}
+	
 	public static void init(String fusekiHost, String fusekiPort, String couchdbHost, String couchdbPort, String dbName, String fusekiEndpoint) throws MalformedURLException {
 		FusekiUrl = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/"+fusekiEndpoint+"/data";
 		FusekiSparqlEndpoint = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/"+fusekiEndpoint+"/query";
 		CouchDBUrl = "http://" + couchdbHost + ":" +  couchdbPort;
 		logger.info("connecting to couchdb on "+CouchDBUrl);
-		db = connectCouchDB(dbName);
 		logger.info("connecting to fuseki on "+FusekiUrl);
 		fu = connectFuseki();
-		couchdbName = dbName;
 		ontModel = getOntologyModel(null);
 		bdrcReasoner = BDRCReasoner.getReasoner(ontModel);
 	}
@@ -115,7 +127,23 @@ public class TransferHelpers {
     	return res;
 	}
 	
-	public static void transferCompleteDB (int n) {
+	public static void transferAllDBs(int n) {
+		int i = 0;
+		for (String dbName : database_list) {
+			i =  i + transferCompleteDB(n, dbName);
+			if (i >= n)
+				return;
+		}
+		
+	}
+	
+	public static int transferCompleteDB (int n, String dbName) {
+		try {
+			db =  connectCouchDB(dbName);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+			return 0;
+		}
 		List<String> Ids = db.getAllDocIds();
 		int lim = Integer.min(Ids.size(), n);
 		String lastSequence = (lim < Ids.size()) ? "0" : getLastCouchDBChangeSeq();
@@ -136,10 +164,11 @@ public class TransferHelpers {
 		logger.info("Transferred " + i + " docs to Fuseki");
 		updateFusekiLastSequence(lastSequence);
 		logger.info("Updating sequence to "+lastSequence);
+		return i;
 	}
 	
 	public static void transferCompleteDB () {
-		transferCompleteDB(Integer.MAX_VALUE);
+		transferAllDBs(Integer.MAX_VALUE);
 	}
 	
 	public static DatasetAccessor connectFuseki() {
