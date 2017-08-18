@@ -4,9 +4,6 @@ import java.util.StringTokenizer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.ektorp.changes.ChangesCommand;
-import org.ektorp.changes.ChangesFeed;
-import org.ektorp.changes.DocumentChange;
 import org.slf4j.LoggerFactory;
 
 public class FusekiTransfer {

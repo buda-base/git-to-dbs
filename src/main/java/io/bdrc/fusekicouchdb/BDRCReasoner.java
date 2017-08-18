@@ -8,8 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.jena.ontology.Individual;
-import org.apache.jena.ontology.OntModel;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
@@ -26,7 +24,6 @@ import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
 import org.apache.jena.reasoner.rulesys.Rule;
 import org.apache.jena.reasoner.rulesys.Rule.Parser;
 import org.apache.jena.reasoner.rulesys.Rule.ParserException;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.ReasonerVocabulary;
 

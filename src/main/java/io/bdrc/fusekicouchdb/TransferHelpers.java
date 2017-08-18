@@ -1,6 +1,5 @@
 package io.bdrc.fusekicouchdb;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -16,7 +15,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.jena.ontology.DatatypeProperty;
-import org.apache.jena.ontology.Individual;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Restriction;
@@ -40,7 +38,6 @@ import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.RDFParserBuilder;
 import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.riot.system.StreamRDFLib;
-import org.apache.jena.sparql.util.Context;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.OWL2;
 import org.ektorp.CouchDbConnector;
