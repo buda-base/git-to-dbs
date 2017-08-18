@@ -29,8 +29,10 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.ReasonerVocabulary;
 
+// call BDRReasoner to get a reasoner to apply to an individual graph of BDRC data
 public class BDRCReasoner {
 	
+	// true to infer symetric properties in the same graph (?a :hasBrother ?b -> ?b :hasBrother ?a)
 	public static boolean inferSymetry = false;
 	
 	public static final String BDO = TransferHelpers.CORE_PREFIX;
@@ -54,7 +56,6 @@ public class BDRCReasoner {
 	
 	// tag nodes of the tree having all children with ruleToParentDone to isLeave
 	public static boolean tagLeaves(Map<String,TaxTreeNode> uriToTreeNode) {
-		System.out.println("start tagging leaves");
 		boolean taggedLeaves = false;
 		mainloop:
 		for (TaxTreeNode n : uriToTreeNode.values()) {

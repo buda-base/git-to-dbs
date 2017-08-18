@@ -37,6 +37,7 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFParser;
+import org.apache.jena.riot.RDFParserBuilder;
 import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.riot.system.StreamRDFLib;
 import org.apache.jena.sparql.util.Context;
@@ -89,6 +90,7 @@ public class TransferHelpers {
 	public static CouchDbConnector db = null;
 	public static DatasetAccessor fu = null;
 	public static OntModel ontModel = null;
+	public static Model baseModel = null;
 	public static Reasoner bdrcReasoner = null;
 	
 	public static List<String> database_list = new ArrayList<String>();
@@ -111,7 +113,8 @@ public class TransferHelpers {
 		logger.info("connecting to couchdb on "+CouchDBUrl);
 		logger.info("connecting to fuseki on "+FusekiUrl);
 		fu = connectFuseki();
-		ontModel = getOntologyModel(null);
+		baseModel = getOntologyBaseModel(); 
+		ontModel = getOntologyModel(baseModel);
 		bdrcReasoner = BDRCReasoner.getReasoner(ontModel);
 	}
 	
@@ -144,6 +147,7 @@ public class TransferHelpers {
 			e.printStackTrace();
 			return 0;
 		}
+		couchdbName = dbName;
 		List<String> Ids = db.getAllDocIds();
 		int lim = Integer.min(Ids.size(), n);
 		String lastSequence = (lim < Ids.size()) ? "0" : getLastCouchDBChangeSeq();
@@ -249,9 +253,9 @@ public class TransferHelpers {
 	    InputStream stuff = r.getContent();
 	    // feeding the inputstream directly to jena for json-ld parsing
 	    // instead of ektorp json parsing
-	    StreamRDF dest = StreamRDFLib.graph(m.getGraph()) ;
-	    Context ctx = new Context();
-	    RDFParser.source(stuff).lang(Lang.JSONLD).context(ctx).parse(dest);
+	    StreamRDF dest = StreamRDFLib.graph(m.getGraph());
+	    RDFParserBuilder rdfp = RDFParser.source(stuff).lang(Lang.JSONLD);
+	    rdfp.parse(dest);
 	    try {
 			stuff.close();
 		} catch (IOException e) {
@@ -397,45 +401,28 @@ public class TransferHelpers {
         }
 	}
 	
-	public static void removeIndividuals(OntModel o) {
-		ExtendedIterator<Individual> it = o.listIndividuals();
-	    while(it.hasNext()) {
-			Individual i = it.next();
-			if (i.getLocalName().equals("UNKNOWN")) continue;
-			i.remove();
-	    }
-	}
-	
 	public static ResultSet selectSparql(String query) {
 		QueryExecution qe = QueryExecutionFactory.sparqlService(FusekiSparqlEndpoint, query);
 		return qe.execSelect();
 	}
 	
-	public static OntModel getOntologyModel(String onto)
-	{
-		OntModel ontoModel;;
-	    try {
-	    	InputStream inputStream;
-
-	    	if (onto != null) {
-	    		inputStream = new FileInputStream(onto);
-	    	} else {
-	    		ClassLoader classLoader = TransferHelpers.class.getClassLoader();
-	    		inputStream = classLoader.getResourceAsStream("owl-schema/bdrc.owl");
-	    	}
-	        Model m = ModelFactory.createDefaultModel();
-	    	m.read(inputStream, "", "RDF/XML");
+	public static Model getOntologyBaseModel() {
+		Model res;
+		try {
+    		ClassLoader classLoader = TransferHelpers.class.getClassLoader();
+    		InputStream inputStream = classLoader.getResourceAsStream("owl-schema/bdrc.owl");
+	        res = ModelFactory.createDefaultModel();
+	    	res.read(inputStream, "", "RDF/XML");
 	        inputStream.close();
-	        // if you want inferred triples:
-	        //Reasoner reasoner = ReasonerRegistry.getOWLReasoner();
-	        //InfModel infModel = ModelFactory.createInfModel(reasoner, m);
-	        ontoModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM, m);
 	    } catch (Exception e) {
 	    	logger.error("Error reading ontology file", e);
 	    	return null;
 	    }
-	    // then we fix it by removing the individuals and converting rdf10 to rdf11
-	    //removeIndividuals(ontoModel);
+		return res;
+	}
+	
+	public static OntModel getOntologyModel(Model baseModel) {
+		OntModel ontoModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM, baseModel);
 	    rdf10tordf11(ontoModel);
 	    return ontoModel;
 	}

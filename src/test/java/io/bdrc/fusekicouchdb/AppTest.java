@@ -60,6 +60,13 @@ public class AppTest
 	public static void init() {
 		try {
 			TransferHelpers.init("localhost", "13180", "localhost", "13598", "test", "testrw");
+			try {
+				TransferHelpers.db =  TransferHelpers.connectCouchDB("test");
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+				return;
+			}
+			TransferHelpers.couchdbName = "test";
 			TransferHelpers.fu.deleteDefault();
 			ObjectMapper om = TransferHelpers.objectMapper;
 			ObjectNode placeObject = (ObjectNode)om.readTree(placeJsonString);
@@ -116,7 +123,9 @@ public class AppTest
 		Resource place = im.getResource(TransferHelpers.CORE_PREFIX+"Place");
 		Property contains = im.getProperty(TransferHelpers.CORE_PREFIX+"placeContains");
 		assertTrue(im.contains(test0, RDF.type, place));
-		assertTrue(im.contains(test1, contains, test0));
+		if (BDRCReasoner.inferSymetry) {
+			assertTrue(im.contains(test1, contains, test0));			
+		}
     }
 
 	@Test
@@ -128,9 +137,10 @@ public class AppTest
 		//TransferHelpers.printModel(im);
 		Resource testp0 = im.getResource(TransferHelpers.RESOURCE_PREFIX+"testp0");
 		Resource testp1 = im.getResource(TransferHelpers.RESOURCE_PREFIX+"testp1");
-		Resource testp3 = im.getResource(TransferHelpers.RESOURCE_PREFIX+"testp3");
 		Property teacherOf = im.getProperty(TransferHelpers.CORE_PREFIX+"personTeacherOf");
-		assertTrue(im.contains(testp1, teacherOf, testp0));
+		if (BDRCReasoner.inferSymetry) {
+			assertTrue(im.contains(testp1, teacherOf, testp0));			
+		}
     }
 	
 }
