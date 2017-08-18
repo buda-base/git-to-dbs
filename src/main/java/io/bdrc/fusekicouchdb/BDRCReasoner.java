@@ -16,6 +16,7 @@ import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
@@ -32,7 +33,7 @@ import org.apache.jena.vocabulary.ReasonerVocabulary;
 // call BDRReasoner to get a reasoner to apply to an individual graph of BDRC data
 public class BDRCReasoner {
 	
-	// true to infer symetric properties in the same graph (?a :hasBrother ?b -> ?b :hasBrother ?a)
+	// true to infer symmetric properties in the same graph (?a :hasBrother ?b -> ?b :hasBrother ?a)
 	public static boolean inferSymetry = false;
 	
 	public static final String BDO = TransferHelpers.CORE_PREFIX;
@@ -74,33 +75,30 @@ public class BDRCReasoner {
 		return taggedLeaves;
 	}
 	
-	public static List<String> getSubClassofUris(final OntModel ontoModel) {
+	public static List<String> getSubClassofUris(final Model m) {
 		final List<String> subClassOfUris = new ArrayList<>();
-		final ExtendedIterator<Individual> it = ontoModel.listIndividuals(ontoModel.getResource(BDO+"Taxonomy"));
+		final StmtIterator it = m.listStatements((Resource) null, m.getProperty(BDO, "taxSubclassRelation"), (RDFNode) null);
 		while (it.hasNext()) {
-			final Individual ind = it.next();
-			final RDFNode n = ind.getPropertyValue(ontoModel.getProperty(BDO, "taxSubclassRelation")); // mind the case
-			if (n != null && n.isURIResource()) {
-				subClassOfUris.add(n.asResource().getURI());
-			}
+			final Statement st = it.nextStatement();
+			subClassOfUris.add(st.getObject().asResource().getURI());
 		}
 		return subClassOfUris;
 	}
 	
-	public static List<Rule> getTaxonomyRules(final OntModel ontoModel) {
-		final List<String> subClassOfUris = getSubClassofUris(ontoModel);
+	public static List<Rule> getTaxonomyRules(final Model m) {
+		final List<String> subClassOfUris = getSubClassofUris(m);
 		final List<Rule> res = new ArrayList<>();
 		for (String propUri : subClassOfUris) {
-			res.addAll(getTaxonomyRules(ontoModel, propUri));
+			res.addAll(getTaxonomyRules(m, propUri));
 		}
 		return res;
 	}
 	
-	public static List<Rule> getTaxonomyRules(final OntModel ontoModel, final String propUri) {
+	public static List<Rule> getTaxonomyRules(final Model m, final String propUri) {
 		int i = 0;
 		final List<Rule> res = new ArrayList<Rule>();
 		final Map<String,TaxTreeNode> uriToTreeNode = new HashMap<>();
-		final StmtIterator it = ontoModel.getBaseModel().listStatements((Resource) null, ontoModel.getProperty(propUri), (RDFNode) null);
+		final StmtIterator it = m.listStatements((Resource) null, m.getProperty(propUri), (RDFNode) null);
 		while (it.hasNext()) {
 			final Statement t = it.nextStatement();
 			final String childUri = t.getSubject().getURI();
@@ -126,7 +124,7 @@ public class BDRCReasoner {
 		return res;
 	}
 	
-	public static List<Rule> getRulesFromModel(OntModel ontoModel) {
+	public static List<Rule> getRulesFromModel(Model m) {
 		List<Rule> res = new ArrayList<Rule>();
 		
 	    String queryString = "PREFIX bdo: <"+TransferHelpers.CORE_PREFIX+">\n"
@@ -163,7 +161,7 @@ public class BDRCReasoner {
 	    		+ "  }\n"
 	    		+ "}\n" ;
 	    Query query = QueryFactory.create(queryString) ;
-	    try (QueryExecution qexec = QueryExecutionFactory.create(query, ontoModel)) {
+	    try (QueryExecution qexec = QueryExecutionFactory.create(query, m)) {
 	      ResultSet results = qexec.execSelect() ;
 	      for (int i = 0 ; results.hasNext() ; i++)
 	      {
@@ -214,14 +212,14 @@ public class BDRCReasoner {
 			e.printStackTrace(System.err);
 		}
 	}
-	
-	public static Reasoner getReasoner(OntModel ontoModel) {
+
+	public static Reasoner getReasoner(Model m) {
 		List<Rule> rules = new ArrayList<Rule>();
 		if (inferSymetry) {
 			addRulesFromFile("owl-schema/reasoning/kinship.rules", rules);
 		}
-		rules.addAll(getRulesFromModel(ontoModel));
-		rules.addAll(getTaxonomyRules(ontoModel));
+		rules.addAll(getRulesFromModel(m));
+		rules.addAll(getTaxonomyRules(m));
 		Reasoner reasoner = new GenericRuleReasoner(rules);
 		reasoner.setParameter(ReasonerVocabulary.PROPruleMode, "forward");
 		return reasoner;
