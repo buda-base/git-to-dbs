@@ -38,6 +38,8 @@ public class AppTest
 	private static String personJsonString = "{\"_id\":\"bdr:testp0\",\"@graph\":[{\"@id\":\"bdr:testp0\",\"@type\":\"bdo:Person\",\"personStudentOf\":\"bdr:testp1\",\"personTeacherOf\":\"bdr:testp2\"}],\"@context\":\""+TransferHelpers.CONTEXT_URL+"\"}";
 	private static String placeRev = null;
 	private static String personRev = null;
+	private static final String BDR = TransferHelpers.RESOURCE_PREFIX;
+	private static final String BDO = TransferHelpers.CORE_PREFIX;
 	private static List<String> graphNames = new ArrayList<String>();
 	
 	public static String overwriteDoc(ObjectNode object, String id) throws JsonProcessingException, IOException {
@@ -118,10 +120,10 @@ public class AppTest
 		TransferHelpers.addDocIdInModel("bdr:test0", m);
 		InfModel im = TransferHelpers.getInferredModel(m);
 		//TransferHelpers.printModel(im);
-		Resource test0 = im.getResource(TransferHelpers.RESOURCE_PREFIX+"test0");
-		Resource test1 = im.getResource(TransferHelpers.RESOURCE_PREFIX+"test1");
-		Resource place = im.getResource(TransferHelpers.CORE_PREFIX+"Place");
-		Property contains = im.getProperty(TransferHelpers.CORE_PREFIX+"placeContains");
+		Resource test0 = im.getResource(BDR+"test0");
+		Resource test1 = im.getResource(BDR+"test1");
+		Resource place = im.getResource(BDO+"Place");
+		Property contains = im.getProperty(BDO+"placeContains");
 		assertTrue(im.contains(test0, RDF.type, place));
 		if (BDRCReasoner.inferSymetry) {
 			assertTrue(im.contains(test1, contains, test0));			
@@ -135,12 +137,27 @@ public class AppTest
 		TransferHelpers.addDocIdInModel("bdr:testp0", m);
 		InfModel im = TransferHelpers.getInferredModel(m);
 		//TransferHelpers.printModel(im);
-		Resource testp0 = im.getResource(TransferHelpers.RESOURCE_PREFIX+"testp0");
-		Resource testp1 = im.getResource(TransferHelpers.RESOURCE_PREFIX+"testp1");
-		Property teacherOf = im.getProperty(TransferHelpers.CORE_PREFIX+"personTeacherOf");
+		Resource testp0 = im.getResource(BDR+"testp0");
+		Resource testp1 = im.getResource(BDR+"testp1");
+		Property teacherOf = im.getProperty(BDR+"personTeacherOf");
 		if (BDRCReasoner.inferSymetry) {
 			assertTrue(im.contains(testp1, teacherOf, testp0));			
 		}
+    }
+
+	@Test
+    public void test4()
+    {
+		Model m = ModelFactory.createDefaultModel();
+		TransferHelpers.addDocIdInModel("bdr:test0", m);
+		m.add(m.createResource(BDR+"test0"), 
+				m.createProperty(BDO, "stupidProp"), 
+				m.createResource(BDR+"TraditionTaklungKagyu"));
+		InfModel im = TransferHelpers.getInferredModel(m);
+		//TransferHelpers.printModel(im);
+		assertTrue(im.contains(im.createResource(BDR+"test0"), 
+				im.createProperty(BDO, "stupidProp"), 
+				im.createResource(BDR+"TraditionKagyu")));
     }
 	
 }
