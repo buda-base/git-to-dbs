@@ -16,7 +16,8 @@ public class FusekiTransfer {
 	static String couchdbName = "bdrc";
 	static String fusekiName = "bdrcrw";
 	static int howMany = Integer.MAX_VALUE;
-	static boolean transferAllDB = false;
+    static boolean transferAllDB = false;
+    static boolean transferOnto = false;
 	static boolean listenToChanges = true;
 	
 	private static void printHelp() {
@@ -29,7 +30,8 @@ public class FusekiTransfer {
 				+ "-couchdbHost <host> - host couchdb is running on. Defaults to localhost\n"
 				+ "-couchdbPort <port> - port couchdb is running on. Defaults to 13598\n"
 				+ "-couchdbName <name> - name of the couchdb database. Defaults to 'bdrc'\n"
-				+ "-transferAllDB - transfer the whole database\n"
+                + "-transferAllDB - transfer the whole database\n"
+                + "-transferOnto - transfer the core ontology\n"
 				+ "-doNotListen - do not listen to changes\n"
 				+ "-n <int> - specify how many docs to transfer. Defaults to all of the docs\n"
 				+ "-timeout <int> - specify how secondws to wait for a doc transfer to complete. Defaults to 15 seconds\n"
@@ -90,8 +92,10 @@ public class FusekiTransfer {
 				howMany = (++i < args.length ? Integer.parseInt(args[i]) : null);
 			} else if (arg.equals("-timeout")) {
 				TransferHelpers.TRANSFER_TO = (++i < args.length ? Integer.parseInt(args[i]) : null);
-			} else if (arg.equals("-transferAllDB")) {
-				transferAllDB = true;
+            } else if (arg.equals("-transferAllDB")) {
+                transferAllDB = true;
+            } else if (arg.equals("-transferOnto")) {
+                transferOnto = true;
 			} else if (arg.equals("-doNotListen")) {
 				listenToChanges = false;
 			} else if (arg.equals("-progress")) {
@@ -128,9 +132,12 @@ public class FusekiTransfer {
 			System.exit(1);
 		}
 
-		if (transferAllDB) {		
+        if (transferOnto) {
+            TransferHelpers.transferOntology(); // use ontology from jar
+        }
+
+        if (transferAllDB) {		
 			try {
-				//TransferHelpers.transferOntology(); // use ontology from jar
 				TransferHelpers.transferAllDBs(howMany);
 			} catch (Exception ex) {
 				TransferHelpers.logger.error("error in complete transfer", ex);

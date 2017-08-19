@@ -33,3 +33,9 @@ or
 ```
 mvn clean package -Dmaven.test.skip=true
 ```
+When there is a change in the owl-schema repo the following is needed:
+
+```
+git submodule update --init
+```
+
