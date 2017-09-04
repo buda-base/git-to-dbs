@@ -1,4 +1,4 @@
-package io.bdrc.fusekicouchdb;
+package io.bdrc.gittodbs;
 
 import java.io.BufferedReader;
 import java.io.InputStream;

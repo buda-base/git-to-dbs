@@ -1,16 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>io.bdrc.fusekicouchdb</groupId>
-  <artifactId>fusekicouchdb</artifactId>
+  <groupId>io.bdrc</groupId>
+  <artifactId>gittodbs</artifactId>
   <packaging>jar</packaging>
   <version>0.7</version>
-  <name>fusekicouchdb</name>
-  <url>https://github.com/BuddhistDigitalResourceCenter/fuseki-couchdb</url>
+  <name>git to dbs</name>
+  <url>https://github.com/BuddhistDigitalResourceCenter/git-to-dbs</url>
   <scm>
-    <connection>scm:git:https://github.com/BuddhistDigitalResourceCenter/fuseki-couchdb.git</connection>
-    <url>https://github.com/BuddhistDigitalResourceCenter/fuseki-couchdb</url>
-    <developerConnection>scm:git:git@github.com:BuddhistDigitalResourceCenter/fuseki-couchdb.git</developerConnection>
+    <connection>scm:git:https://github.com/BuddhistDigitalResourceCenter/git-to-dbs.git</connection>
+    <url>https://github.com/BuddhistDigitalResourceCenter/git-to-dbs</url>
+    <developerConnection>scm:git:git@github.com:BuddhistDigitalResourceCenter/git-to-dbs.git</developerConnection>
   </scm>
   <build>
     <plugins>
@@ -19,7 +19,7 @@
         <artifactId>exec-maven-plugin</artifactId>
         <version>1.6.0</version>
         <configuration>
-          <mainClass>io.bdrc.fusekicouchdb.FusekiTransfer</mainClass>
+          <mainClass>io.bdrc.gittodbs.GitToDB</mainClass>
           <cleanupDaemonThreads>false</cleanupDaemonThreads>
         </configuration>
       </plugin>
@@ -50,7 +50,7 @@
           <shadedArtifactAttached>false</shadedArtifactAttached>
           <transformers>
             <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-              <mainClass>io.bdrc.fusekicouchdb.FusekiTransfer</mainClass>
+              <mainClass>io.bdrc.gittodbs.GitToDB</mainClass>
             </transformer>
             <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
             <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
@@ -92,6 +92,11 @@
   </properties>
   <dependencies>
     <dependency>
+      <groupId>org.eclipse.jgit</groupId>
+      <artifactId>org.eclipse.jgit</artifactId>
+      <version>4.8.0.201706111038-r</version>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.12</version>
@@ -131,7 +136,7 @@
     <dependency>
       <groupId>com.github.jsonld-java</groupId>
       <artifactId>jsonld-java</artifactId>
-      <version>0.10.0</version>
+      <version>0.11.1</version>
       <exclusions>
         <exclusion>
           <artifactId>jackson-core</artifactId>

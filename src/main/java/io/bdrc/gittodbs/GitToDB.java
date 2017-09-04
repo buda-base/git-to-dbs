@@ -1,4 +1,4 @@
-package io.bdrc.fusekicouchdb;
+package io.bdrc.gittodbs;
 
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutorService;
@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.LoggerFactory;
 
-public class FusekiTransfer {
+public class GitToDB {
 	static String VERSION =  TransferHelpers.class.getPackage().getImplementationVersion();
 
 	static String fusekiHost = "localhost";
@@ -15,13 +15,15 @@ public class FusekiTransfer {
 	static String couchdbPort = "13598";
 	static String couchdbName = "bdrc";
 	static String fusekiName = "bdrcrw";
+	static boolean transferFuseki = false;
+	static boolean transferCouch = false;
 	static int howMany = Integer.MAX_VALUE;
     static boolean transferAllDB = false;
     static boolean transferOnto = false;
 	static boolean listenToChanges = true;
 	
 	private static void printHelp() {
-		System.err.print("java -jar FusekiTransfer.jar OPTIONS\n"
+		System.err.print("java -jar GitToDB.jar OPTIONS\n"
 				+ "Synchronize couchdb JSON-LD documents with fuseki\n"
 				+ "Options:\n" 
 				+ "-fusekiHost <host> - host fuseki is running on. Defaults to localhost\n"
@@ -29,12 +31,9 @@ public class FusekiTransfer {
 				+ "-fusekiName <name> - name of the fuseki endpoint. Defaults to 'bdrcrw'\n"
 				+ "-couchdbHost <host> - host couchdb is running on. Defaults to localhost\n"
 				+ "-couchdbPort <port> - port couchdb is running on. Defaults to 13598\n"
-				+ "-couchdbName <name> - name of the couchdb database. Defaults to 'bdrc'\n"
-                + "-transferAllDB - transfer the whole database\n"
-                + "-transferOnto - transfer the core ontology\n"
-				+ "-doNotListen - do not listen to changes\n"
+                + "-transferOnto - transfer the core ontology in Fuseki\n"
 				+ "-n <int> - specify how many docs to transfer. Defaults to all of the docs\n"
-				+ "-timeout <int> - specify how secondws to wait for a doc transfer to complete. Defaults to 15 seconds\n"
+				+ "-timeout <int> - specify how seconds to wait for a doc transfer to complete. Defaults to 15 seconds\n"
 				+ "-progress - enables progress output during transfer\n"
 				+ "-debug - enables DEBUG log level - mostly jena logging\n"
 				+ "-trace - enables TRACE log level - mostly jena logging\n"
@@ -78,26 +77,25 @@ public class FusekiTransfer {
 			String arg = args[i];
 			if (arg.equals("-fusekiHost")) {
 				fusekiHost = (++i < args.length ? args[i] : null);
+				transferFuseki = true;
 			} else if (arg.equals("-fusekiPort")) {
 				fusekiPort = (++i < args.length ? args[i] : null);
+				transferFuseki = true;
 			} else if (arg.equals("-fusekiName")) {
 				fusekiName = (++i < args.length ? args[i] : null);
+				transferFuseki = true;
 			} else if (arg.equals("-couchdbHost")) {
 				couchdbHost = (++i < args.length ? args[i] : null);
+				transferCouch = true;
 			} else if (arg.equals("-couchdbPort")) {
 				couchdbPort = (++i < args.length ? args[i] : null);
-			} else if (arg.equals("-couchdbName")) {
-				couchdbName = (++i < args.length ? args[i] : null);
+				transferCouch = true;
 			} else if (arg.equals("-n")) {
 				howMany = (++i < args.length ? Integer.parseInt(args[i]) : null);
 			} else if (arg.equals("-timeout")) {
 				TransferHelpers.TRANSFER_TO = (++i < args.length ? Integer.parseInt(args[i]) : null);
-            } else if (arg.equals("-transferAllDB")) {
-                transferAllDB = true;
             } else if (arg.equals("-transferOnto")) {
                 transferOnto = true;
-			} else if (arg.equals("-doNotListen")) {
-				listenToChanges = false;
 			} else if (arg.equals("-progress")) {
 		        TransferHelpers.progress = true;
 			} else if (arg.equals("-debug")) {
@@ -126,7 +124,7 @@ public class FusekiTransfer {
 		}
 		
 		try {
-			TransferHelpers.init(fusekiHost, fusekiPort, couchdbHost, couchdbPort, couchdbName, fusekiName);
+			TransferHelpers.init();
 		} catch (Exception e) {
 			TransferHelpers.logger.error("error in initialization", e);
 			System.exit(1);
@@ -138,45 +136,11 @@ public class FusekiTransfer {
 
         if (transferAllDB) {		
 			try {
-				TransferHelpers.transferAllDBs(howMany);
+				TransferHelpers.sync(howMany);
 			} catch (Exception ex) {
 				TransferHelpers.logger.error("error in complete transfer", ex);
 				System.exit(1);
 			}
-		}
-		
-		if (listenToChanges) {
-//			String lastFusekiSequence = TransferHelpers.getLastFusekiSequence();
-//			
-//			TransferHelpers.logger.info("listening to couchdb changes...");
-//			
-//			ChangesCommand cmd = new ChangesCommand.Builder()
-//					.includeDocs(true)
-//	                .continuous(true)
-//	                .since(lastFusekiSequence)
-//	                .heartbeat(5000)
-//					.build();
-//	
-//			ChangesFeed feed = TransferHelpers.db.changesFeed(cmd);
-//	
-//			while (feed.isAlive()) {
-//			    DocumentChange change;
-//			    String id;
-//				try {
-//					change = feed.next();
-//					id = change.getId();
-//				} catch (InterruptedException e) {
-//					TransferHelpers.logger.error("error while listening to changes, quitting", e);
-//					System.exit(1);
-//					return;
-//				}
-//				try {
-//					TransferHelpers.transferChange(change);
-//				} catch (Exception e) {
-//					TransferHelpers.logger.error("error transfering doc "+id, e);
-//					System.exit(1);
-//				}
-//			}
 		}
 
 		TransferHelpers.logger.info("FusekiTranser shutting down");
