@@ -1,5 +1,6 @@
 package io.bdrc.gittodbs;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.concurrent.ExecutorService;
@@ -22,8 +23,11 @@ import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.PrefixMapFactory;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.OWL2;
+import org.eclipse.jgit.treewalk.TreeWalk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.bdrc.gittodbs.TransferHelpers.DocType;
 
 public class TransferHelpers {
 	public static final String RESOURCE_PREFIX = "http://purl.bdrc.io/resource/";
@@ -97,7 +101,51 @@ public class TransferHelpers {
 	}
 	
 	public static void sync(int howMany) {
+	    syncType(DocType.CORPORATION);
+//	    syncType(DocType.PERSON);
+//	    syncType(DocType.WORK);
+//	    syncType(DocType.PLACE);
+//	    syncType(DocType.TOPIC);
+//	    syncType(DocType.LINEAGE);
+//	    syncType(DocType.PRODUCT);
+//	    syncType(DocType.ITEM);
+//	    syncType(DocType.OFFICE);
+	}
+	
+	public static void syncType(DocType type) {
 	    
+	}
+	
+	public static String mainIdFromPath(String path) {
+        if (path == null || path.length() < 6 || !path.endsWith(".ttl"))
+            return null;
+        if (path.charAt(2) == '/')
+            return path.substring(3, path.length()-4);
+        return path.substring(0, path.length()-4);
+	}
+	
+	public static void syncFuseki(DocType type) {
+	    String gitRev = GitHelpers.getHeadRev(type);
+	    if (gitRev == null) {
+	        System.err.println("arg!");
+	        return;
+	    }
+	    String distRev = FusekiHelpers.getLastRevision();
+	    if (distRev == null || distRev.isEmpty()) {
+	        TreeWalk tw = GitHelpers.listRepositoryContents(type);
+	        try {
+                while (tw.next()) {
+                    String mainId = mainIdFromPath(tw.getPathString());
+                    if (mainId == null)
+                        continue;
+                    
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+	    }
+	    FusekiHelpers.setLastRevision(gitRev);
 	}
 	
 	public static String getFullUrlFromDocId(String docId) {

@@ -172,6 +172,7 @@ public class CouchHelpers {
             stuff.close();
         } catch (IOException e) {
             TransferHelpers.logger.error("This really shouldn't happen!", e);
+            return null;
         }
         return res;
     }

@@ -123,6 +123,11 @@ public class GitToDB {
 			}
 		}
 		
+		if (!transferCouch && !transferFuseki) {
+		    TransferHelpers.logger.error("nothing to do, quitting...");
+            System.exit(1);
+		}
+		
 		try {
 			TransferHelpers.init();
 		} catch (Exception e) {
