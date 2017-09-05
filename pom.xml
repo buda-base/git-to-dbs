@@ -149,20 +149,36 @@
       </exclusions>
     </dependency>
     <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-simple</artifactId>
-        <version>1.7.25</version>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.7.25</version>
     </dependency>
     <dependency>
-        <groupId>org.ektorp</groupId>
-        <artifactId>org.ektorp</artifactId>
-        <version>1.4.4</version>
-        <exclusions>
-          <exclusion>
-            <artifactId>jackson-annotations</artifactId>
-            <groupId>com.fasterxml.jackson.core</groupId>
-          </exclusion>
-        </exclusions>
+      <groupId>io.bdrc</groupId>
+      <artifactId>mcouch-ektorp</artifactId>
+      <version>1.0.0</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>org.ektorp</artifactId>
+          <groupId>org.ektorp</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>org.slf4j</artifactId>
+          <groupId>slf4j-simple</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.ektorp</groupId>
+      <artifactId>org.ektorp</artifactId>
+      <version>1.4.4</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>jackson-annotations</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 </project>

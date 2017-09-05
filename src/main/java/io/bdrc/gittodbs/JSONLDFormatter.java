@@ -49,8 +49,9 @@ public class JSONLDFormatter {
         typeToRootShortUri.put(DocType.LINEAGE, "Lineage");
         typeToRootShortUri.put(DocType.CORPORATION, "Corporation");
         typeToRootShortUri.put(DocType.PRODUCT, "adm:Product");
-        typeToRootShortUri.put(DocType.ITEM, "ItemImageAsset"); // TODO: possible problem here
-        typeToRootShortUri.put(DocType.OFFICE, "Role"); // really?
+        typeToRootShortUri.put(DocType.ITEM, "Item");
+        typeToRootShortUri.put(DocType.OFFICE, "Role");
+        typeToRootShortUri.put(DocType.PERSON, "Person");
     }
     
     public static Map<String,Object> getJsonLdContext() {
@@ -69,15 +70,15 @@ public class JSONLDFormatter {
     
     public static Object getFrameObject(DocType type, String mainResourceName) {
         // for works, we frame by @id, for cases with outlines.
-        if (type != DocType.WORK && typeToFrameObject.containsKey(type))
+        if (type != DocType.WORK && type != DocType.WORK && typeToFrameObject.containsKey(type))
             return typeToFrameObject.get(type);
         Map<String,Object> jsonObject = new HashMap<String,Object>();
-        if (type == DocType.WORK)
+        if (type == DocType.WORK || type == DocType.ITEM)
             jsonObject.put("@id", TransferHelpers.BDR+mainResourceName);
         else
             jsonObject.put("@type", typeToRootShortUri.get(type));
         jsonObject.put("@context", jsonldcontext);
-        if (type != DocType.WORK)
+        if (type != DocType.WORK && type != DocType.ITEM)
             typeToFrameObject.put(type, jsonObject);
         return jsonObject;
     }

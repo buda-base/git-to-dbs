@@ -46,25 +46,28 @@ public class CouchHelpers {
     
     public static void init(String couchDBHost, String couchDBPort) {
         url = "http://" + couchDBHost + ":" +  couchDBPort;
+        TransferHelpers.logger.info("connecting to CouchDB on "+url);
         try {
-            TransferHelpers.logger.info("connecting to CouchDB on "+url);
             httpClient = new StdHttpClient.Builder()
                     .url(url)
                     .build();
-            dbInstance = new StdCouchDbInstance(httpClient);
-
-            putDB(DocType.CORPORATION);
-            putDB(DocType.LINEAGE);
-            putDB(DocType.OFFICE);
-            putDB(DocType.PERSON);
-            putDB(DocType.PLACE);
-            putDB(DocType.PRODUCT);
-            putDB(DocType.TOPIC);
-            putDB(DocType.ITEM);
-            putDB(DocType.WORK);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
+        dbInstance = new StdCouchDbInstance(httpClient);
+        putDBs();
+    }
+    
+    public static void putDBs() {
+        putDB(DocType.CORPORATION);
+        putDB(DocType.LINEAGE);
+        putDB(DocType.OFFICE);
+        putDB(DocType.PERSON);
+        putDB(DocType.PLACE);
+        putDB(DocType.PRODUCT);
+        putDB(DocType.TOPIC);
+        putDB(DocType.ITEM);
+        putDB(DocType.WORK);
     }
     
     public static void putDB(DocType type) {
@@ -75,14 +78,16 @@ public class CouchHelpers {
         }
         CouchDbConnector db = new StdCouchDbConnector(DBName, dbInstance);
         ClassLoader classLoader = CouchHelpers.class.getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("design-jsonld.json");
-        ObjectMapper mapper = new ObjectMapper();
-        Map<String, Object> jsonMap;
-        try {
-            jsonMap = mapper.readValue(inputStream, Map.class);
-            db.create(jsonMap);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (deleteDbBeforeInsert) {
+            InputStream inputStream = classLoader.getResourceAsStream("design-jsonld.json");
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> jsonMap;
+            try {
+                jsonMap = mapper.readValue(inputStream, Map.class);
+                db.create(jsonMap);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         dbs.put(type, db);
     }

@@ -40,6 +40,23 @@ public class GitHelpers {
         ensureGitRepo(DocType.PRODUCT);
     }
     
+    // for tests only
+    public static void createGitRepo(DocType type) {
+        String dirpath = GitToDB.gitDir+TransferHelpers.typeToStr.get(type)+'s';
+        FileRepositoryBuilder builder = new FileRepositoryBuilder();
+        File gitDir = new File(dirpath+"/.git");
+        File wtDir = new File(dirpath);
+        try {
+            Repository repository = builder.setGitDir(gitDir)
+              .setWorkTree(wtDir)
+              .readEnvironment()
+              .build();
+            repository.create();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
     public static void ensureGitRepo(DocType type) {
         if (typeRepo.containsKey(type))
             return;

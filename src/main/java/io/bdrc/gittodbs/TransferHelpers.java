@@ -63,7 +63,8 @@ public class TransferHelpers {
 	    TOPIC,
 	    ITEM,
 	    WORK,
-	    PRODUCT
+	    PRODUCT,
+	    TEST
 	    ;  
 	  }
 	
@@ -79,6 +80,7 @@ public class TransferHelpers {
 	    typeToStr.put(DocType.ITEM, "item");
 	    typeToStr.put(DocType.WORK, "work");
 	    typeToStr.put(DocType.PRODUCT, "product");
+	    typeToStr.put(DocType.TEST, "test");
 	}
 	
     public static PrefixMap getPrefixMap() {
