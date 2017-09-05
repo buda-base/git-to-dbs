@@ -93,6 +93,8 @@ public class GitHelpers {
             return null;
         }
         RevCommit rc = commits.next();
+        if (rc == null)
+            TransferHelpers.logger.error(path+" does not seem to have any associated commit");
         String res = rc.getName();
         git.close();
         return res;
@@ -106,7 +108,7 @@ public class GitHelpers {
         try {
             headRef = r.exactRef(r.getFullBranch());
         } catch (IOException e) {
-            e.printStackTrace();
+            TransferHelpers.logger.error("", e);
             return null;
         }
         return headRef.getObjectId().name();
@@ -118,13 +120,13 @@ public class GitHelpers {
             return null;
         ObjectId commitId = ObjectId.fromString(sinceRev);
         RevCommit commit;
-        List<DiffEntry> entries;
+        List<DiffEntry> entries = null;
         try {
             RevWalk walk = new RevWalk(r);
             commit = walk.parseCommit( commitId );
             walk.close();
             CanonicalTreeParser oldTreeIter = new CanonicalTreeParser();
-            oldTreeIter.reset(r.newObjectReader(), commit);
+            oldTreeIter.reset(r.newObjectReader(), commit.getTree());
             OutputStream outputStream = DisabledOutputStream.INSTANCE;
             ObjectId head = r.resolve("HEAD^{tree}");
             CanonicalTreeParser newTreeIter = new CanonicalTreeParser();
@@ -134,6 +136,7 @@ public class GitHelpers {
             entries = formatter.scan(oldTreeIter, newTreeIter);
             formatter.close();
         } catch (Exception e) {
+            TransferHelpers.logger.error("", e);
             return null;
         }
         return entries;
@@ -147,7 +150,7 @@ public class GitHelpers {
         try {
             head = r.exactRef(r.getFullBranch());
         } catch (IOException e2) {
-            e2.printStackTrace();
+            TransferHelpers.logger.error("unable to get reference of HEAD", e2);
             return null;
         }
 
@@ -158,7 +161,7 @@ public class GitHelpers {
         try {
             commit = walk.parseCommit(head.getObjectId());
         } catch (IOException e1) {
-            e1.printStackTrace();
+            TransferHelpers.logger.error("unable to parse commit, this shouldn't happen", e1);
             walk.close();
             return null;
         }
@@ -168,10 +171,9 @@ public class GitHelpers {
         try {
             treeWalk.addTree(tree);
         } catch (IOException e) {
-            e.printStackTrace();
+            TransferHelpers.logger.error("internal error, this shouldn't happen", e);
         }
         treeWalk.setRecursive(true);
-        treeWalk.setFilter(PathFilter.create("*.ttl"));
         return treeWalk;
     }
 }

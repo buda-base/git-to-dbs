@@ -39,7 +39,7 @@ public class FusekiHelpers {
         return qe.execSelect();
     }
     
-    public static String getLastRevision(DocType type) { 
+    public static synchronized String getLastRevision(DocType type) {
         Model m = getSyncModel();
         String typeStr = TransferHelpers.typeToStr.get(type);
         typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
@@ -50,24 +50,26 @@ public class FusekiHelpers {
         return s.getString();
     }
     
-    private static Model syncModel = null;
+    private static volatile Model syncModel = ModelFactory.createDefaultModel();
+    private static volatile boolean syncModelInitialized = false;
     
-    public static synchronized Model getSyncModel() {
-        if (syncModel != null) return syncModel;
-        try {
-            syncModel = getModel(TransferHelpers.ADMIN_PREFIX+"system");
-        } catch (TimeoutException e) {
-            TransferHelpers.logger.error("Time out while fetching system model, quitting...", e);
-            System.exit(1);
-        }
-        if (syncModel == null) {
-            syncModel = ModelFactory.createDefaultModel();
-        }
+    public static synchronized final Model getSyncModel() {
+        if (syncModelInitialized)
+            return syncModel;
+        initSyncModel();
         return syncModel;
     }
     
-    public static void setLastRevision(String revision, DocType type) {
-        Model m = getSyncModel();
+    public static synchronized final void initSyncModel() {
+        syncModelInitialized = true;
+        Model distantSyncModel = fu.getModel(TransferHelpers.ADMIN_PREFIX+"system");
+        if (distantSyncModel != null) {
+            syncModel.add(distantSyncModel);
+        }
+    }
+    
+    public static synchronized void setLastRevision(String revision, DocType type) {
+        final Model m = getSyncModel();
         String typeStr = TransferHelpers.typeToStr.get(type);
         typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
         Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo"+typeStr);
@@ -77,7 +79,7 @@ public class FusekiHelpers {
         if (s == null) {
             m.add(res, p, l);
         } else {
-            s.changeObject(revision);
+            s.changeObject(l);
         }
         try {
             transferModel(TransferHelpers.ADMIN_PREFIX+"system", m);
@@ -86,9 +88,9 @@ public class FusekiHelpers {
         }
     }
     
-    private static Model callFuseki(String operation, String graphName, Model m) throws TimeoutException {
+    private static Model callFuseki(final String operation, final String graphName, final Model m) throws TimeoutException {
         Model res = null;
-        Callable<Model> task = new Callable<Model>() {
+        final Callable<Model> task = new Callable<Model>() {
            public Model call() throws InterruptedException {
               switch (operation) {
               case "putModel":
@@ -117,7 +119,7 @@ public class FusekiHelpers {
         return res;
     }
     
-    static void transferModel(String graphName, Model m) throws TimeoutException {
+    static void transferModel(String graphName, final Model m) throws TimeoutException {
         callFuseki("putModel", graphName, m);
     }
     

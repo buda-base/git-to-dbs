@@ -43,6 +43,7 @@ public class CouchHelpers {
     public static boolean deleteDbBeforeInsert = false;
     public static final String CouchDBPrefix = "bdrc_";
     public static final String GitRevDoc = "_gitSync";
+    public static boolean testMode = false;
     
     public static void init(String couchDBHost, String couchDBPort) {
         url = "http://" + couchDBHost + ":" +  couchDBPort;

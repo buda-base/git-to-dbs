@@ -207,6 +207,7 @@ public class TransferHelpers {
 	        TreeWalk tw = GitHelpers.listRepositoryContents(type);
 	        try {
                 while (tw.next()) {
+                    System.out.println(tw.getPathString());
                     addFileFuseki(type, dirpath, tw.getPathString());
                 }
             } catch (IOException e) {
@@ -217,6 +218,7 @@ public class TransferHelpers {
 	        List<DiffEntry> entries = GitHelpers.getChanges(type, distRev);
 	        for (DiffEntry de : entries) {
 	            String path = de.getNewPath();
+	            System.out.println(path);
 	            String oldPath = de.getOldPath();
 	            if (path.equals("/dev/null") || !path.equals(oldPath)) {
 	                String mainId = mainIdFromPath(oldPath);
