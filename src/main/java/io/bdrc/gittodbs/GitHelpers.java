@@ -11,6 +11,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.errors.InvalidObjectIdException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -114,11 +115,12 @@ public class GitHelpers {
         return headRef.getObjectId().name();
     }
     
-    public static List<DiffEntry> getChanges(DocType type, String sinceRev) {
+    public static List<DiffEntry> getChanges(DocType type, String sinceRev) throws InvalidObjectIdException {
         Repository r = typeRepo.get(type); 
         if (r == null)
             return null;
-        ObjectId commitId = ObjectId.fromString(sinceRev);
+        ObjectId commitId;
+        commitId = ObjectId.fromString(sinceRev);
         RevCommit commit;
         List<DiffEntry> entries = null;
         try {

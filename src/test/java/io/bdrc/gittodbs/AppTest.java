@@ -91,6 +91,15 @@ public class AppTest
 	
 	@Test
 	public void test1() throws NoFilepatternException, GitAPIException, TimeoutException, InterruptedException {
+        Model forcedSync = ModelFactory.createDefaultModel();
+        Resource res = forcedSync.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfoTest");
+        Property p = forcedSync.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
+        Literal l = forcedSync.createLiteral("abc");
+        forcedSync.add(res, p, l);
+        FusekiHelpers.fu.putModel(TransferHelpers.ADMIN_PREFIX+"system", forcedSync);
+        FusekiHelpers.initSyncModel();
+        Model fusekiSync = FusekiHelpers.getSyncModel();
+        assertTrue(fusekiSync.isIsomorphicWith(forcedSync));
 	    Model m = ModelFactory.createDefaultModel();
 	    Resource r1 = m.createResource(EX+"r1");
 	    Property p1 = m.createProperty(EX, "p1");

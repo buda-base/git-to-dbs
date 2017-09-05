@@ -33,6 +33,7 @@ import org.apache.jena.riot.system.StreamRDFLib;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.OWL2;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.errors.InvalidObjectIdException;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -215,7 +216,13 @@ public class TransferHelpers {
                 return;
             }
 	    } else {
-	        List<DiffEntry> entries = GitHelpers.getChanges(type, distRev);
+	        List<DiffEntry> entries;
+	        try {
+	            entries = GitHelpers.getChanges(type, distRev);
+	        } catch (InvalidObjectIdException e) {
+	            TransferHelpers.logger.error("distant fuseki revision "+distRev+" is invalid, please fix it");
+	            return;
+	        }
 	        for (DiffEntry de : entries) {
 	            String path = de.getNewPath();
 	            System.out.println(path);
