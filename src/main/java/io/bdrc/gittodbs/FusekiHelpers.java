@@ -19,6 +19,8 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 
+import io.bdrc.gittodbs.TransferHelpers.DocType;
+
 public class FusekiHelpers {
     
     public static String FusekiUrl = "http://localhost:13180/fuseki/bdrcrw/data";
@@ -37,9 +39,11 @@ public class FusekiHelpers {
         return qe.execSelect();
     }
     
-    public static String getLastRevision() { 
+    public static String getLastRevision(DocType type) { 
         Model m = getSyncModel();
-        Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo");
+        String typeStr = TransferHelpers.typeToStr.get(type);
+        typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
+        Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo"+typeStr);
         Property p = m.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
         Statement s = m.getProperty(res, p);
         if (s == null) return null;
@@ -62,9 +66,11 @@ public class FusekiHelpers {
         return syncModel;
     }
     
-    public static void setLastRevision(String revision) {
+    public static void setLastRevision(String revision, DocType type) {
         Model m = getSyncModel();
-        Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo");
+        String typeStr = TransferHelpers.typeToStr.get(type);
+        typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
+        Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo"+typeStr);
         Property p = m.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
         Literal l = m.createLiteral(revision);
         Statement s = m.getProperty(res, p);

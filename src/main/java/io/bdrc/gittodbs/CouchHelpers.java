@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
-import java.util.EnumMap;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -45,19 +44,6 @@ public class CouchHelpers {
     public static final String CouchDBPrefix = "bdrc_";
     public static final String GitRevDoc = "_gitSync";
     
-    public static Map<DocType,String> typeToName = new EnumMap<>(DocType.class);
-    static {
-        typeToName.put(DocType.PERSON, "person");
-        typeToName.put(DocType.WORK, "work");
-        typeToName.put(DocType.PLACE, "place");
-        typeToName.put(DocType.TOPIC, "topic");
-        typeToName.put(DocType.LINEAGE, "lineage");
-        typeToName.put(DocType.CORPORATION, "corporation");
-        typeToName.put(DocType.PRODUCT, "product");
-        typeToName.put(DocType.ITEM, "itemImageAsset"); // TODO: possible problem here
-        typeToName.put(DocType.OFFICE, "role");
-    }
-    
     public static void init(String couchDBHost, String couchDBPort) {
         url = "http://" + couchDBHost + ":" +  couchDBPort;
         try {
@@ -82,7 +68,7 @@ public class CouchHelpers {
     }
     
     public static void putDB(DocType type) {
-        String DBName = CouchDBPrefix+typeToName.get(type);
+        String DBName = CouchDBPrefix+TransferHelpers.typeToStr.get(type);
         if (deleteDbBeforeInsert) {
             dbInstance.deleteDatabase(DBName);
             dbInstance.createDatabase(DBName);
@@ -146,11 +132,30 @@ public class CouchHelpers {
         }
     }
     
+    public static void couchDelete(String mainId, DocType type) {
+        CouchDbConnector db = dbs.get(type);
+        if (db == null) {
+            System.err.println("cannot get couch connector for type "+type);
+            return;
+        }
+        String documentName = "bdr:"+mainId;
+        try {
+            String uri = CouchDBPrefix+type+"/_design/jsonld/_show/revOnly/" + documentName;
+            HttpResponse r = db.getConnection().get(uri);
+            InputStream stuff = r.getContent();
+            String result = inputStreamToString(stuff);
+            if (result.charAt(0) == '{') {
+                return;
+            }
+            result = result.substring(1, result.length()-1);
+            db.delete(documentName, result);
+        } catch (DocumentNotFoundException e) { }
+    }
+    
     public static void jsonObjectToCouch(Map<String,Object> jsonObject, String mainId, DocType type, String commitRev) {
         String documentName = "bdr:"+mainId;
         couchUpdateOrCreate(jsonObject, documentName, type, commitRev);
     }
-    
 
     public static synchronized Model getSyncModel(DocType type) {
         return getModelFromDocId(GitRevDoc, type);
@@ -160,7 +165,7 @@ public class CouchHelpers {
         CouchDbConnector db = dbs.get(type);
         Model res = ModelFactory.createDefaultModel();
         // https://github.com/helun/Ektorp/issues/263
-        String uri = "/"+typeToName.get(type)+"/_design/jsonld/_show/jsonld/" + docId;
+        String uri = "/"+TransferHelpers.typeToStr.get(type)+"/_design/jsonld/_show/jsonld/" + docId;
         HttpResponse r = db.getConnection().get(uri);
         InputStream stuff = r.getContent();
         // feeding the inputstream directly to jena for json-ld parsing
@@ -190,5 +195,16 @@ public class CouchHelpers {
         }
         Map<String,Object> syncJson = JSONLDFormatter.modelToJsonObject(m, type, null, RDFFormat.JSONLD_COMPACT_PRETTY);
         couchUpdateOrCreate(syncJson, GitRevDoc, type, revision);
+    }
+
+    public static String getLastRevision(DocType type) {
+        Model m = getSyncModel(type);
+        String typeStr = TransferHelpers.typeToStr.get(type);
+        typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
+        Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo"+typeStr);
+        Property p = m.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
+        Statement s = m.getProperty(res, p);
+        if (s == null) return null;
+        return s.getString();
     }
 }

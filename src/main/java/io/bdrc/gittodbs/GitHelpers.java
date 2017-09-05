@@ -1,5 +1,6 @@
 package io.bdrc.gittodbs;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.EnumMap;
@@ -16,6 +17,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
@@ -25,6 +27,42 @@ import io.bdrc.gittodbs.TransferHelpers.DocType;
 
 public class GitHelpers {
     public static Map<DocType,Repository> typeRepo = new EnumMap<>(DocType.class);
+    
+    public static void init() {
+        ensureGitRepo(DocType.CORPORATION);
+        ensureGitRepo(DocType.LINEAGE);
+        ensureGitRepo(DocType.OFFICE);
+        ensureGitRepo(DocType.PERSON);
+        ensureGitRepo(DocType.PLACE);
+        ensureGitRepo(DocType.TOPIC);
+        ensureGitRepo(DocType.ITEM);
+        ensureGitRepo(DocType.WORK);
+        ensureGitRepo(DocType.PRODUCT);
+    }
+    
+    public static void ensureGitRepo(DocType type) {
+        if (typeRepo.containsKey(type))
+            return;
+        String dirpath = GitToDB.gitDir+TransferHelpers.typeToStr.get(type)+'s';
+        FileRepositoryBuilder builder = new FileRepositoryBuilder();
+        File gitDir = new File(dirpath+"/.git");
+        File wtDir = new File(dirpath);
+        try {
+            Repository repository = builder.setGitDir(gitDir)
+              .setWorkTree(wtDir)
+              .setMustExist( true )
+              .readEnvironment() // scan environment GIT_* variables
+              .build();
+            if (!repository.getObjectDatabase().exists()) {
+                TransferHelpers.logger.error(dirpath+" does not seem to be a valid git repository, quitting");
+                System.exit(1);
+            }
+            typeRepo.put(type, repository);
+        } catch (IOException e) {
+            TransferHelpers.logger.error(dirpath+" does not seem to be a valid git repository, quitting");
+            System.exit(1);
+        }
+    }
     
     public static String getLastRefOfFile(DocType type, String path) {
         Repository r = typeRepo.get(type);
@@ -104,8 +142,10 @@ public class GitHelpers {
             commit = walk.parseCommit(head.getObjectId());
         } catch (IOException e1) {
             e1.printStackTrace();
+            walk.close();
             return null;
         }
+        walk.close();
         RevTree tree = commit.getTree();
         TreeWalk treeWalk = new TreeWalk(r);
         try {

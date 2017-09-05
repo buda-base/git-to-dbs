@@ -15,6 +15,7 @@ public class GitToDB {
 	static String couchdbPort = "13598";
 	static String couchdbName = "bdrc";
 	static String fusekiName = "bdrcrw";
+	static String gitDir = null;
 	static boolean transferFuseki = false;
 	static boolean transferCouch = false;
 	static int howMany = Integer.MAX_VALUE;
@@ -31,6 +32,7 @@ public class GitToDB {
 				+ "-fusekiName <name> - name of the fuseki endpoint. Defaults to 'bdrcrw'\n"
 				+ "-couchdbHost <host> - host couchdb is running on. Defaults to localhost\n"
 				+ "-couchdbPort <port> - port couchdb is running on. Defaults to 13598\n"
+				+ "-gitDir <path> - path to the git directory\n"
                 + "-transferOnto - transfer the core ontology in Fuseki\n"
 				+ "-n <int> - specify how many docs to transfer. Defaults to all of the docs\n"
 				+ "-timeout <int> - specify how seconds to wait for a doc transfer to complete. Defaults to 15 seconds\n"
@@ -90,6 +92,8 @@ public class GitToDB {
 			} else if (arg.equals("-couchdbPort")) {
 				couchdbPort = (++i < args.length ? args[i] : null);
 				transferCouch = true;
+            } else if (arg.equals("-gitDir")) {
+                gitDir = (++i < args.length ? args[i] : null);
 			} else if (arg.equals("-n")) {
 				howMany = (++i < args.length ? Integer.parseInt(args[i]) : null);
 			} else if (arg.equals("-timeout")) {
@@ -127,6 +131,14 @@ public class GitToDB {
 		    TransferHelpers.logger.error("nothing to do, quitting...");
             System.exit(1);
 		}
+
+        if (gitDir == null || gitDir.isEmpty()) {
+            TransferHelpers.logger.error("please specify the git directory");
+            System.exit(1);
+        }
+        
+        if (!gitDir.endsWith("/"))
+            gitDir+='/';
 		
 		try {
 			TransferHelpers.init();

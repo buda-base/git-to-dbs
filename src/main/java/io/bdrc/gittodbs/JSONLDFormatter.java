@@ -50,7 +50,7 @@ public class JSONLDFormatter {
         typeToRootShortUri.put(DocType.CORPORATION, "Corporation");
         typeToRootShortUri.put(DocType.PRODUCT, "adm:Product");
         typeToRootShortUri.put(DocType.ITEM, "ItemImageAsset"); // TODO: possible problem here
-        typeToRootShortUri.put(DocType.OFFICE, "Role");
+        typeToRootShortUri.put(DocType.OFFICE, "Role"); // really?
     }
     
     public static Map<String,Object> getJsonLdContext() {
