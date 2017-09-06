@@ -156,12 +156,20 @@
     <dependency>
       <groupId>io.bdrc</groupId>
       <artifactId>mcouch-ektorp</artifactId>
-      <version>1.0.0</version>
+      <version>1.1.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
-          <artifactId>org.codehaus.jackson</artifactId>
-          <groupId>jackson-core-asl</groupId>
+          <artifactId>jackson-core</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jackson-databind</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jackson-annotations</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
         </exclusion>
         <exclusion>
           <artifactId>org.ektorp</artifactId>
@@ -179,7 +187,11 @@
       <version>1.4.4</version>
       <exclusions>
         <exclusion>
-          <artifactId>jackson-annotations</artifactId>
+          <artifactId>jackson-core</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jackson-databind</artifactId>
           <groupId>com.fasterxml.jackson.core</groupId>
         </exclusion>
       </exclusions>

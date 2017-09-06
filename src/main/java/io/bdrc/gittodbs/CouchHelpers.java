@@ -87,8 +87,6 @@ public class CouchHelpers {
             dbInstance.deleteDatabase(DBName);
             dbInstance.createDatabase(DBName);
         }
-        if (testMode)
-            dbInstance.createDatabase(DBName);
         //TransferHelpers.logger.info("connecting to database "+DBName);
         System.out.println("connecting to database "+DBName);
         CouchDbConnector db = new StdCouchDbConnector(DBName, dbInstance);
@@ -204,7 +202,12 @@ public class CouchHelpers {
         CouchDbConnector db = dbs.get(type);
         Model res = ModelFactory.createDefaultModel();
         if (testMode) {
-            final InputStream oldDocStream = db.getAsStream(docId);
+            final InputStream oldDocStream;
+            try {
+                oldDocStream = db.getAsStream(docId);
+            } catch (DocumentNotFoundException e) {
+                return null;
+            }
             Map<String, Object> doc;
             try {
                 doc = objectMapper.readValue(oldDocStream, typeRef);
@@ -247,6 +250,8 @@ public class CouchHelpers {
     
     public static void setLastRevision(String revision, DocType type) {
         Model m = getSyncModel(type);
+        if (m == null)
+            m = ModelFactory.createDefaultModel();
         Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo");
         Property p = m.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
         Literal l = m.createLiteral(revision);
@@ -262,6 +267,8 @@ public class CouchHelpers {
 
     public static String getLastRevision(DocType type) {
         Model m = getSyncModel(type);
+        if (m == null)
+            m = ModelFactory.createDefaultModel();
         String typeStr = TransferHelpers.typeToStr.get(type);
         typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
         Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo"+typeStr);

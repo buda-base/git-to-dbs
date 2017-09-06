@@ -1,7 +1,9 @@
 package io.bdrc.gittodbs;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -35,12 +37,11 @@ import io.bdrc.gittodbs.TransferHelpers.DocType;
 
 public class JSONLDFormatter {
     
-    public static final Map<String,Object> jsonldcontext = getJsonLdContext(); // todo: read the thingy
-    
     protected static Map<DocType,Object> typeToFrameObject = new EnumMap<>(DocType.class);
     static final ObjectMapper mapper = new ObjectMapper();
+    public static final Map<String,Object> jsonldcontext = getJsonLdContext(); // todo: read the thingy
     
-    public static Map<DocType,String> typeToRootShortUri = new EnumMap<>(DocType.class);
+    public static final Map<DocType,String> typeToRootShortUri = new EnumMap<>(DocType.class);
     static {
         typeToRootShortUri.put(DocType.PERSON, "Person");
         typeToRootShortUri.put(DocType.WORK, "Work");
@@ -54,18 +55,48 @@ public class JSONLDFormatter {
         typeToRootShortUri.put(DocType.PERSON, "Person");
     }
     
+    // convert InputStream to String
+    private static String getStringFromInputStream(InputStream is) {
+
+        BufferedReader br = null;
+        StringBuilder sb = new StringBuilder();
+
+        String line;
+        try {
+
+            br = new BufferedReader(new InputStreamReader(is));
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return sb.toString();
+
+    }
+    
     public static Map<String,Object> getJsonLdContext() {
-        Map<String, Object> map = null;
+        Map<String, Map<String,Object>> map = null;
         try {
             ClassLoader classLoader = TransferHelpers.class.getClassLoader();
             InputStream inputStream = classLoader.getResourceAsStream("owl-schema/context.jsonld");
-            map = mapper.readValue(inputStream, new TypeReference<Map<String, String>>(){});
+            map = mapper.readValue(inputStream, new TypeReference<Map<String, Map<String,Object>>>(){});
             inputStream.close();
         } catch (Exception e) {
-            TransferHelpers.logger.error("Error reading ontology file", e);
+            TransferHelpers.logger.error("Error reading context file", e);
             return null;
         }
-        return map;
+        return map.get("@context");
     }
     
     public static Object getFrameObject(DocType type, String mainResourceName) {
@@ -141,8 +172,10 @@ public class JSONLDFormatter {
      public static Map<String,Object> modelToJsonObject(Model m, DocType type, String mainResourceName, RDFFormat format) {
          JsonLDWriteContext ctx = new JsonLDWriteContext();
          JSONLDVariant variant;
-         Object frameObj = getFrameObject(type, mainResourceName);
-         ctx.setFrame(frameObj);
+         if (format.equals(RDFFormat.JSONLD_FRAME_PRETTY)) { 
+             Object frameObj = getFrameObject(type, mainResourceName);
+             ctx.setFrame(frameObj);
+         }
          variant = (RDFFormat.JSONLDVariant) format.getVariant();
          ctx.setJsonLDContext(jsonldcontext);
          JsonLdOptions opts = new JsonLdOptions();

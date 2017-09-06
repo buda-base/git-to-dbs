@@ -49,7 +49,7 @@ public class AppTest
 	    ds = DatasetFactory.createGeneral();
 	    FusekiHelpers.fu = DatasetAccessorFactory.create(ds);
 	    InMemoryCouchDb couchDbClient = new InMemoryCouchDb();
-        couchDbClient.createDatabase("users");
+        couchDbClient.createDatabase("bdrc_test");
         StdHttpClient stdHttpClient = new StdHttpClient(couchDbClient);
         CouchHelpers.httpClient = stdHttpClient;
         StdCouchDbInstance stdCouchDbInstance = new StdCouchDbInstance(stdHttpClient);
@@ -57,6 +57,7 @@ public class AppTest
         CouchHelpers.testMode = true;
         CouchHelpers.putDB(DocType.TEST);
         tempDir = Files.createTempDir();
+        JSONLDFormatter.typeToRootShortUri.put(DocType.TEST, "Test");
         System.out.println("create temporary directory for git testing in "+tempDir.getAbsolutePath());
         GitToDB.gitDir = tempDir.getAbsolutePath()+'/';
         GitHelpers.createGitRepo(DocType.TEST);
