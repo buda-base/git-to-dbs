@@ -160,6 +160,10 @@
       <scope>test</scope>
       <exclusions>
         <exclusion>
+          <artifactId>org.codehaus.jackson</artifactId>
+          <groupId>jackson-core-asl</groupId>
+        </exclusion>
+        <exclusion>
           <artifactId>org.ektorp</artifactId>
           <groupId>org.ektorp</groupId>
         </exclusion>

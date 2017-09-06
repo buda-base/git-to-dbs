@@ -12,6 +12,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.errors.InvalidObjectIdException;
+import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -21,7 +22,6 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
-import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
 
 import io.bdrc.gittodbs.TransferHelpers.DocType;
@@ -115,7 +115,7 @@ public class GitHelpers {
         return headRef.getObjectId().name();
     }
     
-    public static List<DiffEntry> getChanges(DocType type, String sinceRev) throws InvalidObjectIdException {
+    public static List<DiffEntry> getChanges(DocType type, String sinceRev) throws InvalidObjectIdException, MissingObjectException {
         Repository r = typeRepo.get(type); 
         if (r == null)
             return null;
@@ -137,7 +137,10 @@ public class GitHelpers {
             formatter.setRepository(r);
             entries = formatter.scan(oldTreeIter, newTreeIter);
             formatter.close();
-        } catch (Exception e) {
+        } catch (MissingObjectException e) {
+            // oddity due to MissingObjectException inheriting from IOException
+            throw new MissingObjectException(commitId, e.getMessage());
+        } catch (IOException e) {
             TransferHelpers.logger.error("", e);
             return null;
         }

@@ -34,6 +34,7 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.OWL2;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.errors.InvalidObjectIdException;
+import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -219,7 +220,7 @@ public class TransferHelpers {
 	        List<DiffEntry> entries;
 	        try {
 	            entries = GitHelpers.getChanges(type, distRev);
-	        } catch (InvalidObjectIdException e) {
+	        } catch (InvalidObjectIdException | MissingObjectException e) {
 	            TransferHelpers.logger.error("distant fuseki revision "+distRev+" is invalid, please fix it");
 	            return;
 	        }
@@ -273,7 +274,13 @@ public class TransferHelpers {
                 return;
             }
         } else {
-            List<DiffEntry> entries = GitHelpers.getChanges(type, distRev);
+            List<DiffEntry> entries;
+            try {
+                entries = GitHelpers.getChanges(type, distRev);
+            } catch (InvalidObjectIdException | MissingObjectException e1) {
+                TransferHelpers.logger.error("distant fuseki revision "+distRev+" is invalid, please fix it");
+                return;
+            }
             for (DiffEntry de : entries) {
                 String path = de.getNewPath();
                 String oldPath = de.getOldPath();

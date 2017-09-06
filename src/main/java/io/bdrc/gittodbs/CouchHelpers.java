@@ -3,9 +3,11 @@ package io.bdrc.gittodbs;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -30,6 +32,8 @@ import org.ektorp.http.StdHttpClient;
 import org.ektorp.impl.StdCouchDbConnector;
 import org.ektorp.impl.StdCouchDbInstance;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.bdrc.gittodbs.TransferHelpers.DocType;
@@ -43,6 +47,12 @@ public class CouchHelpers {
     public static boolean deleteDbBeforeInsert = false;
     public static final String CouchDBPrefix = "bdrc_";
     public static final String GitRevDoc = "_gitSync";
+    public static final String GitRevField = "_gitRev";
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
+    // test mode indicates if we're using mcouch or not. This matters because
+    // mcouch doesn't support the show function of design documents, but we want
+    // to use it in production.
     public static boolean testMode = false;
     
     public static void init(String couchDBHost, String couchDBPort) {
@@ -77,14 +87,17 @@ public class CouchHelpers {
             dbInstance.deleteDatabase(DBName);
             dbInstance.createDatabase(DBName);
         }
+        if (testMode)
+            dbInstance.createDatabase(DBName);
+        //TransferHelpers.logger.info("connecting to database "+DBName);
+        System.out.println("connecting to database "+DBName);
         CouchDbConnector db = new StdCouchDbConnector(DBName, dbInstance);
         ClassLoader classLoader = CouchHelpers.class.getClassLoader();
         if (deleteDbBeforeInsert) {
             InputStream inputStream = classLoader.getResourceAsStream("design-jsonld.json");
-            ObjectMapper mapper = new ObjectMapper();
             Map<String, Object> jsonMap;
             try {
-                jsonMap = mapper.readValue(inputStream, Map.class);
+                jsonMap = objectMapper.readValue(inputStream, typeRef);;
                 db.create(jsonMap);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -113,6 +126,36 @@ public class CouchHelpers {
         }
     }
     
+    public static String getRevision(String documentName, DocType type) {
+        CouchDbConnector db = dbs.get(type);
+        if (db == null) {
+            System.err.println("cannot get couch connector for type "+type);
+            return null;
+        }
+        if (testMode) {
+            final InputStream oldDocStream = db.getAsStream(documentName);
+            Map<String, Object> doc;
+            try {
+                doc = objectMapper.readValue(oldDocStream, typeRef);
+            } catch (IOException e) {
+                TransferHelpers.logger.error("This really shouldn't happen!", e);
+                return null;
+            }
+            if (doc != null) {
+                return doc.get("_rev").toString();
+            }
+            return null;
+        }
+        String uri = CouchDBPrefix+type+"/_design/jsonld/_show/revOnly/" + documentName;
+        HttpResponse r = db.getConnection().get(uri);
+        InputStream stuff = r.getContent();
+        String result = inputStreamToString(stuff);
+        if (result.charAt(0) == '{') {
+            return null;
+        }
+        return result.substring(1, result.length()-1);
+    }
+    
     public static void couchUpdateOrCreate(Map<String,Object> jsonObject, String documentName, DocType type, String commitRev) {
         CouchDbConnector db = dbs.get(type);
         if (db == null) {
@@ -120,19 +163,15 @@ public class CouchHelpers {
             return;
         }
         jsonObject.put("_id", documentName);
-        jsonObject.put("_gitRev", documentName);
+        jsonObject.put(GitRevField, documentName);
         try {
-            String uri = CouchDBPrefix+type+"/_design/jsonld/_show/revOnly/" + documentName;
-            HttpResponse r = db.getConnection().get(uri);
-            InputStream stuff = r.getContent();
-            String result = inputStreamToString(stuff);
-            if (result.charAt(0) == '{') {
+            String oldRev = getRevision(documentName, type);
+            if (oldRev == null)
                 db.create(jsonObject);
-                return;
+            else {
+                jsonObject.put("_rev", oldRev);
+                db.update(jsonObject);
             }
-            result = result.substring(1, result.length()-1);
-            jsonObject.put("_rev", result);
-            db.update(jsonObject);
         } catch (DocumentNotFoundException e) {
             db.create(jsonObject);
         }
@@ -146,15 +185,9 @@ public class CouchHelpers {
         }
         String documentName = "bdr:"+mainId;
         try {
-            String uri = CouchDBPrefix+type+"/_design/jsonld/_show/revOnly/" + documentName;
-            HttpResponse r = db.getConnection().get(uri);
-            InputStream stuff = r.getContent();
-            String result = inputStreamToString(stuff);
-            if (result.charAt(0) == '{') {
-                return;
-            }
-            result = result.substring(1, result.length()-1);
-            db.delete(documentName, result);
+            String oldRev = getRevision(documentName, type);
+            if (oldRev != null)
+                db.delete(documentName, oldRev);
         } catch (DocumentNotFoundException e) { }
     }
     
@@ -170,6 +203,30 @@ public class CouchHelpers {
     public static Model getModelFromDocId(String docId, DocType type) {
         CouchDbConnector db = dbs.get(type);
         Model res = ModelFactory.createDefaultModel();
+        if (testMode) {
+            final InputStream oldDocStream = db.getAsStream(docId);
+            Map<String, Object> doc;
+            try {
+                doc = objectMapper.readValue(oldDocStream, typeRef);
+            } catch (IOException e) {
+                TransferHelpers.logger.error("This really shouldn't happen!", e);
+                return null;
+            }
+            doc.remove("_id");
+            doc.remove("_rev");
+            doc.remove(GitRevField);
+            ObjectMapper mapper = new ObjectMapper();
+            String docstring;
+            try {
+                docstring = mapper.writeValueAsString(doc);
+            } catch (JsonProcessingException e) {
+                TransferHelpers.logger.error("This really shouldn't happen!", e);
+                return null;
+            }
+            StringReader docreader = new StringReader(docstring);
+            res.read(docreader, "", "JSON-LD");
+            return res;
+        }
         // https://github.com/helun/Ektorp/issues/263
         String uri = "/"+TransferHelpers.typeToStr.get(type)+"/_design/jsonld/_show/jsonld/" + docId;
         HttpResponse r = db.getConnection().get(uri);
