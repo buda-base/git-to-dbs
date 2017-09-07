@@ -209,8 +209,12 @@ public class BDRCReasoner {
 			e.printStackTrace(System.err);
 		}
 	}
+	
+	public static Reasoner INSTANCE = null;
 
 	public static Reasoner getReasoner(Model m) {
+	    if (INSTANCE != null)
+	        return INSTANCE;
 		List<Rule> rules = new ArrayList<Rule>();
 		if (inferSymetry) {
 			addRulesFromFile("owl-schema/reasoning/kinship.rules", rules);
@@ -219,6 +223,7 @@ public class BDRCReasoner {
 		rules.addAll(getTaxonomyRules(m));
 		Reasoner reasoner = new GenericRuleReasoner(rules);
 		reasoner.setParameter(ReasonerVocabulary.PROPruleMode, "forward");
+		INSTANCE = reasoner;
 		return reasoner;
 	}
 	
