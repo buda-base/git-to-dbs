@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.jena.ext.com.google.common.io.Files;
@@ -116,6 +117,13 @@ public class AppTest
         TransferHelpers.syncTypeFuseki(DocType.TEST);
         fusekiM = FusekiHelpers.getModel(BDR+"r2");
         assertTrue(fusekiM.isIsomorphicWith(m));
+	}
+	
+	@Test
+	public void test2() {
+	    Model person = TransferHelpers.modelFromPath("P1583.ttl", DocType.PERSON);
+	    Map<String,Object> jsonObject = LibFormat.objectFromModel(person, DocType.PERSON);
+	    System.out.println(jsonObject);
 	}
 	
 }
