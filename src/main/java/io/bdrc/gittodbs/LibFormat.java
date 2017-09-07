@@ -3,8 +3,10 @@ package io.bdrc.gittodbs;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -59,7 +61,14 @@ public class LibFormat {
                 QuerySolution soln = results.nextSolution();
                 String property = soln.get("property").asLiteral().getString();
                 String value = soln.get("value").asLiteral().getString();
-                res.put(property, value);
+                if (property.endsWith("[]")) {
+                    property = property.substring(0, property.length()-2);
+                    List<String> valList = (List<String>) res.computeIfAbsent(property, x -> new ArrayList<String>());
+                    valList.add(value);
+                } else {
+                    res.put(property, value);                    
+                }
+                
             }
         }
         return res;

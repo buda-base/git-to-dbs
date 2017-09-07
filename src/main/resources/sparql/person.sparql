@@ -14,9 +14,8 @@ WHERE {
      ?b :onOrAbout ?value .
      BIND ("birth" AS ?property)
   } UNION {
-     ?m :personName ?b .
-     ?b rdfs:label ?value
-     BIND ("name" AS ?property)
+     ?m :personName/rdfs:label ?value .
+     BIND ("name[]" AS ?property)
 #     FILTER (langMatches(lang(?var), "bo"))
   }
 }
