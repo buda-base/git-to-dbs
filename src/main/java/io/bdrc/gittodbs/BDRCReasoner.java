@@ -203,7 +203,7 @@ public class BDRCReasoner {
         try {
 		    BufferedReader in = new BufferedReader(new InputStreamReader(rulesFile));
             Parser p = Rule.rulesParserFromReader(in);
-            rules.addAll(p.getRulesPreload());
+            rules.addAll(Rule.parseRules(p));
 		} catch(ParserException e) {
 			System.err.println("error parsing "+rulesFile.toString());
 			e.printStackTrace(System.err);
