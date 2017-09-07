@@ -161,7 +161,7 @@ public class CouchHelpers {
             return;
         }
         jsonObject.put("_id", documentName);
-        jsonObject.put(GitRevField, documentName);
+        jsonObject.put(GitRevField, commitRev);
         try {
             String oldRev = getRevision(documentName, type);
             if (oldRev == null)
@@ -218,10 +218,9 @@ public class CouchHelpers {
             doc.remove("_id");
             doc.remove("_rev");
             doc.remove(GitRevField);
-            ObjectMapper mapper = new ObjectMapper();
             String docstring;
             try {
-                docstring = mapper.writeValueAsString(doc);
+                docstring = objectMapper.writeValueAsString(doc);
             } catch (JsonProcessingException e) {
                 TransferHelpers.logger.error("This really shouldn't happen!", e);
                 return null;

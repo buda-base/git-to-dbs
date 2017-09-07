@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -41,7 +42,7 @@ public class JSONLDFormatter {
     static final ObjectMapper mapper = new ObjectMapper();
     public static final Map<String,Object> jsonldcontext = getJsonLdContext(); // todo: read the thingy
     
-    public static final Map<DocType,String> typeToRootShortUri = new EnumMap<>(DocType.class);
+    public static final Map<DocType,Object> typeToRootShortUri = new EnumMap<>(DocType.class);
     static {
         typeToRootShortUri.put(DocType.PERSON, "Person");
         typeToRootShortUri.put(DocType.WORK, "Work");
@@ -50,39 +51,9 @@ public class JSONLDFormatter {
         typeToRootShortUri.put(DocType.LINEAGE, "Lineage");
         typeToRootShortUri.put(DocType.CORPORATION, "Corporation");
         typeToRootShortUri.put(DocType.PRODUCT, "adm:Product");
-        typeToRootShortUri.put(DocType.ITEM, "Item");
+        typeToRootShortUri.put(DocType.ITEM, Arrays.asList("Item", "ItemImageAsset", "ItemInputEtext", "ItemOCREtext", "ItemPhysicalAsset"));
         typeToRootShortUri.put(DocType.OFFICE, "Role");
         typeToRootShortUri.put(DocType.PERSON, "Person");
-    }
-    
-    // convert InputStream to String
-    private static String getStringFromInputStream(InputStream is) {
-
-        BufferedReader br = null;
-        StringBuilder sb = new StringBuilder();
-
-        String line;
-        try {
-
-            br = new BufferedReader(new InputStreamReader(is));
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        return sb.toString();
-
     }
     
     public static Map<String,Object> getJsonLdContext() {
@@ -100,17 +71,18 @@ public class JSONLDFormatter {
     }
     
     public static Object getFrameObject(DocType type, String mainResourceName) {
-        // for works, we frame by @id, for cases with outlines.
-        if (type != DocType.WORK && type != DocType.WORK && typeToFrameObject.containsKey(type))
+        // for works, we frame by @id, for cases with outlines
+        boolean needsId = (type == DocType.WORK || type == DocType.TEST);  
+        if (!needsId && typeToFrameObject.containsKey(type))
             return typeToFrameObject.get(type);
         Map<String,Object> jsonObject = new HashMap<String,Object>();
-        if (type == DocType.WORK || type == DocType.ITEM)
+        if (needsId) {
             jsonObject.put("@id", TransferHelpers.BDR+mainResourceName);
-        else
+        } else {
             jsonObject.put("@type", typeToRootShortUri.get(type));
-        jsonObject.put("@context", jsonldcontext);
-        if (type != DocType.WORK && type != DocType.ITEM)
             typeToFrameObject.put(type, jsonObject);
+        }
+        jsonObject.put("@context", jsonldcontext);
         return jsonObject;
     }
     

@@ -11,7 +11,6 @@ import org.apache.jena.ext.com.google.common.io.Files;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetAccessorFactory;
 import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -41,7 +40,8 @@ import mcouch.core.InMemoryCouchDb;
 public class AppTest 
 {
 	private static File tempDir;
-	private static final String EX = "http://example.com/";
+	private static final String BDR = TransferHelpers.BDR;
+	private static final String BDO = TransferHelpers.BDO;
 	private static Dataset ds;
 	
 	@BeforeClass
@@ -92,20 +92,21 @@ public class AppTest
 	@Test
 	public void test1() throws NoFilepatternException, GitAPIException, TimeoutException, InterruptedException {
 	    Model m = ModelFactory.createDefaultModel();
-	    Resource r1 = m.createResource(EX+"r1");
-	    Property p1 = m.createProperty(EX, "p1");
-	    Resource r2 = m.createResource(EX+"r2");
+	    Resource r1 = m.createResource(BDR+"r1");
+	    Property p1 = m.createProperty(BDO, "p1");
+	    Resource r2 = m.createResource(BDR+"r2");
 	    m.add(r1, p1, r2);
 	    String rev = writeModelToGitPath(m, "r1.ttl");
 	    assertTrue(GitHelpers.getHeadRev(DocType.TEST).equals(rev));
 	    assertTrue(GitHelpers.getLastRefOfFile(DocType.TEST, "r1.ttl").equals(rev));
 	    TransferHelpers.syncTypeCouch(DocType.TEST);
 	    Model couchM = CouchHelpers.getModelFromDocId("bdr:r1", DocType.TEST);
+	    System.out.println(couchM);
 	    assertTrue(couchM.isIsomorphicWith(m));
 	    TransferHelpers.syncTypeFuseki(DocType.TEST);
-	    Model fusekiM = FusekiHelpers.getModel(TransferHelpers.BDR+"r1");
+	    Model fusekiM = FusekiHelpers.getModel(BDR+"r1");
 	    assertTrue(fusekiM.isIsomorphicWith(m));
-	    Property p2 = m.createProperty(EX, "p2");
+	    Property p2 = m.createProperty(BDO, "p2");
 	    m = ModelFactory.createDefaultModel();
 	    m.add(r2, p2, r1);
 	    String newRev = writeModelToGitPath(m, "r2.ttl");
@@ -113,20 +114,8 @@ public class AppTest
 	    assertTrue(GitHelpers.getHeadRev(DocType.TEST).equals(newRev));
         assertTrue(GitHelpers.getLastRefOfFile(DocType.TEST, "r1.ttl").equals(rev));
         TransferHelpers.syncTypeFuseki(DocType.TEST);
-        fusekiM = FusekiHelpers.getModel(TransferHelpers.BDR+"r2");
+        fusekiM = FusekiHelpers.getModel(BDR+"r2");
         assertTrue(fusekiM.isIsomorphicWith(m));
 	}
 	
-	@Test
-	public void test2() {
-	    Model forcedSync = ModelFactory.createDefaultModel();
-	    Resource res = forcedSync.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfoTest");
-        Property p = forcedSync.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
-        Literal l = forcedSync.createLiteral("abc");
-        forcedSync.add(res, p, l);
-        FusekiHelpers.fu.putModel(TransferHelpers.ADMIN_PREFIX+"system", forcedSync);
-        FusekiHelpers.initSyncModel();
-        Model fusekiSync = FusekiHelpers.getSyncModel();
-        assertTrue(fusekiSync.isIsomorphicWith(forcedSync));
-	}
 }
