@@ -129,6 +129,9 @@ public class AppTest
 	    Model work = TransferHelpers.modelFromPath("WorkTestFPL.ttl", DocType.PERSON);
         res = LibFormat.objectFromModel(work, DocType.WORK);
         System.out.println(res);
+        Model outline = TransferHelpers.modelFromPath("OutlineTest.ttl", DocType.PERSON);
+        res = LibFormat.objectFromModel(outline, DocType.WORK);
+        System.out.println(res);
 	}
 	
 }

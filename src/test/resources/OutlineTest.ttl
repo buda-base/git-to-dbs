@@ -1,0 +1,103 @@
+@prefix :      <http://purl.bdrc.io/ontology/core/> .
+@prefix adm:   <http://purl.bdrc.io/ontology/admin/> .
+@prefix bdd:   <http://purl.bdrc.io/data/> .
+@prefix bdr:   <http://purl.bdrc.io/resource/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix tbr:   <http://purl.bdrc.io/ontology/toberemoved/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+bdr:W30020  a           :Work ;
+    :workPagination     bdr:PaginationAbsolute ;
+    :workTitle      [ a               :WorkBibliographicalTitle ;
+                 rdfs:label      "kun rig rnam bshad"@bo-x-ewts , "vinayavinicchaya"@pi-x-iast , "vinayavinicchaya pāṭh nisya"@pi-x-iast
+                 ] , 
+       [ a               :WorkOtherTitle ;
+         rdfs:label      "test pali title"@pi-x-iast
+       ] , 
+       [ a               :WorkTitlePageTitle ;
+         rdfs:label      "bcom ldan 'das thams cad rig pa'i rnam bshad"@bo-x-ewts
+       ] ;
+    adm:outline         [ a                   adm:Outline ;
+                          adm:logEntry        [ adm:logDate         "2009-09-15T14:51:25.708Z"^^xsd:dateTime ;
+                                                adm:logWho          bdr:U3
+                                              ] ,
+                                  [ adm:logDate         "2009-12-28T10:00:20.456Z"^^xsd:dateTime ;
+                                    adm:logMessage      "zhu dag byas"@en ;
+                                    adm:logWho          bdr:U21
+                                  ] ,
+                                  [ adm:logDate         "2014-10-03T14:40:05.896Z"^^xsd:dateTime ;
+                                    adm:logMessage      "vol. 1 outline images fixed"@en ;
+                                    adm:logWho          bdr:U19
+                                  ] ;
+                          adm:outlineAuthorStatement  "Bumu Dega; outlined with the gracious support of the khyentse foundation"@en ;
+                          adm:outlineType     bdr:OutlineTypePartialCollectedWorks ;
+                          adm:workLegacyNode  "O2DB87572"
+                        ] .
+
+bdr:W30020_0001  a      :Work ;
+    skos:prefLabel      "1 (stod cha)"@bo-x-ewts ;
+    skos:altLabel       "alt label"@bo-x-ewts ;
+    :workHasSite        [ :onOrAbout          "1235" ;
+                          :workSitePlace      bdr:G4449 ;
+                          :workSiteType       bdr:WorkSiteTypeVolume
+                        ] ;
+    :workIsAbout        bdr:T208 ;
+    :workLocation       [ :workLocationVolume  1 ;
+                          :workLocationWork   bdr:W30020
+                        ] ;
+    :workPartOf         bdr:W30020 ;
+    adm:workLegacyNode  "O2DB875722DB87582" .
+
+bdr:W30020_0002  a      :Work ;
+    skos:prefLabel      "gleng gzhi/"@bo-x-ewts ;
+    :workKaTenSiglaG    "test broken property type" ;
+    :workPartOf         bdr:W30020_0001 ;
+    :workTitle          [ a                   :WorkBibliographicalTitle ;
+                          rdfs:label          "gleng gzhi/"@bo-x-ewts
+                        ] , 
+                        [ a                   :WorkBibliographicalTitle ;
+                          rdfs:label          "second title/"@bo-x-ewts
+                        ] ;
+    adm:outlineAuthorStatement  "Another scribe"@en ;
+    adm:workLegacyNode  "O2DB875722DB87573" .
+
+bdr:W30020_0003  a      :Work ;
+    skos:prefLabel      "2 (smad cha)"@bo-x-ewts ;
+    :workLocation       [ :workLocationEndPage  24 ;
+                          :workLocationPage   12 ;
+                          :workLocationVolume  2 ;
+                          :workLocationWork   bdr:W30020
+                        ] ;
+    :workPartOf         bdr:W30020 ;
+    adm:workLegacyNode  "O2DB875722DB87583" .
+
+bdr:W30020_0004  a      :Work ;
+    skos:prefLabel      "gleng gzhi/"@bo-x-ewts ;
+    :note               "p. 1 (1st group)" ;
+    :workLocation       [ :workLocationEndPage  18 ;
+                          :workLocationPage   11 ;
+                          :workLocationVolume  2 ;
+                          :workLocationWork   bdr:W30020
+                        ] ;
+    :workPartOf         bdr:W30020_0003 ;
+    :workTitle          [ a                   :WorkBibliographicalTitle ;
+                          rdfs:label          "gleng gzhi/"@bo-x-ewts
+                        ] ;
+    adm:workLegacyNode  "O2DB875722DB875732DB87599" .
+
+bdr:W30020_0005  a      :Work ;
+    skos:prefLabel      "gleng gzhi2/"@bo-x-ewts ;
+    :note               "p. 1 (1st group)" ;
+    :workLocation       [ :workLocationEndPage  25 ;
+                          :workLocationPage   17 ;
+                          :workLocationVolume  2 ;
+                          :workLocationWork   bdr:W30020
+                        ] ;
+    :workPartOf         bdr:W30020_0003 ;
+    :workTitle          [ a                   :WorkBibliographicalTitle ;
+                          rdfs:label          "gleng gzhi2/"@bo-x-ewts
+                        ] ;
+    adm:workLegacyNode  "O2DB875722DB875732DB87600" .

@@ -19,6 +19,7 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.reasoner.Reasoner;
 
@@ -63,6 +64,17 @@ public class LibFormat {
         return uri.substring(TransferHelpers.BDR.length());
     }
     
+    public static String getUnicodeStrFromProp(QuerySolution soln, String var) {
+        RDFNode valueN = soln.get(var);
+        if (valueN == null)
+            return null;
+        Literal valueL = valueN.asLiteral();
+        if (valueL.getLanguage().equals("bo-x-ewts"))
+            return toUnicode(valueL.getString());
+        else
+            return valueL.getString();
+    }
+    
     public static Map<String, Object> objectFromModel(Model m, DocType type) {
         Query query = getQuery(type);
         InfModel im = TransferHelpers.getInferredModel(m);
@@ -73,7 +85,13 @@ public class LibFormat {
             while (results.hasNext()) {
                 QuerySolution soln = results.nextSolution();
                 String property = soln.get("property").asLiteral().getString();
-                if (property.contains("URI")) {
+                if (property.equals("node[]")) {
+                    System.out.println(soln.toString());
+                    String value = getUnicodeStrFromProp(soln, "value");
+                    if (value == null || value.isEmpty())
+                        continue;
+                } 
+                else if (property.contains("URI")) {
                     Resource valueURI = soln.get("value").asResource();
                     String value = uriToShort(valueURI.getURI());
                     if (property.endsWith("[URI]")) {
@@ -85,13 +103,8 @@ public class LibFormat {
                         res.put(property, value);
                     }
                 } else {
-                    Literal valueL = soln.get("value").asLiteral();
-                    String value;
-                    if (valueL.getLanguage().equals("bo-x-ewts"))
-                        value = toUnicode(valueL.getString());
-                    else
-                        value = valueL.getString();
-                    if (value.isEmpty())
+                    String value = getUnicodeStrFromProp(soln, "value");
+                    if (value == null || value.isEmpty())
                         continue;
                     if (property.endsWith("[]")) {
                         property = property.substring(0, property.length()-2);
