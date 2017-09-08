@@ -63,6 +63,8 @@ public class AppTest
         GitToDB.gitDir = tempDir.getAbsolutePath()+'/';
         GitHelpers.createGitRepo(DocType.TEST);
         GitHelpers.ensureGitRepo(DocType.TEST);
+        Model baseModel = TransferHelpers.getOntologyBaseModel();
+        TransferHelpers.bdrcReasoner = BDRCReasoner.getReasoner(baseModel);
 	}
 	
 	public static void deleteRec(File f) throws IOException {
@@ -122,8 +124,11 @@ public class AppTest
 	@Test
 	public void test2() {
 	    Model person = TransferHelpers.modelFromPath("P1583.ttl", DocType.PERSON);
-	    Map<String,Object> jsonObject = LibFormat.objectFromModel(person, DocType.PERSON);
-	    System.out.println(jsonObject);
+	    Map<String,Object> res = LibFormat.objectFromModel(person, DocType.PERSON);
+	    System.out.println(res);
+	    Model work = TransferHelpers.modelFromPath("WorkTestFPL.ttl", DocType.PERSON);
+        res = LibFormat.objectFromModel(work, DocType.WORK);
+        System.out.println(res);
 	}
 	
 }

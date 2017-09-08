@@ -16,7 +16,10 @@ import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
+import org.apache.jena.rdf.model.InfModel;
+import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.reasoner.Reasoner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,7 +37,7 @@ public class LibFormat {
     public static Query getQuery(DocType type) {
         if (typeQuery.containsKey(type))
             return typeQuery.get(type);
-        // the following nonsense just reads 
+        // the following nonsense just reads a freaking file
         ClassLoader classLoader = TransferHelpers.class.getClassLoader();
         InputStream inputStream = classLoader.getResourceAsStream("sparql/"+TransferHelpers.typeToStr.get(type)+".sparql");
         Scanner s = new Scanner(inputStream);
@@ -52,23 +55,52 @@ public class LibFormat {
         return res;
     }
     
+    public static String toUnicode (final String ewtsString) {
+        return converter.toUnicode(ewtsString);
+    }
+    
+    public static String uriToShort(final String uri) {
+        return uri.substring(TransferHelpers.BDR.length());
+    }
+    
     public static Map<String, Object> objectFromModel(Model m, DocType type) {
         Query query = getQuery(type);
+        InfModel im = TransferHelpers.getInferredModel(m);
+        //TransferHelpers.printModel(im);
         Map<String,Object> res = new HashMap<String,Object>();
-        try (QueryExecution qexec = QueryExecutionFactory.create(query, m)) {
+        try (QueryExecution qexec = QueryExecutionFactory.create(query, im)) {
             ResultSet results = qexec.execSelect() ;
             while (results.hasNext()) {
                 QuerySolution soln = results.nextSolution();
                 String property = soln.get("property").asLiteral().getString();
-                String value = soln.get("value").asLiteral().getString();
-                if (property.endsWith("[]")) {
-                    property = property.substring(0, property.length()-2);
-                    List<String> valList = (List<String>) res.computeIfAbsent(property, x -> new ArrayList<String>());
-                    valList.add(value);
+                if (property.contains("URI")) {
+                    Resource valueURI = soln.get("value").asResource();
+                    String value = uriToShort(valueURI.getURI());
+                    if (property.endsWith("[URI]")) {
+                        property = property.substring(0, property.length()-5);
+                        List<String> valList = (List<String>) res.computeIfAbsent(property, x -> new ArrayList<String>());
+                        valList.add(value);
+                    } else {
+                        property = property.substring(0, property.length()-3);
+                        res.put(property, value);
+                    }
                 } else {
-                    res.put(property, value);                    
+                    Literal valueL = soln.get("value").asLiteral();
+                    String value;
+                    if (valueL.getLanguage().equals("bo-x-ewts"))
+                        value = toUnicode(valueL.getString());
+                    else
+                        value = valueL.getString();
+                    if (value.isEmpty())
+                        continue;
+                    if (property.endsWith("[]")) {
+                        property = property.substring(0, property.length()-2);
+                        List<String> valList = (List<String>) res.computeIfAbsent(property, x -> new ArrayList<String>());
+                        valList.add(value);
+                    } else {
+                        res.put(property, value);                    
+                    }
                 }
-                
             }
         }
         return res;

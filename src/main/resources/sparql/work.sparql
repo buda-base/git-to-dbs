@@ -1,0 +1,32 @@
+PREFIX : <http://purl.bdrc.io/ontology/core/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+SELECT ?property ?value
+WHERE {
+  {
+     ?w :workCreator ?value .
+     BIND ("creator[URI]" AS ?property)
+  } UNION {
+     ?w :workPublisherName ?value .
+     BIND ("publisherName" AS ?property)
+  } UNION {
+     ?w :workPublisherDate ?value .
+     BIND ("publisherDate" AS ?property)
+  } UNION {
+     ?w :workPublisherLocation ?value .
+     BIND ("publisherLocation" AS ?property)
+  } UNION {
+     ?w :workPrintType ?value .
+     BIND ("printTypeURI" AS ?property)
+  } UNION {
+     ?b rdf:type :PersonEventBirth .
+     ?b :onOrAbout ?value .
+     BIND ("birth" AS ?property)
+  } UNION {
+     ?w :workTitle/rdfs:label ?value .
+     BIND ("title[]" AS ?property)
+     FILTER (lang(?value) = "bo" || lang(?value) = "bo-x-ewts")
+  }
+}

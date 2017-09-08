@@ -16,6 +16,6 @@ WHERE {
   } UNION {
      ?m :personName/rdfs:label ?value .
      BIND ("name[]" AS ?property)
-#     FILTER (langMatches(lang(?var), "bo"))
+     FILTER (lang(?value) = "bo" || lang(?value) = "bo-x-ewts")
   }
 }
