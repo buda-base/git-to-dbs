@@ -15,7 +15,13 @@ curl -s https://api.github.com/repos/BuddhistDigitalResourceCenter/fuseki-couchd
 ##### from the jar file 
 
 ```
-java -jar target/fusekicouchdb-0.2.jar -help
+java -jar target/gittodbs-0.7.jar -help
+```
+
+A typical usage is:
+
+```
+time java -jar target/gittodbs-0.7.jar -transferOnto -transferAllDB -doNotListen -timeout 60 -progress
 ```
 
 ##### from the java code
