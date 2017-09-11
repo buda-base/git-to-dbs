@@ -84,14 +84,18 @@ public class GitToDB {
 				fusekiPort = (++i < args.length ? args[i] : null);
 				transferFuseki = true;
 			} else if (arg.equals("-fusekiName")) {
-				fusekiName = (++i < args.length ? args[i] : null);
-				transferFuseki = true;
-			} else if (arg.equals("-couchdbHost")) {
+                fusekiName = (++i < args.length ? args[i] : null);
+                transferFuseki = true;
+            } else if (arg.equals("-fuseki")) {
+                transferFuseki = true;
+            } else if (arg.equals("-couchdbHost")) {
 				couchdbHost = (++i < args.length ? args[i] : null);
 				transferCouch = true;
 			} else if (arg.equals("-couchdbPort")) {
-				couchdbPort = (++i < args.length ? args[i] : null);
-				transferCouch = true;
+                couchdbPort = (++i < args.length ? args[i] : null);
+                transferCouch = true;
+            } else if (arg.equals("-couchdb")) {
+                transferCouch = true;
             } else if (arg.equals("-gitDir")) {
                 gitDir = (++i < args.length ? args[i] : null);
 			} else if (arg.equals("-n")) {
