@@ -128,18 +128,21 @@ public class TransferHelpers {
 	
 	public static void sync(int howMany) {
 	    syncType(DocType.CORPORATION);
-//	    syncType(DocType.PERSON);
-//	    syncType(DocType.WORK);
-//	    syncType(DocType.PLACE);
-//	    syncType(DocType.TOPIC);
-//	    syncType(DocType.LINEAGE);
-//	    syncType(DocType.PRODUCT);
-//	    syncType(DocType.ITEM);
-//	    syncType(DocType.OFFICE);
+	    syncType(DocType.PERSON);
+	    syncType(DocType.WORK);
+	    syncType(DocType.PLACE);
+	    syncType(DocType.TOPIC);
+	    syncType(DocType.LINEAGE);
+	    syncType(DocType.PRODUCT);
+	    syncType(DocType.ITEM);
+	    syncType(DocType.OFFICE);
 	}
 	
 	public static void syncType(DocType type) {
-	    
+	    if (GitToDB.transferFuseki)
+	        syncTypeFuseki(type);
+	    if (GitToDB.transferCouch)
+            syncTypeCouch(type);
 	}
 	
     public static void setPrefixes(Model m, DocType type) {
