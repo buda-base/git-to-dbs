@@ -64,6 +64,7 @@ public class AppTest
         GitHelpers.createGitRepo(DocType.TEST);
         GitHelpers.ensureGitRepo(DocType.TEST);
         Model baseModel = TransferHelpers.getOntologyBaseModel();
+        BDRCReasoner.inferSymetry = true;
         TransferHelpers.bdrcReasoner = BDRCReasoner.getReasoner(baseModel);
 	}
 	
