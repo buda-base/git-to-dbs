@@ -210,6 +210,7 @@ public class TransferHelpers {
 	    String distRev = FusekiHelpers.getLastRevision(type);
 	    if (distRev == null || distRev.isEmpty()) {
 	        TreeWalk tw = GitHelpers.listRepositoryContents(type);
+	        System.out.println("sending all "+typeToStr.get(type)+" files to Fuseki");
 	        try {
                 while (tw.next()) {
                     addFileFuseki(type, dirpath, tw.getPathString());
@@ -226,6 +227,7 @@ public class TransferHelpers {
 	            TransferHelpers.logger.error("distant fuseki revision "+distRev+" is invalid, please fix it");
 	            return;
 	        }
+	        System.out.println("sending "+entries.size()+" "+typeToStr.get(type)+" files changed since "+distRev+" to Fuseki");
 	        for (DiffEntry de : entries) {
 	            String path = de.getNewPath();
 	            String oldPath = de.getOldPath();
@@ -265,6 +267,7 @@ public class TransferHelpers {
         }
         String distRev = CouchHelpers.getLastRevision(type);
         if (distRev == null || distRev.isEmpty()) {
+            System.out.println("sending all "+typeToStr.get(type)+" files to Couch");
             TreeWalk tw = GitHelpers.listRepositoryContents(type);
             try {
                 while (tw.next()) {
@@ -279,9 +282,10 @@ public class TransferHelpers {
             try {
                 entries = GitHelpers.getChanges(type, distRev);
             } catch (InvalidObjectIdException | MissingObjectException e1) {
-                TransferHelpers.logger.error("distant fuseki revision "+distRev+" is invalid, please fix it");
+                TransferHelpers.logger.error("distant couch revision "+distRev+" is invalid, please fix it");
                 return;
             }
+            System.out.println("sending "+entries.size()+" "+typeToStr.get(type)+" files changed since "+distRev+" to Couch");
             for (DiffEntry de : entries) {
                 String path = de.getNewPath();
                 String oldPath = de.getOldPath();

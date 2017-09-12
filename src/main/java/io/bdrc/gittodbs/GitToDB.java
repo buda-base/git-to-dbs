@@ -144,6 +144,7 @@ public class GitToDB {
         if (!gitDir.endsWith("/"))
             gitDir+='/';
 		
+        GitHelpers.init();
 		try {
 			TransferHelpers.init();
 		} catch (Exception e) {
@@ -154,14 +155,12 @@ public class GitToDB {
         if (transferOnto) {
             TransferHelpers.transferOntology(); // use ontology from jar
         }
-
-        if (transferAllDB) {		
-			try {
-				TransferHelpers.sync(howMany);
-			} catch (Exception ex) {
-				TransferHelpers.logger.error("error in complete transfer", ex);
-				System.exit(1);
-			}
+	
+		try {
+			TransferHelpers.sync(howMany);
+		} catch (Exception ex) {
+			TransferHelpers.logger.error("error in complete transfer", ex);
+			System.exit(1);
 		}
 
 		TransferHelpers.logger.info("FusekiTranser shutting down");
