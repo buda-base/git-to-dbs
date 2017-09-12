@@ -86,9 +86,28 @@ public class LibFormat {
                 String property = soln.get("property").asLiteral().getString();
                 if (property.equals("node[]")) {
                     System.out.println(soln.toString());
-                    String value = getUnicodeStrFromProp(soln, "value");
-                    if (value == null || value.isEmpty())
-                        continue;
+                    String nodeId = soln.getLiteral("nodeRID").getString();
+                    Map<String,Object> node = (Map<String, Object>) res.computeIfAbsent(nodeId, x -> new HashMap<String,Object>());
+                    if (soln.contains("title")) {
+                        List<String> valList = (List<String>) node.computeIfAbsent("title", x -> new ArrayList<String>());
+                        String title = soln.getLiteral("title").getString();
+                        if (!valList.contains(title))
+                            valList.add(title);
+                    }
+                    if (soln.contains("name")) {
+                        List<String> valList = (List<String>) node.computeIfAbsent("name", x -> new ArrayList<String>());
+                        String name = soln.getLiteral("name").getString();
+                        if (!valList.contains(name))
+                            valList.add(name);
+                    }
+                    if (soln.contains("beginsAt"))
+                        node.put("beginAt", soln.getLiteral("beginsAt").getString());
+                    if (soln.contains("endsAt"))
+                        node.put("endsAt", soln.getLiteral("endsAt").getString());
+                    if (soln.contains("beginsAtVolume"))
+                        node.put("beginsAtVolume", soln.getLiteral("beginsAtVolume").getString());
+                    if (soln.contains("endsAtVolume"))
+                        node.put("endsAtVolume", soln.getLiteral("endsAtVolume").getString());
                 } 
                 else if (property.contains("URI")) {
                     Resource valueURI = soln.get("value").asResource();

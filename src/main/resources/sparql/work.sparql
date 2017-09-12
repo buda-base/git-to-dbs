@@ -5,7 +5,7 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-SELECT ?property ?value ?endsAt ?beginsAt ?endsAtVolume ?beginsAtVolume ?nodeRID ?prefLabel
+SELECT ?property ?value ?name ?title ?endsAt ?beginsAt ?endsAtVolume ?beginsAtVolume ?nodeRID ?prefLabel
 WHERE {
   {
      ?w :workCreator ?value .
@@ -28,14 +28,16 @@ WHERE {
      BIND ("birth" AS ?property)
   } UNION {
      ?w adm:workLegacyNode ?nodeRID .
-     ?w skos:prefLabel ?prefLabel .
-     OPTIONAL { ?w :workTitle/rdfs:label ?value } .
+     ?w rdf:type :Work .
+     OPTIONAL { ?w :workPartLabel ?name } .
+     OPTIONAL { ?w :workTitle/rdfs:label ?title } .
      OPTIONAL { ?w :workLocation/:workLocationEndVolume ?endsAtVolume } .
      OPTIONAL { ?w :workLocation/:workLocationPage ?beginsAt } .
      OPTIONAL { ?w :workLocation/:workLocationEndPage ?endsAt } .
      OPTIONAL { ?w :workLocation/:workLocationVolume ?beginsAtVolume } .
      BIND ("node[]" AS ?property)
-     FILTER (!bound(?value) || lang(?value) = "bo" || lang(?value) = "bo-x-ewts")
+     FILTER ((!bound(?name) || lang(?name) = "bo" || lang(?name) = "bo-x-ewts")
+             && (!bound(?title) || lang(?title) = "bo" || lang(?title) = "bo-x-ewts"))
   } UNION {
      ?w :workTitle/rdfs:label ?value .
      BIND ("title[]" AS ?property)
