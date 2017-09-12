@@ -112,6 +112,8 @@ public class GitHelpers {
             TransferHelpers.logger.error("", e);
             return null;
         }
+        if (headRef == null)
+            return null;
         return headRef.getObjectId().name();
     }
     

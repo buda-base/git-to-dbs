@@ -87,7 +87,8 @@ public class LibFormat {
                 if (property.equals("node[]")) {
                     System.out.println(soln.toString());
                     String nodeId = soln.getLiteral("nodeRID").getString();
-                    Map<String,Object> node = (Map<String, Object>) res.computeIfAbsent(nodeId, x -> new HashMap<String,Object>());
+                    Map<String, Map<String, Object>> nodes = (Map<String, Map<String, Object>>) res.computeIfAbsent("nodes", x -> new HashMap<String,Map<String, Object>>());
+                    Map<String,Object> node = (Map<String, Object>) nodes.computeIfAbsent(nodeId, x -> new HashMap<String,Object>());
                     if (soln.contains("title")) {
                         List<String> valList = (List<String>) node.computeIfAbsent("title", x -> new ArrayList<String>());
                         String title = soln.getLiteral("title").getString();
