@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -31,6 +32,13 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.bdrc.gittodbs.TransferHelpers.DocType;
 import mcouch.core.InMemoryCouchDb;
 
@@ -44,6 +52,7 @@ public class AppTest
 	private static final String BDR = TransferHelpers.BDR;
 	private static final String BDO = TransferHelpers.BDO;
 	private static Dataset ds;
+	private static ObjectMapper om;
 	
 	@BeforeClass
 	public static void init() throws IOException {
@@ -66,6 +75,7 @@ public class AppTest
         Model baseModel = TransferHelpers.getOntologyBaseModel();
         BDRCReasoner.inferSymetry = true;
         TransferHelpers.bdrcReasoner = BDRCReasoner.getReasoner(baseModel);
+        om = new ObjectMapper();
 	}
 	
 	public static void deleteRec(File f) throws IOException {
@@ -91,6 +101,14 @@ public class AppTest
         commit = git.commit().setMessage("adding "+path).call();
         git.close();
         return RevCommit.toString(commit);
+	}
+	
+	public static Map<String, Object> objectFromJson(String path) throws JsonParseException, JsonMappingException, IOException {
+	    ClassLoader classLoader = TransferHelpers.class.getClassLoader();
+	    InputStream is = classLoader.getResourceAsStream(path);
+	    File file = new File(classLoader.getResource(path).getFile());
+	    return om.readValue(file, new TypeReference<Map<String, Object>>(){});
+	    //return om.readTree(file);
 	}
 	
 	@Test
@@ -123,16 +141,20 @@ public class AppTest
 	}
 	
 	@Test
-	public void test2() {
+	public void test2() throws IOException {
 	    Model person = TransferHelpers.modelFromPath("P1583.ttl", DocType.PERSON);
 	    Map<String,Object> res = LibFormat.objectFromModel(person, DocType.PERSON);
-	    System.out.println(res);
+	    Map<String, Object> correct = objectFromJson("P1583.json");
+	    assertTrue(correct.equals(res));
 	    Model work = TransferHelpers.modelFromPath("WorkTestFPL.ttl", DocType.PERSON);
         res = LibFormat.objectFromModel(work, DocType.WORK);
-        System.out.println(res);
+        correct = objectFromJson("WorkTestFPL.json");
+        assertTrue(correct.equals(res));
         Model outline = TransferHelpers.modelFromPath("OutlineTest.ttl", DocType.PERSON);
         res = LibFormat.objectFromModel(outline, DocType.WORK);
-        System.out.println(res);
+        correct = objectFromJson("OutlineTest.json");
+        //System.out.println(om.writerWithDefaultPrettyPrinter().writeValueAsString(res));
+        assertTrue(correct.equals(res));
 	}
 	
 }

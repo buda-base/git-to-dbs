@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.TreeMap;
 
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -74,6 +75,18 @@ public class LibFormat {
             return valueL.getString();
     }
     
+    public static void addInt(QuerySolution soln, Map<String,Object> node, String prop) {
+        if (!soln.contains(prop))
+            return;
+        String val = soln.getLiteral(prop).getString();
+        try {
+            int valInt = Integer.valueOf(val);
+            node.put(prop, valInt);
+        } catch (NumberFormatException ex) {
+            node.put(prop, val);    
+        }
+    }
+    
     public static Map<String, Object> objectFromModel(Model m, DocType type) {
         Query query = getQuery(type);
         InfModel im = TransferHelpers.getInferredModel(m);
@@ -85,10 +98,9 @@ public class LibFormat {
                 QuerySolution soln = results.nextSolution();
                 String property = soln.get("property").asLiteral().getString();
                 if (property.equals("node[]")) {
-                    System.out.println(soln.toString());
                     String nodeId = soln.getLiteral("nodeRID").getString();
-                    Map<String, Map<String, Object>> nodes = (Map<String, Map<String, Object>>) res.computeIfAbsent("nodes", x -> new HashMap<String,Map<String, Object>>());
-                    Map<String,Object> node = (Map<String, Object>) nodes.computeIfAbsent(nodeId, x -> new HashMap<String,Object>());
+                    Map<String, Map<String, Object>> nodes = (Map<String, Map<String, Object>>) res.computeIfAbsent("nodes", x -> new TreeMap<String,Map<String, Object>>());
+                    Map<String,Object> node = (Map<String, Object>) nodes.computeIfAbsent(nodeId, x -> new TreeMap<String,Object>());
                     if (soln.contains("title")) {
                         List<String> valList = (List<String>) node.computeIfAbsent("title", x -> new ArrayList<String>());
                         String title = soln.getLiteral("title").getString();
@@ -96,19 +108,16 @@ public class LibFormat {
                             valList.add(title);
                     }
                     if (soln.contains("name")) {
-                        List<String> valList = (List<String>) node.computeIfAbsent("name", x -> new ArrayList<String>());
+                        // both name and title go to title property of the final doc
+                        List<String> valList = (List<String>) node.computeIfAbsent("title", x -> new ArrayList<String>());
                         String name = soln.getLiteral("name").getString();
                         if (!valList.contains(name))
                             valList.add(name);
                     }
-                    if (soln.contains("beginsAt"))
-                        node.put("beginAt", soln.getLiteral("beginsAt").getString());
-                    if (soln.contains("endsAt"))
-                        node.put("endsAt", soln.getLiteral("endsAt").getString());
-                    if (soln.contains("beginsAtVolume"))
-                        node.put("beginsAtVolume", soln.getLiteral("beginsAtVolume").getString());
-                    if (soln.contains("endsAtVolume"))
-                        node.put("endsAtVolume", soln.getLiteral("endsAtVolume").getString());
+                    addInt(soln, node, "beginsAt");
+                    addInt(soln, node, "endsAt");
+                    addInt(soln, node, "beginsAtVolume");
+                    addInt(soln, node, "endsAtVolume");
                 } 
                 else if (property.contains("URI")) {
                     Resource valueURI = soln.get("value").asResource();
