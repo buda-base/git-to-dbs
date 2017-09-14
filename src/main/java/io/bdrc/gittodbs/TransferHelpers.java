@@ -119,7 +119,7 @@ public class TransferHelpers {
 	        FusekiHelpers.init(GitToDB.fusekiHost, GitToDB.fusekiPort, GitToDB.fusekiName);	        
 	    }
 	    if (GitToDB.transferCouch) {
-	        CouchHelpers.init(GitToDB.couchdbHost, GitToDB.couchdbPort);
+	        CouchHelpers.init(GitToDB.couchdbHost, GitToDB.couchdbPort, GitToDB.libFormat);
 	    }
 		baseModel = getOntologyBaseModel(); 
 		ontModel = getOntologyModel(baseModel);
@@ -127,14 +127,14 @@ public class TransferHelpers {
 	}
 	
 	public static void sync(int howMany) {
-	    syncType(DocType.CORPORATION);
 	    syncType(DocType.PERSON);
+	    syncType(DocType.ITEM);
 	    syncType(DocType.WORK);
+	    syncType(DocType.CORPORATION);
 	    syncType(DocType.PLACE);
 	    syncType(DocType.TOPIC);
 	    syncType(DocType.LINEAGE);
 	    syncType(DocType.PRODUCT);
-	    syncType(DocType.ITEM);
 	    syncType(DocType.OFFICE);
 	}
 	

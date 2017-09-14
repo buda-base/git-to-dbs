@@ -18,6 +18,7 @@ public class GitToDB {
 	static String gitDir = null;
 	static boolean transferFuseki = false;
 	static boolean transferCouch = false;
+	static boolean libFormat = false;
 	static int howMany = Integer.MAX_VALUE;
     static boolean transferAllDB = false;
     static boolean transferOnto = false;
@@ -99,6 +100,8 @@ public class GitToDB {
                 transferCouch = true;
             } else if (arg.equals("-couchdb")) {
                 transferCouch = true;
+            } else if (arg.equals("-libFormat")) {
+                libFormat = true;
             } else if (arg.equals("-gitDir")) {
                 gitDir = (++i < args.length ? args[i] : null);
 			} else if (arg.equals("-n")) {

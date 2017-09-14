@@ -45,7 +45,9 @@ public class CouchHelpers {
     public static HttpClient httpClient;
     public static String url = "http://localhost:13598";
     public static boolean deleteDbBeforeInsert = false;
-    public static final String CouchDBPrefix = "bdrc_";
+    public static final String CouchDBPrefixGen = "bdrc_";
+    public static final String CouchDBPrefixLib = "lib_";
+    public static String CouchDBPrefix = CouchDBPrefixGen;
     public static final String GitRevDoc = "_gitSync";
     public static final String GitRevField = "_gitRev";
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -55,7 +57,7 @@ public class CouchHelpers {
     // to use it in production.
     public static boolean testMode = false;
     
-    public static void init(String couchDBHost, String couchDBPort) {
+    public static void init(String couchDBHost, String couchDBPort, boolean libFormat) {
         url = "http://" + couchDBHost + ":" +  couchDBPort;
         TransferHelpers.logger.info("connecting to CouchDB on "+url);
         try {
@@ -66,32 +68,36 @@ public class CouchHelpers {
             e.printStackTrace();
         }
         dbInstance = new StdCouchDbInstance(httpClient);
-        putDBs();
+        if (libFormat)
+            CouchDBPrefix = CouchDBPrefixLib;
+        putDBs(libFormat);
     }
     
-    public static void putDBs() {
-        putDB(DocType.CORPORATION);
-        putDB(DocType.LINEAGE);
-        putDB(DocType.OFFICE);
-        putDB(DocType.PERSON);
-        putDB(DocType.PLACE);
-        putDB(DocType.PRODUCT);
-        putDB(DocType.TOPIC);
+    public static void putDBs(boolean libFormat) {
         putDB(DocType.ITEM);
         putDB(DocType.WORK);
+        putDB(DocType.PERSON);
+        if (!libFormat) {
+            putDB(DocType.CORPORATION);
+            putDB(DocType.LINEAGE);
+            putDB(DocType.OFFICE);
+            putDB(DocType.PLACE);
+            putDB(DocType.PRODUCT);
+            putDB(DocType.TOPIC);
+        }
     }
     
     public static void putDB(DocType type) {
         String DBName = CouchDBPrefix+TransferHelpers.typeToStr.get(type);
-        if (deleteDbBeforeInsert) {
+        if (deleteDbBeforeInsert)
             dbInstance.deleteDatabase(DBName);
+        if (deleteDbBeforeInsert || !dbInstance.checkIfDbExists(DBName))
             dbInstance.createDatabase(DBName);
-        }
         //TransferHelpers.logger.info("connecting to database "+DBName);
         System.out.println("connecting to database "+DBName);
         CouchDbConnector db = new StdCouchDbConnector(DBName, dbInstance);
         ClassLoader classLoader = CouchHelpers.class.getClassLoader();
-        if (deleteDbBeforeInsert) {
+        if (deleteDbBeforeInsert || !dbInstance.checkIfDbExists(DBName)) {
             InputStream inputStream = classLoader.getResourceAsStream("design-jsonld.json");
             Map<String, Object> jsonMap;
             try {
