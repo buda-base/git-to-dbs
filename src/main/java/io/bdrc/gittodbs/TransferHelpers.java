@@ -105,7 +105,7 @@ public class TransferHelpers {
 	
 	public static boolean progress = false;
 	
-	public static long TRANSFER_TO = 15; // seconds
+	public static long TRANSFER_TO = 50; // seconds
 	
 	public static ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -127,22 +127,26 @@ public class TransferHelpers {
 	}
 	
 	public static void sync(int howMany) {
-	    syncType(DocType.PERSON);
-	    syncType(DocType.ITEM);
-	    syncType(DocType.WORK);
-	    syncType(DocType.CORPORATION);
-	    syncType(DocType.PLACE);
-	    syncType(DocType.TOPIC);
-	    syncType(DocType.LINEAGE);
-	    syncType(DocType.PRODUCT);
-	    syncType(DocType.OFFICE);
+	    int nbLeft = howMany;
+	    nbLeft = nbLeft - syncType(DocType.PERSON, nbLeft);
+	    nbLeft = nbLeft - syncType(DocType.ITEM, nbLeft);
+	    nbLeft = nbLeft - syncType(DocType.WORK, nbLeft);
+	    nbLeft = nbLeft - syncType(DocType.CORPORATION, nbLeft);
+	    nbLeft = nbLeft - syncType(DocType.PLACE, nbLeft);
+	    nbLeft = nbLeft - syncType(DocType.TOPIC, nbLeft);
+	    nbLeft = nbLeft - syncType(DocType.LINEAGE, nbLeft);
+	    nbLeft = nbLeft - syncType(DocType.PRODUCT, nbLeft);
+	    nbLeft = nbLeft - syncType(DocType.OFFICE, nbLeft);
 	}
 	
-	public static void syncType(DocType type) {
+	public static int syncType(DocType type, int nbLeft) {
+	    int i = 0;
+	    // random result for uncoherent couch and fuseki
 	    if (GitToDB.transferFuseki)
-	        syncTypeFuseki(type);
+	        i = syncTypeFuseki(type, nbLeft);
 	    if (GitToDB.transferCouch)
-            syncTypeCouch(type);
+	        i = syncTypeCouch(type, nbLeft);
+	    return i;
 	}
 	
     public static void setPrefixes(Model m, DocType type) {
@@ -186,7 +190,7 @@ public class TransferHelpers {
         return path.substring(0, path.length()-4);
 	}
 	
-	public static void addFileFuseki(DocType type, String dirPath, String filePath) {
+	public static void addFileFuseki(DocType type, String dirPath, String filePath, boolean firstTransfer) {
         String mainId = mainIdFromPath(filePath);
         if (mainId == null)
             return;
@@ -194,30 +198,44 @@ public class TransferHelpers {
         //String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
         // TODO: get inferred model
         try {
-            FusekiHelpers.transferModel(BDR+mainId, m);
+            FusekiHelpers.transferModel(BDR+mainId, m, firstTransfer);
         } catch (TimeoutException e) {
             TransferHelpers.logger.error("", e);
         }
 	}
 	
-	public static void syncTypeFuseki(DocType type) {
+	public static void logFileHandling(int i, String path, boolean fuseki) {
+	    TransferHelpers.logger.debug("sending "+path+" to "+(fuseki ? "Fuseki" : "Couchdb"));
+	    if (i % 100 == 0 && progress)
+	        logger.info(path + ":" + i);
+	}
+	
+	public static int syncTypeFuseki(DocType type, int nbLeft) {
+	    if (nbLeft == 0)
+	        return 0;
 	    String gitRev = GitHelpers.getHeadRev(type);
         String dirpath = GitToDB.gitDir+TransferHelpers.typeToStr.get(type)+"s/";
 	    if (gitRev == null) {
 	        TransferHelpers.logger.error("cannot extract latest revision from the git repo at "+dirpath);
-	        return;
+	        return 0;
 	    }
 	    String distRev = FusekiHelpers.getLastRevision(type);
+	    int i = 0;
 	    if (distRev == null || distRev.isEmpty()) {
 	        TreeWalk tw = GitHelpers.listRepositoryContents(type);
-	        System.out.println("sending all "+typeToStr.get(type)+" files to Fuseki");
+	        TransferHelpers.logger.info("sending all "+typeToStr.get(type)+" files to Fuseki");
 	        try {
                 while (tw.next()) {
-                    addFileFuseki(type, dirpath, tw.getPathString());
+                    if (i+1 > nbLeft)
+                        return nbLeft;
+                    i = i + 1;
+                    logFileHandling(i, tw.getPathString(), true);
+                    addFileFuseki(type, dirpath, tw.getPathString(), true);
                 }
+                FusekiHelpers.finishDatasetTransfers();
             } catch (IOException e) {
                 TransferHelpers.logger.error("", e);
-                return;
+                return 0;
             }
 	    } else {
 	        List<DiffEntry> entries;
@@ -225,11 +243,15 @@ public class TransferHelpers {
 	            entries = GitHelpers.getChanges(type, distRev);
 	        } catch (InvalidObjectIdException | MissingObjectException e) {
 	            TransferHelpers.logger.error("distant fuseki revision "+distRev+" is invalid, please fix it");
-	            return;
+	            return 0;
 	        }
-	        System.out.println("sending "+entries.size()+" "+typeToStr.get(type)+" files changed since "+distRev+" to Fuseki");
+	        TransferHelpers.logger.info("sending changed "+typeToStr.get(type)+" files changed since "+distRev+" to Fuseki");
 	        for (DiffEntry de : entries) {
+	            if (i+1 > nbLeft)
+	                return nbLeft;
+	            i = i + 1;
 	            String path = de.getNewPath();
+	            logFileHandling(i, path, true);
 	            String oldPath = de.getOldPath();
 	            if (path.equals("/dev/null") || !path.equals(oldPath)) {
 	                String mainId = mainIdFromPath(oldPath);
@@ -242,10 +264,11 @@ public class TransferHelpers {
 	                }
 	            }
 	            if (!path.equals("/dev/null"))
-	                addFileFuseki(type, dirpath, path);
+	                addFileFuseki(type, dirpath, path, false);
 	        }
 	    }
 	    FusekiHelpers.setLastRevision(gitRev, type);
+	    return i;
 	}
 	
 	public static void addFileCouch(DocType type, String dirPath, String filePath) {
@@ -258,24 +281,31 @@ public class TransferHelpers {
         CouchHelpers.jsonObjectToCouch(jsonObject, mainId, type, rev);
     }
 	
-	public static void syncTypeCouch(DocType type) {
+	public static int syncTypeCouch(DocType type, int nbLeft) {
+       if (nbLeft == 0)
+            return 0;
         String gitRev = GitHelpers.getHeadRev(type);
         String dirpath = GitToDB.gitDir+TransferHelpers.typeToStr.get(type)+"s/";
         if (gitRev == null) {
             TransferHelpers.logger.error("cannot extract latest revision from the git repo at "+dirpath);
-            return;
+            return 0;
         }
         String distRev = CouchHelpers.getLastRevision(type);
+        int i = 0;
         if (distRev == null || distRev.isEmpty()) {
-            System.out.println("sending all "+typeToStr.get(type)+" files to Couch");
+            TransferHelpers.logger.info("sending all "+typeToStr.get(type)+" files to Couch");
             TreeWalk tw = GitHelpers.listRepositoryContents(type);
             try {
                 while (tw.next()) {
+                    if (i+1 > nbLeft)
+                        return nbLeft;
+                    i = i + 1;
+                    logFileHandling(i, tw.getPathString(), true);
                     addFileCouch(type, dirpath, tw.getPathString());
                 }
             } catch (IOException e) {
                 TransferHelpers.logger.error("", e);
-                return;
+                return 0;
             }
         } else {
             List<DiffEntry> entries;
@@ -283,11 +313,15 @@ public class TransferHelpers {
                 entries = GitHelpers.getChanges(type, distRev);
             } catch (InvalidObjectIdException | MissingObjectException e1) {
                 TransferHelpers.logger.error("distant couch revision "+distRev+" is invalid, please fix it");
-                return;
+                return 0;
             }
-            System.out.println("sending "+entries.size()+" "+typeToStr.get(type)+" files changed since "+distRev+" to Couch");
+            TransferHelpers.logger.info("sending "+entries.size()+" "+typeToStr.get(type)+" files changed since "+distRev+" to Couch");
             for (DiffEntry de : entries) {
+                if (i+1 > nbLeft)
+                    return nbLeft;
+                i = i + 1;
                 String path = de.getNewPath();
+                logFileHandling(i, path, false);
                 String oldPath = de.getOldPath();
                 if (path.equals("/dev/null") || !path.equals(oldPath)) {
                     String mainId = mainIdFromPath(oldPath);
@@ -300,10 +334,11 @@ public class TransferHelpers {
                     }
                 }
                 if (!path.equals("/dev/null"))
-                    addFileFuseki(type, dirpath, path);
+                    addFileCouch(type, dirpath, path);
             }
         }
         CouchHelpers.setLastRevision(gitRev, type);
+        return i;
     }
 	
 	public static String getFullUrlFromDocId(String docId) {
@@ -367,7 +402,7 @@ public class TransferHelpers {
 
 	public static void transferOntology() {
 		try {
-			FusekiHelpers.transferModel(CORE_PREFIX+"ontologySchema", ontModel);
+			FusekiHelpers.transferModel(CORE_PREFIX+"ontologySchema", ontModel, false);
 		} catch (TimeoutException e) {
 			logger.error("Timeout sending ontology model", e);
 		}

@@ -1,14 +1,22 @@
 package io.bdrc.gittodbs;
 
 import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetAccessor;
 import org.apache.jena.query.DatasetAccessorFactory;
+import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.ResultSet;
@@ -18,6 +26,8 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdfconnection.RDFConnection;
+import org.apache.jena.rdfconnection.RDFConnectionFactory;
 
 import io.bdrc.gittodbs.TransferHelpers.DocType;
 
@@ -26,12 +36,16 @@ public class FusekiHelpers {
     public static String FusekiUrl = "http://localhost:13180/fuseki/bdrcrw/data";
     public static DatasetAccessor fu = null;
     public static String FusekiSparqlEndpoint = null;
+    public static RDFConnection fuConn;
+    public static int initialLoadBulkSize = 1000; // the number of triples above which a dataset load is triggered
     
     public static void init(String fusekiHost, String fusekiPort, String fusekiEndpoint) throws MalformedURLException {
-        FusekiUrl = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/"+fusekiEndpoint+"/data";
-        FusekiSparqlEndpoint = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/"+fusekiEndpoint+"/query";
+        String baseUrl = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/";
+        FusekiUrl = baseUrl+fusekiEndpoint+"/data";
+        FusekiSparqlEndpoint = baseUrl+fusekiEndpoint+"/query";
         TransferHelpers.logger.info("connecting to fuseki on "+FusekiUrl);
         fu = DatasetAccessorFactory.createHTTP(FusekiUrl);
+        fuConn = RDFConnectionFactory.connect(FusekiSparqlEndpoint, FusekiSparqlEndpoint, FusekiUrl);
     }
     
     public static ResultSet selectSparql(String query) {
@@ -82,19 +96,21 @@ public class FusekiHelpers {
             s.changeObject(l);
         }
         try {
-            transferModel(TransferHelpers.ADMIN_PREFIX+"system", m);
+            transferModel(TransferHelpers.ADMIN_PREFIX+"system", m, false);
         } catch (TimeoutException e) {
             TransferHelpers.logger.warn("Timeout sending commit to fuseki (not fatal): "+revision, e);
         }
     }
     
     private static Model callFuseki(final String operation, final String graphName, final Model m) throws TimeoutException {
+        System.out.println("callFuseki");
         Model res = null;
         final Callable<Model> task = new Callable<Model>() {
            public Model call() throws InterruptedException {
               switch (operation) {
               case "putModel":
-                  fu.putModel(graphName, m);
+                  //fu.putModel(graphName, m);
+                  fuConn.put(graphName, m);
                   //fu.putModel(m);
                   return null;
               case "deleteModel":
@@ -118,9 +134,92 @@ public class FusekiHelpers {
         }
         return res;
     }
+
+    static private Boolean isTransfering = false;
+    static ArrayBlockingQueue<Dataset> queue = new ArrayBlockingQueue<>(1);
     
-    static void transferModel(String graphName, final Model m) throws TimeoutException {
-        callFuseki("putModel", graphName, m);
+    private static void loadDatasetMutex(final Dataset ds) throws TimeoutException {
+        //System.out.println("loadDatasetMutex");
+        // here we want the following: one transfer at a time, but while the transfer occurs, we
+        // can prepare the next one.
+        
+        // first thing, we add the dataset to the queue, waiting for the queue to get empty fist
+        // this means that we're either at the beginning of the program or that a transfer is occuring
+        try {
+            queue.put(ds);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        // if a transfer is occuring, we return, as the thread will take care of consuming the entire queue
+        if (isTransfering) {
+            return;
+        }
+        
+        final Callable<Void> task = new Callable<Void>() {
+           public Void call() throws InterruptedException {
+               // we consume the queue
+               Dataset ds = queue.poll();
+               while (ds != null) {
+                   //System.out.println("starting transfer of one dataset");
+                   fuConn.loadDataset(ds);
+                   ds = queue.poll();
+               }
+               //System.out.println("finish transfer of all datasets");
+               return null;
+           }
+        };
+        Future<Void> future = TransferHelpers.executor.submit(task);
+        try {
+           future.get(TransferHelpers.TRANSFER_TO, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            TransferHelpers.logger.error("interrupted during datast load", e);
+        } catch (ExecutionException e) {
+            TransferHelpers.logger.error("execution error during dataset load, this shouldn't happen, quitting...", e);
+            System.exit(1);
+        } finally {
+           isTransfering = false;
+           System.out.println("finally: release locks");
+           future.cancel(true); // this kills the transfer
+        }
+    }
+    
+    static Dataset currentDataset = null;
+    static int triplesInDataset = 0;
+    static void addToTransferBulk(final String graphName, final Model m) {
+        if (currentDataset == null)
+            currentDataset = DatasetFactory.createGeneral();
+        currentDataset.addNamedModel(graphName, m);
+        triplesInDataset += m.size();
+        if (triplesInDataset > initialLoadBulkSize) {
+            try {
+                loadDatasetMutex(currentDataset);
+                currentDataset = null;
+                triplesInDataset = 0;
+            } catch (TimeoutException e) {
+                e.printStackTrace();
+                return;
+            }
+        }
+    }
+    
+    static void finishDatasetTransfers() {
+        // if map is not empty, transfer the last one
+        if (currentDataset != null) {
+            try {
+                loadDatasetMutex(currentDataset);
+            } catch (TimeoutException e) {
+                e.printStackTrace();
+                return;
+            }
+        }
+    }
+     
+    static void transferModel(final String graphName, final Model m, final boolean firstTransfer) throws TimeoutException {
+        if (!firstTransfer) {
+            callFuseki("putModel", graphName, m);
+        } else {
+            addToTransferBulk(graphName, m);
+        }
     }
     
     static void deleteModel(String graphName) throws TimeoutException {

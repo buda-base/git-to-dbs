@@ -17,6 +17,8 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdfconnection.RDFConnection;
+import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFWriter;
 import org.eclipse.jgit.api.Git;
@@ -58,6 +60,7 @@ public class AppTest
 	public static void init() throws IOException {
 	    ds = DatasetFactory.createGeneral();
 	    FusekiHelpers.fu = DatasetAccessorFactory.create(ds);
+	    FusekiHelpers.fuConn = RDFConnectionFactory.connect(ds);
 	    InMemoryCouchDb couchDbClient = new InMemoryCouchDb();
         couchDbClient.createDatabase("bdrc_test");
         StdHttpClient stdHttpClient = new StdHttpClient(couchDbClient);
@@ -121,11 +124,10 @@ public class AppTest
 	    String rev = writeModelToGitPath(m, "r1.ttl");
 	    assertTrue(GitHelpers.getHeadRev(DocType.TEST).equals(rev));
 	    assertTrue(GitHelpers.getLastRefOfFile(DocType.TEST, "r1.ttl").equals(rev));
-	    TransferHelpers.syncTypeCouch(DocType.TEST);
+	    TransferHelpers.syncTypeCouch(DocType.TEST, 1000);
 	    Model couchM = CouchHelpers.getModelFromDocId("bdr:r1", DocType.TEST);
-	    System.out.println(couchM);
 	    assertTrue(couchM.isIsomorphicWith(m));
-	    TransferHelpers.syncTypeFuseki(DocType.TEST);
+	    TransferHelpers.syncTypeFuseki(DocType.TEST, 1000);
 	    Model fusekiM = FusekiHelpers.getModel(BDR+"r1");
 	    assertTrue(fusekiM.isIsomorphicWith(m));
 	    Property p2 = m.createProperty(BDO, "p2");
@@ -135,7 +137,7 @@ public class AppTest
 	    System.out.println("just committed "+newRev);
 	    assertTrue(GitHelpers.getHeadRev(DocType.TEST).equals(newRev));
         assertTrue(GitHelpers.getLastRefOfFile(DocType.TEST, "r1.ttl").equals(rev));
-        TransferHelpers.syncTypeFuseki(DocType.TEST);
+        TransferHelpers.syncTypeFuseki(DocType.TEST, 1000);
         fusekiM = FusekiHelpers.getModel(BDR+"r2");
         assertTrue(fusekiM.isIsomorphicWith(m));
 	}
