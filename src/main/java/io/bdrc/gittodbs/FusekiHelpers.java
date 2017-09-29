@@ -19,6 +19,7 @@ import org.apache.jena.query.DatasetAccessorFactory;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.ReadWrite;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
@@ -37,15 +38,15 @@ public class FusekiHelpers {
     public static DatasetAccessor fu = null;
     public static String FusekiSparqlEndpoint = null;
     public static RDFConnection fuConn;
-    public static int initialLoadBulkSize = 1000; // the number of triples above which a dataset load is triggered
+    public static int initialLoadBulkSize = 50000; // the number of triples above which a dataset load is triggered
     
     public static void init(String fusekiHost, String fusekiPort, String fusekiEndpoint) throws MalformedURLException {
-        String baseUrl = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/";
-        FusekiUrl = baseUrl+fusekiEndpoint+"/data";
-        FusekiSparqlEndpoint = baseUrl+fusekiEndpoint+"/query";
+        String baseUrl = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/"+fusekiEndpoint;
+        FusekiUrl = baseUrl+"/data";
+        FusekiSparqlEndpoint = baseUrl+"/query";
         TransferHelpers.logger.info("connecting to fuseki on "+FusekiUrl);
-        fu = DatasetAccessorFactory.createHTTP(FusekiUrl);
-        fuConn = RDFConnectionFactory.connect(FusekiSparqlEndpoint, FusekiSparqlEndpoint, FusekiUrl);
+        fu = DatasetAccessorFactory.createHTTP(baseUrl+"/data");
+        fuConn = RDFConnectionFactory.connect(baseUrl, baseUrl+"/query", baseUrl+"/update", baseUrl+"/data");
     }
     
     public static ResultSet selectSparql(String query) {
@@ -109,9 +110,7 @@ public class FusekiHelpers {
            public Model call() throws InterruptedException {
               switch (operation) {
               case "putModel":
-                  //fu.putModel(graphName, m);
-                  fuConn.put(graphName, m);
-                  //fu.putModel(m);
+                  fu.putModel(m);
                   return null;
               case "deleteModel":
                   fu.deleteModel(graphName);
@@ -160,11 +159,13 @@ public class FusekiHelpers {
                // we consume the queue
                Dataset ds = queue.poll();
                while (ds != null) {
-                   //System.out.println("starting transfer of one dataset");
+                   if (!fuConn.isInTransaction()) {
+                       fuConn.begin(ReadWrite.WRITE);
+                   }
                    fuConn.loadDataset(ds);
                    ds = queue.poll();
                }
-               //System.out.println("finish transfer of all datasets");
+               fuConn.commit();
                return null;
            }
         };
@@ -178,7 +179,6 @@ public class FusekiHelpers {
             System.exit(1);
         } finally {
            isTransfering = false;
-           System.out.println("finally: release locks");
            future.cancel(true); // this kills the transfer
         }
     }

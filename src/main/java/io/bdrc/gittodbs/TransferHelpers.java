@@ -137,6 +137,15 @@ public class TransferHelpers {
 	    nbLeft = nbLeft - syncType(DocType.LINEAGE, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.PRODUCT, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.OFFICE, nbLeft);
+	    closeConnections();
+	}
+	
+	public static void closeConnections() {
+	    if (GitToDB.transferFuseki) {
+    	    FusekiHelpers.fuConn.commit();
+    	    FusekiHelpers.fuConn.end();
+    	    FusekiHelpers.fuConn.close();
+	    }
 	}
 	
 	public static int syncType(DocType type, int nbLeft) {
