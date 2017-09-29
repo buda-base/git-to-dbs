@@ -17,8 +17,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionFactory;
+import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFWriter;
 import org.eclipse.jgit.api.Git;
@@ -35,10 +34,8 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.bdrc.gittodbs.TransferHelpers.DocType;
@@ -60,7 +57,8 @@ public class AppTest
 	public static void init() throws IOException {
 	    ds = DatasetFactory.createGeneral();
 	    FusekiHelpers.fu = DatasetAccessorFactory.create(ds);
-	    FusekiHelpers.fuConn = RDFConnectionFactory.connect(ds);
+	    // for some reason, using both DataAccessor and RDFConnection on the same dataset doesn't work
+	    FusekiHelpers.useRdfConnection = false;
 	    InMemoryCouchDb couchDbClient = new InMemoryCouchDb();
         couchDbClient.createDatabase("bdrc_test");
         StdHttpClient stdHttpClient = new StdHttpClient(couchDbClient);
@@ -112,6 +110,12 @@ public class AppTest
 	    File file = new File(classLoader.getResource(path).getFile());
 	    return om.readValue(file, new TypeReference<Map<String, Object>>(){});
 	    //return om.readTree(file);
+	}
+	
+	public void printDataset(Dataset ds) {
+	    System.out.println("printing dataset");
+	    Model m = ds.getUnionModel();
+	    RDFWriter.create().source(m.getGraph()).context(TransferHelpers.ctx).lang(Lang.TTL).build().output(System.out);
 	}
 	
 	@Test

@@ -30,6 +30,7 @@ import org.apache.jena.riot.RiotException;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.PrefixMapFactory;
 import org.apache.jena.riot.system.StreamRDFLib;
+import org.apache.jena.sparql.util.Context;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.OWL2;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -55,6 +56,7 @@ public class TransferHelpers {
     
     public static final String BDR = RESOURCE_PREFIX;
     public static final String BDO = CORE_PREFIX;
+    public static final Context ctx = new Context();
 	
 	public static enum DocType {
 	    CORPORATION,
@@ -141,11 +143,8 @@ public class TransferHelpers {
 	}
 	
 	public static void closeConnections() {
-	    if (GitToDB.transferFuseki) {
-    	    FusekiHelpers.fuConn.commit();
-    	    FusekiHelpers.fuConn.end();
-    	    FusekiHelpers.fuConn.close();
-	    }
+	    if (GitToDB.transferFuseki)
+	        FusekiHelpers.closeConnections();
 	}
 	
 	public static int syncType(DocType type, int nbLeft) {

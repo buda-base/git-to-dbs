@@ -1,18 +1,12 @@
 package io.bdrc.gittodbs;
 
 import java.net.MalformedURLException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetAccessor;
 import org.apache.jena.query.DatasetAccessorFactory;
@@ -38,6 +32,7 @@ public class FusekiHelpers {
     public static DatasetAccessor fu = null;
     public static String FusekiSparqlEndpoint = null;
     public static RDFConnection fuConn;
+    public static boolean useRdfConnection = true;
     public static int initialLoadBulkSize = 50000; // the number of triples above which a dataset load is triggered
     
     public static void init(String fusekiHost, String fusekiPort, String fusekiEndpoint) throws MalformedURLException {
@@ -104,13 +99,12 @@ public class FusekiHelpers {
     }
     
     private static Model callFuseki(final String operation, final String graphName, final Model m) throws TimeoutException {
-        System.out.println("callFuseki");
         Model res = null;
         final Callable<Model> task = new Callable<Model>() {
            public Model call() throws InterruptedException {
               switch (operation) {
               case "putModel":
-                  fu.putModel(m);
+                  fu.putModel(graphName, m);
                   return null;
               case "deleteModel":
                   fu.deleteModel(graphName);
@@ -163,6 +157,7 @@ public class FusekiHelpers {
                        fuConn.begin(ReadWrite.WRITE);
                    }
                    fuConn.loadDataset(ds);
+                   System.out.println("transferred ~ "+initialLoadBulkSize+" triples");
                    ds = queue.poll();
                }
                fuConn.commit();
@@ -213,9 +208,17 @@ public class FusekiHelpers {
             }
         }
     }
+    
+    public static void closeConnections() {
+        if (useRdfConnection) {
+            FusekiHelpers.fuConn.commit();
+            FusekiHelpers.fuConn.end();
+            FusekiHelpers.fuConn.close();
+        }
+    }
      
     static void transferModel(final String graphName, final Model m, final boolean firstTransfer) throws TimeoutException {
-        if (!firstTransfer) {
+        if (!firstTransfer || !useRdfConnection) {
             callFuseki("putModel", graphName, m);
         } else {
             addToTransferBulk(graphName, m);
