@@ -2,7 +2,11 @@ package io.bdrc.gittodbs;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -57,10 +61,14 @@ public class TransferHelpers {
     public static final String BDR = RESOURCE_PREFIX;
     public static final String BDO = CORE_PREFIX;
     public static final Context ctx = new Context();
+    static MessageDigest md;
+    private static final int hashNbChars = 2;
 	
 	public static enum DocType {
 	    CORPORATION,
 	    LINEAGE,
+	    ETEXT,
+	    ETEXTCONTENT,
 	    OFFICE,
 	    PERSON,
 	    PLACE,
@@ -76,6 +84,8 @@ public class TransferHelpers {
 	
 	static {
 	    typeToStr.put(DocType.CORPORATION, "corporation");
+	    typeToStr.put(DocType.ETEXT, "etext");
+	    typeToStr.put(DocType.ETEXTCONTENT, "etextcontent");
 	    typeToStr.put(DocType.LINEAGE, "lineage");
 	    typeToStr.put(DocType.OFFICE, "office");
 	    typeToStr.put(DocType.PERSON, "person");
@@ -91,10 +101,10 @@ public class TransferHelpers {
         PrefixMap pm = PrefixMapFactory.create();
         pm.add("", CORE_PREFIX);
         pm.add("adm", ADMIN_PREFIX);
-        pm.add("bdd", DATA_PREFIX);
+        //pm.add("bdd", DATA_PREFIX);
         pm.add("bdr", RESOURCE_PREFIX);
         pm.add("tbr", TBR_PREFIX);
-        pm.add("owl", OWL_PREFIX);
+        //pm.add("owl", OWL_PREFIX);
         pm.add("rdf", RDF_PREFIX);
         pm.add("rdfs", RDFS_PREFIX);
         pm.add("skos", SKOS_PREFIX);
@@ -117,6 +127,11 @@ public class TransferHelpers {
 	public static Reasoner bdrcReasoner = null;
 	
 	public static void init() throws MalformedURLException {
+	    try {
+            md = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
 	    if (GitToDB.transferFuseki) {
 	        FusekiHelpers.init(GitToDB.fusekiHost, GitToDB.fusekiPort, GitToDB.fusekiName);	        
 	    }
@@ -140,6 +155,23 @@ public class TransferHelpers {
 	    nbLeft = nbLeft - syncType(DocType.PRODUCT, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.OFFICE, nbLeft);
 	    closeConnections();
+	}
+	
+	public static String getMd5(String resId) {
+	    try {
+            // keeping files from the same work together:
+            final int underscoreIndex = resId.indexOf('_');
+            String message = resId;
+            if (underscoreIndex != -1)
+                message = resId.substring(0, underscoreIndex);
+            final byte[] bytesOfMessage = message.getBytes("UTF-8");
+            final byte[] hashBytes = md.digest(bytesOfMessage);
+            BigInteger bigInt = new BigInteger(1,hashBytes);
+            return String.format("%032x", bigInt).substring(0, hashNbChars);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return null;
+        }
 	}
 	
 	public static void closeConnections() {

@@ -1,0 +1,139 @@
+@prefix :      <http://purl.bdrc.io/ontology/core/> .
+@prefix adm:   <http://purl.bdrc.io/ontology/admin/> .
+@prefix bdr:   <http://purl.bdrc.io/resource/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix tbr:   <http://purl.bdrc.io/ontology/toberemoved/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+bdr:UT1CZ2485_001_0000
+    a                   bdr:EtextPaginated ;
+    :eTextHasPage       [ :pageHasLine        [ :seqNum             1 ;
+                                                :sliceEnd           "1-26" ;
+                                                :sliceStart         "1-1"
+                                              ] ;
+                          :seqNum             1 ;
+                          :sliceEnd           "1-26" ;
+                          :sliceStart         "1-1"
+                        ] ,
+            [ :pageHasLine        [ :seqNum             1 ;
+                                    :sliceEnd           "8-13" ;
+                                    :sliceStart         "2-1"
+                                  ] ,
+                      [ :seqNum             2 ;
+                        :sliceEnd           "11-24" ;
+                        :sliceStart         "8-13"
+                      ] ,
+                      [ :seqNum             3 ;
+                        :sliceEnd           "14-32" ;
+                        :sliceStart         "11-24"
+                      ] ,
+                      [ :seqNum             4 ;
+                        :sliceEnd           "18-21" ;
+                        :sliceStart         "14-32"
+                      ] ,
+                      [ :seqNum             5 ;
+                        :sliceEnd           "23-14" ;
+                        :sliceStart         "18-21"
+                      ] ;
+              :seqNum             2 ;
+              :sliceEnd           "23-14" ;
+              :sliceStart         "2-1"
+            ] ,
+            [ :pageHasLine        [ :seqNum             1 ;
+                                    :sliceEnd           "29-8" ;
+                                    :sliceStart         "23-14"
+                                  ] ,
+                      [ :seqNum             2 ;
+                        :sliceEnd           "35-48" ;
+                        :sliceStart         "29-8"
+                      ] ,
+                      [ :seqNum             3 ;
+                        :sliceEnd           "39-35" ;
+                        :sliceStart         "36-1"
+                      ] ,
+                      [ :seqNum             4 ;
+                        :sliceEnd           "42-50" ;
+                        :sliceStart         "39-35"
+                      ] ,
+                      [ :seqNum             5 ;
+                        :sliceEnd           "48-57" ;
+                        :sliceStart         "42-50"
+                      ] ,
+                      [ :seqNum             6 ;
+                        :sliceEnd           "54-35" ;
+                        :sliceStart         "48-57"
+                      ] ;
+              :seqNum             3 ;
+              :sliceEnd           "54-35" ;
+              :sliceStart         "23-14"
+            ] ,
+            [ :pageHasLine        [ :seqNum             1 ;
+                                    :sliceEnd           "60-6" ;
+                                    :sliceStart         "55-1"
+                                  ] ,
+                      [ :seqNum             2 ;
+                        :sliceEnd           "64-12" ;
+                        :sliceStart         "60-6"
+                      ] ,
+                      [ :seqNum             3 ;
+                        :sliceEnd           "69-21" ;
+                        :sliceStart         "64-12"
+                      ] ,
+                      [ :seqNum             4 ;
+                        :sliceEnd           "75-16" ;
+                        :sliceStart         "70-1"
+                      ] ,
+                      [ :seqNum             5 ;
+                        :sliceEnd           "83-13" ;
+                        :sliceStart         "75-16"
+                      ] ,
+                      [ :seqNum             6 ;
+                        :sliceEnd           "87-13" ;
+                        :sliceStart         "83-13"
+                      ] ,
+                      [ :seqNum             7 ;
+                        :sliceEnd           "91-24" ;
+                        :sliceStart         "87-13"
+                      ] ;
+              :seqNum             4 ;
+              :sliceEnd           "91-24" ;
+              :sliceStart         "55-1"
+            ] ,
+            [ :pageHasLine        [ :seqNum             1 ;
+                                    :sliceEnd           "97-29" ;
+                                    :sliceStart         "91-24"
+                                  ] ,
+                      [ :seqNum             2 ;
+                        :sliceEnd           "103-52" ;
+                        :sliceStart         "98-1"
+                      ] ,
+                      [ :seqNum             3 ;
+                        :sliceEnd           "106-18" ;
+                        :sliceStart         "103-52"
+                      ] ,
+                      [ :seqNum             4 ;
+                        :sliceEnd           "107-75" ;
+                        :sliceStart         "106-18"
+                      ] ,
+                      [ :seqNum             5 ;
+                        :sliceEnd           "110-59" ;
+                        :sliceStart         "108-1"
+                      ] ,
+                      [ :seqNum             6 ;
+                        :sliceEnd           "112-40" ;
+                        :sliceStart         "110-59"
+                      ] ,
+                      [ :seqNum             7 ;
+                        :sliceEnd           "115-28" ;
+                        :sliceStart         "112-40"
+                      ] ;
+              :seqNum             5 ;
+              :sliceEnd           "115-28" ;
+              :sliceStart         "91-24"
+            ] ;
+    :eTextInItem        bdr:I1CZ2485_E001 ;
+    :eTextIsVolume      1 ;
+    :eTextSourcePath    "DharmaDownload/Mahamudra/rtfs/06_Chakchen-Drupthob-Judpai-Zhalung/06_Chakchen-Drupthob-Judpai-Zhalung.rtf" ;
+    :eTextTitle         "༄༅། །ཕྱག་རྒྱ་ཆེན་པོ་ལྷན་ཅིག་སྐྱེས་སྦྱོར་ཟབ་དོན་དོན་གྱི་ཆུ་བོ་སྐལ་ལྡན་གྱི་གདུལ་བྱའི་"@bo .
