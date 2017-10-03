@@ -34,6 +34,7 @@ public class FusekiHelpers {
     public static RDFConnection fuConn;
     public static boolean useRdfConnection = true;
     public static int initialLoadBulkSize = 50000; // the number of triples above which a dataset load is triggered
+    public static boolean addGitRevision = true;
     
     public static void init(String fusekiHost, String fusekiPort, String fusekiEndpoint) throws MalformedURLException {
         String baseUrl = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/"+fusekiEndpoint;
@@ -96,6 +97,18 @@ public class FusekiHelpers {
         } catch (TimeoutException e) {
             TransferHelpers.logger.warn("Timeout sending commit to fuseki (not fatal): "+revision, e);
         }
+    }
+    
+    public static void setModelRevision(Model m, DocType type, String rev, String mainId) {
+        if (!addGitRevision)
+            return;
+        final Property p;
+        if (type == DocType.ETEXTCONTENT) 
+            p = m.getProperty(TransferHelpers.ADM, "contentsGitRevision");
+        else
+            p = m.getProperty(TransferHelpers.ADM, "gitRevision");
+        final Resource r = m.getResource(TransferHelpers.BDR+mainId);
+        r.addProperty(p, m.createLiteral(rev));
     }
     
     private static Model callFuseki(final String operation, final String graphName, final Model m) throws TimeoutException {

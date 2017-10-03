@@ -60,6 +60,7 @@ public class TransferHelpers {
     
     public static final String BDR = RESOURCE_PREFIX;
     public static final String BDO = CORE_PREFIX;
+    public static final String ADM = ADMIN_PREFIX;
     public static final Context ctx = new Context();
     static MessageDigest md;
     private static final int hashNbChars = 2;
@@ -97,22 +98,21 @@ public class TransferHelpers {
 	    typeToStr.put(DocType.TEST, "test");
 	}
 	
-    public static PrefixMap getPrefixMap() {
-        PrefixMap pm = PrefixMapFactory.create();
-        pm.add("", CORE_PREFIX);
-        pm.add("adm", ADMIN_PREFIX);
-        //pm.add("bdd", DATA_PREFIX);
-        pm.add("bdr", RESOURCE_PREFIX);
-        pm.add("tbr", TBR_PREFIX);
-        //pm.add("owl", OWL_PREFIX);
-        pm.add("rdf", RDF_PREFIX);
-        pm.add("rdfs", RDFS_PREFIX);
-        pm.add("skos", SKOS_PREFIX);
-        pm.add("vcard", VCARD_PREFIX);
-        pm.add("xsd", XSD_PREFIX);
-        return pm;
+    public static void setPrefixes(Model m, DocType type) {
+        m.setNsPrefix("", CORE_PREFIX);
+        m.setNsPrefix("adm", ADMIN_PREFIX);
+       // m.setNsPrefix("bdd", DATA_PREFIX);
+        m.setNsPrefix("bdr", RESOURCE_PREFIX);
+        m.setNsPrefix("tbr", TBR_PREFIX);
+        //m.setNsPrefix("owl", OWL_PREFIX);
+        m.setNsPrefix("rdf", RDF_PREFIX);
+        m.setNsPrefix("rdfs", RDFS_PREFIX);
+        m.setNsPrefix("skos", SKOS_PREFIX);
+        m.setNsPrefix("xsd", XSD_PREFIX);
+        if (type == DocType.PLACE)
+            m.setNsPrefix("vcard", VCARD_PREFIX);
     }
-	
+    
 	public static Logger logger = LoggerFactory.getLogger("git2dbs");
 	
 	public static boolean progress = false;
@@ -189,22 +189,12 @@ public class TransferHelpers {
 	    return i;
 	}
 	
-    public static void setPrefixes(Model m, DocType type) {
-        m.setNsPrefix("", CORE_PREFIX);
-        m.setNsPrefix("adm", ADMIN_PREFIX);
-        m.setNsPrefix("bdd", DATA_PREFIX);
-        m.setNsPrefix("bdr", RESOURCE_PREFIX);
-        m.setNsPrefix("tbr", TBR_PREFIX);
-        m.setNsPrefix("owl", OWL_PREFIX);
-        m.setNsPrefix("rdf", RDF_PREFIX);
-        m.setNsPrefix("rdfs", RDFS_PREFIX);
-        m.setNsPrefix("skos", SKOS_PREFIX);
-        m.setNsPrefix("xsd", XSD_PREFIX);
-        if (type == DocType.PLACE)
-            m.setNsPrefix("vcard", VCARD_PREFIX);
-    }
-	
-	public static Model modelFromPath(String path, DocType type) {
+	public static Model modelFromPath(String path, DocType type, String mainId) {
+	    if (type == DocType.ETEXTCONTENT) {
+	        Model res = EtextContents.getModel(path, mainId);
+	        setPrefixes(res, type);
+	        return res;
+	    }
         Model model = ModelFactory.createDefaultModel();
         Graph g = model.getGraph();
         try {
@@ -222,8 +212,12 @@ public class TransferHelpers {
         return model;
 	}
 	
-	public static String mainIdFromPath(String path) {
-        if (path == null || path.length() < 6 || !path.endsWith(".ttl"))
+	public static String mainIdFromPath(String path, DocType type) {
+        if (path == null || path.length() < 6)
+            return null;
+        if (type != DocType.ETEXTCONTENT && !path.endsWith(".ttl"))
+            return null;
+        if (type == DocType.ETEXTCONTENT && !path.endsWith(".txt"))
             return null;
         if (path.charAt(2) == '/')
             return path.substring(3, path.length()-4);
@@ -231,14 +225,16 @@ public class TransferHelpers {
 	}
 	
 	public static void addFileFuseki(DocType type, String dirPath, String filePath, boolean firstTransfer) {
-        String mainId = mainIdFromPath(filePath);
+        final String mainId = mainIdFromPath(filePath, type);
         if (mainId == null)
             return;
-        Model m = modelFromPath(dirPath+filePath, type);
-        //String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
-        // TODO: get inferred model
+        Model m = modelFromPath(dirPath+filePath, type, mainId);
+        final String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
+        FusekiHelpers.setModelRevision(m, type, rev, mainId);
+        m = getInferredModel(m);
+        String graphName = BDR+mainId;
         try {
-            FusekiHelpers.transferModel(BDR+mainId, m, firstTransfer);
+            FusekiHelpers.transferModel(graphName, m, firstTransfer);
         } catch (TimeoutException e) {
             TransferHelpers.logger.error("", e);
         }
@@ -294,7 +290,7 @@ public class TransferHelpers {
 	            logFileHandling(i, path, true);
 	            String oldPath = de.getOldPath();
 	            if (path.equals("/dev/null") || !path.equals(oldPath)) {
-	                String mainId = mainIdFromPath(oldPath);
+	                String mainId = mainIdFromPath(oldPath, type);
 	                if (mainId != null) {
     	                try {
                             FusekiHelpers.deleteModel(BDR+mainId);
@@ -312,10 +308,10 @@ public class TransferHelpers {
 	}
 	
 	public static void addFileCouch(DocType type, String dirPath, String filePath) {
-        String mainId = mainIdFromPath(filePath);
+        String mainId = mainIdFromPath(filePath, type);
         if (mainId == null)
             return;
-        Model m = modelFromPath(dirPath+filePath, type);
+        Model m = modelFromPath(dirPath+filePath, type, mainId);
         String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
         Map<String,Object> jsonObject = JSONLDFormatter.modelToJsonObject(m, type, mainId);
         CouchHelpers.jsonObjectToCouch(jsonObject, mainId, type, rev);
@@ -364,7 +360,7 @@ public class TransferHelpers {
                 logFileHandling(i, path, false);
                 String oldPath = de.getOldPath();
                 if (path.equals("/dev/null") || !path.equals(oldPath)) {
-                    String mainId = mainIdFromPath(oldPath);
+                    String mainId = mainIdFromPath(oldPath, type);
                     if (mainId != null) {
                         try {
                             FusekiHelpers.deleteModel(BDR+mainId);
@@ -388,7 +384,7 @@ public class TransferHelpers {
 	}
 
 	public static InfModel getInferredModel(Model m) {
-		return ModelFactory.createInfModel(TransferHelpers.bdrcReasoner, m);
+		return ModelFactory.createInfModel(bdrcReasoner, m);
 	}
 	
 	// for debugging purposes only

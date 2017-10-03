@@ -10,10 +10,11 @@ import java.util.List;
 
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 
-public class EtextMerger {
+public class EtextContents {
 
     public static int meanChunkPointsAim = 600;
     public static int maxChunkPointsAim = 1200;
@@ -93,42 +94,41 @@ public class EtextMerger {
         return new EtextStrInfo(sb.toString(), breakList);
     }
     
-    public static void merge(final Model m, final String etextId) {
-        final String StrFilePath = GitToDB.gitDir+"etextcontents/"+TransferHelpers.getMd5(etextId)+"/"+etextId+".txt";
-        BufferedReader r;
+    public static Model getModel(final String etextId) {
+        final String filePath = GitToDB.gitDir+"etextcontents/"+TransferHelpers.getMd5(etextId)+"/"+etextId+".txt";
+        return getModel(filePath, etextId);
+    }
+    
+    public static Model getModel(final String filePath, final String etextId) {
+        final BufferedReader r;
         try {
-            r = new BufferedReader(new FileReader(new File(StrFilePath)));
+            r = new BufferedReader(new FileReader(new File(filePath)));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            return;
+            return null;
         }
-        EtextStrInfo esi = getInfos(r);
-        if (esi == null)
-            return;
-        final List<Integer>[] tmpBreaks = TibetanStringChunker.getAllBreakingCharsIndexes(esi.totalString);
-        final List<Integer>[] breaks = TibetanStringChunker.selectBreakingCharsIndexes(tmpBreaks, meanChunkPointsAim, maxChunkPointsAim, minChunkNbSylls);
-        // tmpBreaks[3].get(0) is the total length in code points
-        merge(m, breaks, tmpBreaks[3].get(0), esi.totalString, esi.breakList, etextId);
+        return getModel(etextId, r);
     }
     
     // mostly for testing purposes
-    public static void merge(final Model m, final String etextId, final BufferedReader r) {
-        EtextStrInfo esi = getInfos(r);
+    public static Model getModel(final String etextId, final BufferedReader r) {
+        final EtextStrInfo esi = getInfos(r);
         if (esi == null)
-            return;
+            return null;
         final List<Integer>[] tmpBreaks = TibetanStringChunker.getAllBreakingCharsIndexes(esi.totalString);
         final List<Integer>[] breaks = TibetanStringChunker.selectBreakingCharsIndexes(tmpBreaks, meanChunkPointsAim, maxChunkPointsAim, minChunkNbSylls);
         // tmpBreaks[3].get(0) is the total length in code points
-        merge(m, breaks, tmpBreaks[3].get(0), esi.totalString, esi.breakList, etextId);
+        return getModel(breaks, tmpBreaks[3].get(0), esi.totalString, esi.breakList, etextId);
     }
     
-    public static void merge(final Model m, final List<Integer>[] breaks, final int totalStringPointNum, final String totalString, final List<Integer> initialBreakList, final String etextId) {
+    public static Model getModel(final List<Integer>[] breaks, final int totalStringPointNum, final String totalString, final List<Integer> initialBreakList, final String etextId) {
+        final Model m = ModelFactory.createDefaultModel();
         final List<Integer> charBreaks = breaks[0];
         final List<Integer> pointBreaks = breaks[1];
         int chunkSeqNum = 1;
         int lastCharBreakIndex = 0;
         int lastPointBreakIndex = 0;
-        final Resource etext = m.getResource(TransferHelpers.BDR+etextId);
+        final Resource etext = m.createResource(TransferHelpers.BDR+etextId);
         final Property hasChunk = m.getProperty(TransferHelpers.BDO, "eTextHasChunk");
         final Property seqNum = m.getProperty(TransferHelpers.BDO, "seqNum");
         final Property chunkContents = m.getProperty(TransferHelpers.BDO, "chunkContents");
@@ -160,5 +160,6 @@ public class EtextMerger {
             chunk.addProperty(sliceStart, m.createLiteral(start));
             chunk.addProperty(sliceEnd, m.createLiteral(end));
         }
+        return m;
     }
 }

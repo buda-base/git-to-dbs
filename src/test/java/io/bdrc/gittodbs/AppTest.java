@@ -133,30 +133,33 @@ public class AppTest
 	    assertTrue(couchM.isIsomorphicWith(m));
 	    TransferHelpers.syncTypeFuseki(DocType.TEST, 1000);
 	    Model fusekiM = FusekiHelpers.getModel(BDR+"r1");
+	    // adding the revision to m so that it corresponds to what's in Fuseki
+	    FusekiHelpers.setModelRevision(m, DocType.TEST, rev, "r1");
 	    assertTrue(fusekiM.isIsomorphicWith(m));
 	    Property p2 = m.createProperty(BDO, "p2");
 	    m = ModelFactory.createDefaultModel();
 	    m.add(r2, p2, r1);
 	    String newRev = writeModelToGitPath(m, "r2.ttl");
-	    System.out.println("just committed "+newRev);
+	    //System.out.println("just committed "+newRev);
 	    assertTrue(GitHelpers.getHeadRev(DocType.TEST).equals(newRev));
         assertTrue(GitHelpers.getLastRefOfFile(DocType.TEST, "r1.ttl").equals(rev));
         TransferHelpers.syncTypeFuseki(DocType.TEST, 1000);
         fusekiM = FusekiHelpers.getModel(BDR+"r2");
+        FusekiHelpers.setModelRevision(m, DocType.TEST, newRev, "r2");
         assertTrue(fusekiM.isIsomorphicWith(m));
 	}
 	
 	@Test
 	public void test2() throws IOException {
-	    Model person = TransferHelpers.modelFromPath("P1583.ttl", DocType.PERSON);
+	    Model person = TransferHelpers.modelFromPath("P1583.ttl", DocType.PERSON, "P1583");
 	    Map<String,Object> res = LibFormat.objectFromModel(person, DocType.PERSON);
 	    Map<String, Object> correct = objectFromJson("P1583.json");
 	    assertTrue(correct.equals(res));
-	    Model work = TransferHelpers.modelFromPath("WorkTestFPL.ttl", DocType.PERSON);
+	    Model work = TransferHelpers.modelFromPath("WorkTestFPL.ttl", DocType.PERSON, "W12837FPL");
         res = LibFormat.objectFromModel(work, DocType.WORK);
         correct = objectFromJson("WorkTestFPL.json");
         assertTrue(correct.equals(res));
-        Model outline = TransferHelpers.modelFromPath("OutlineTest.ttl", DocType.PERSON);
+        Model outline = TransferHelpers.modelFromPath("OutlineTest.ttl", DocType.PERSON, "W30020");
         res = LibFormat.objectFromModel(outline, DocType.WORK);
         correct = objectFromJson("OutlineTest.json");
         //System.out.println(om.writerWithDefaultPrettyPrinter().writeValueAsString(res));
