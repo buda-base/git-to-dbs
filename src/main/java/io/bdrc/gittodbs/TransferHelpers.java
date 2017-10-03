@@ -154,6 +154,8 @@ public class TransferHelpers {
 	    nbLeft = nbLeft - syncType(DocType.LINEAGE, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.PRODUCT, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.OFFICE, nbLeft);
+	    nbLeft = nbLeft - syncType(DocType.ETEXT, nbLeft);
+	    nbLeft = nbLeft - syncType(DocType.ETEXTCONTENT, nbLeft);
 	    closeConnections();
 	}
 	
@@ -184,7 +186,7 @@ public class TransferHelpers {
 	    // random result for uncoherent couch and fuseki
 	    if (GitToDB.transferFuseki)
 	        i = syncTypeFuseki(type, nbLeft);
-	    if (GitToDB.transferCouch)
+	    if (GitToDB.transferCouch && type != DocType.ETEXTCONTENT)
 	        i = syncTypeCouch(type, nbLeft);
 	    return i;
 	}
@@ -233,6 +235,8 @@ public class TransferHelpers {
         FusekiHelpers.setModelRevision(m, type, rev, mainId);
         m = getInferredModel(m);
         String graphName = BDR+mainId;
+        if (type == DocType.ETEXTCONTENT)
+            graphName += "_STR";
         try {
             FusekiHelpers.transferModel(graphName, m, firstTransfer);
         } catch (TimeoutException e) {
