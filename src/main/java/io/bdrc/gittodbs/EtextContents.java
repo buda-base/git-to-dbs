@@ -29,7 +29,15 @@ public class EtextContents {
         }
     }
     
-    public static String translatePoint(final List<Integer> pointBreaks, final int pointIndex, final boolean isEnd) {
+    public static final boolean LOC_START = true;
+    public static final boolean LOC_END = false;
+    public static void addChunkLocation(Model m, Resource r, int chunkNum, int charNum, boolean start) {
+        final String startEndString = (start ? "Start" : "End");
+        r.addProperty(m.getProperty(TransferHelpers.BDO, "slice"+startEndString+"Chunk"), m.createTypedLiteral(chunkNum, XSDDatatype.XSDinteger));
+        r.addProperty(m.getProperty(TransferHelpers.BDO, "slice"+startEndString+"Char"), m.createTypedLiteral(charNum, XSDDatatype.XSDinteger));
+    }
+    
+    public static int[] translatePoint(List<Integer> pointBreaks, int pointIndex, boolean isStart) {
         // pointIndex depends on the context, 
         // if it's about the starting point (isEnd == false):
         //     it's the index of the starting char: ab|cd -> pointIndex 2 for the beginning of the second segment (cd)
@@ -40,13 +48,13 @@ public class EtextContents {
         for (final int pointBreak : pointBreaks) {
             // pointBreak is the index at which the break occurs, for instance
             // a|bc|d will have pointBreaks of 1 and 3
-            if (pointBreak > pointIndex || (isEnd && pointBreak == pointIndex)) {
+            if (pointBreak > pointIndex || (!isStart && pointBreak == pointIndex)) {
                 break;
             }
             toSubstract = pointBreak;
             curLine += 1;
         }
-        return curLine+"-"+(pointIndex-toSubstract+1); // +1 so that characters start at 1
+        return new int[] {curLine, pointIndex-toSubstract+1}; // +1 so that characters start at 1
     }
     
     public static EtextStrInfo getInfos(final String origString) {
@@ -132,8 +140,6 @@ public class EtextContents {
         final Property hasChunk = m.getProperty(TransferHelpers.BDO, "eTextHasChunk");
         final Property seqNum = m.getProperty(TransferHelpers.BDO, "seqNum");
         final Property chunkContents = m.getProperty(TransferHelpers.BDO, "chunkContents");
-        final Property sliceStart = m.getProperty(TransferHelpers.BDO, "sliceStart");
-        final Property sliceEnd = m.getProperty(TransferHelpers.BDO, "sliceEnd");
         for (chunkSeqNum = 1 ; chunkSeqNum <= charBreaks.size() ; chunkSeqNum++) {// final int charBreakIndex : charBreaks) {
             final int charBreakIndex = charBreaks.get(chunkSeqNum-1);
             final int pointBreakIndex = pointBreaks.get(chunkSeqNum-1);
@@ -142,10 +148,10 @@ public class EtextContents {
             etext.addProperty(hasChunk, chunk);
             chunk.addProperty(seqNum, m.createTypedLiteral(chunkSeqNum, XSDDatatype.XSDinteger));
             chunk.addProperty(chunkContents, m.createLiteral(contents, "bo")); // TODO: what about multilingual etexts?
-            final String start = translatePoint(initialBreakList, lastPointBreakIndex, false);
-            final String end = translatePoint(initialBreakList, pointBreakIndex, true);
-            chunk.addProperty(sliceStart, m.createLiteral(start));
-            chunk.addProperty(sliceEnd, m.createLiteral(end));
+            final int[] start = translatePoint(initialBreakList, lastPointBreakIndex, LOC_START);
+            final int[] end = translatePoint(initialBreakList, pointBreakIndex, LOC_END);
+            addChunkLocation(m, chunk, start[0], start[1], LOC_START);
+            addChunkLocation(m, chunk, end[0], end[1], LOC_END);
             lastCharBreakIndex = charBreakIndex;
             lastPointBreakIndex = pointBreakIndex;
         }
@@ -155,10 +161,10 @@ public class EtextContents {
             etext.addProperty(hasChunk, chunk);
             chunk.addProperty(seqNum, m.createTypedLiteral(chunkSeqNum, XSDDatatype.XSDinteger));
             chunk.addProperty(chunkContents, m.createLiteral(contents, "bo"));
-            final String start = translatePoint(initialBreakList, lastPointBreakIndex, false);
-            final String end = translatePoint(initialBreakList, totalStringPointNum, true);
-            chunk.addProperty(sliceStart, m.createLiteral(start));
-            chunk.addProperty(sliceEnd, m.createLiteral(end));
+            final int[] start = translatePoint(initialBreakList, lastPointBreakIndex, LOC_START);
+            final int[] end = translatePoint(initialBreakList, totalStringPointNum, LOC_END);
+            addChunkLocation(m, chunk, start[0], start[1], LOC_START);
+            addChunkLocation(m, chunk, end[0], end[1], LOC_END);
         }
         return m;
     }
