@@ -98,7 +98,8 @@ public class EtextContents {
             ex.printStackTrace();
             return null;
         }
-        breakList.remove(breakList.size()-1);
+        if (breakList.size() > 0)
+            breakList.remove(breakList.size()-1);
         return new EtextStrInfo(sb.toString(), breakList);
     }
     
