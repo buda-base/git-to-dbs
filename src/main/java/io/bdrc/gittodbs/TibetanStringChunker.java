@@ -285,31 +285,30 @@ public class TibetanStringChunker {
         final int totalpoints = allIndexes[3].get(0);
         // we add the total number of points in string at the end of allIndexes[1] in a temporary way:
         allIndexes[1].add(totalpoints);
-        final int lastIndex = allIndexes[1].size()-1;
+        final int finalIndex = allIndexes[1].size()-1;
         for (Integer nbPoints : allIndexes[1]) {
             final int totalPointsBeforeThis = nbPoints - lastBreakPointIndex;
             if (totalPointsBeforeThis < meanChunkPointsAim) {
-                if (curIndex == lastIndex)
+                if (curIndex == finalIndex)
                     continue;
                 if (breakIndexes.get(curIndex)) {
                     // we fill it with false, but the last one may be set to true afterwards
                     // each time we set breakIndexes[curIndex] we make sure we don't add a spurious
                     // entry due to the additional entry at the end
-                    if (curIndex != lastIndex)
-                        breakIndexes.put(curIndex, false);
+                    breakIndexes.put(curIndex, false);
                     lastPossibleBreakPointIndex = nbPoints;
                     lastPossibleBreakIndex = curIndex;
                 }
             } else if (totalPointsBeforeThis >  maxChunkPointsAim) {
                 if (nbPoints - lastPossibleBreakPointIndex < maxChunkPointsAim) {
                     breakIndexes.put(lastPossibleBreakIndex, true);
-                    if (curIndex != lastIndex)
+                    if (curIndex != finalIndex)
                         breakIndexes.put(curIndex, false);
                     lastBreakPointIndex = lastPossibleBreakPointIndex;
                 } else if (curIndex != 0) {
                     // we force a break even if there should not be one:
                     breakIndexes.put(curIndex -1, true);
-                    if (curIndex != lastIndex)
+                    if (curIndex != finalIndex)
                         breakIndexes.put(curIndex, false);
                     lastBreakPointIndex = curIndex -1;
                 }
@@ -323,7 +322,7 @@ public class TibetanStringChunker {
                     if (meanChunkPointsAim - totalPointsBeforeLast < totalPointsBeforeThis - meanChunkPointsAim) {
                         // mean chunk size is closer to the break before:
                         breakIndexes.put(lastPossibleBreakIndex, true);
-                        if (curIndex != lastIndex)
+                        if (curIndex != finalIndex)
                             breakIndexes.put(curIndex, false);
                         lastBreakPointIndex = lastPossibleBreakPointIndex;
                     } else {
@@ -337,7 +336,7 @@ public class TibetanStringChunker {
             curIndex += 1;
         }
         // we remove the final index we added at the beginning:
-        allIndexes[1].remove(curIndex-1);
+        allIndexes[1].remove(finalIndex);
     }
 
     public static void filterSmalls(Map<Integer, Boolean> breakIndexes, List<Integer>[] allIndexes, int minChunkNbSylls) {
