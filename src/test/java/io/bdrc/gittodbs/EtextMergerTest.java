@@ -33,7 +33,7 @@ public class EtextMergerTest {
         Model contents = EtextContents.getModel("UT1CZ2485_001_0000", new BufferedReader(new FileReader(new File("src/test/resources/etextmerge/EtextTest-str.txt"))));
         etext.add(contents);
         Model correctMerge = TransferHelpers.modelFromPath("etextmerge/EtextTest-etext-merged.ttl", DocType.ETEXT, "UT1CZ2485_001_0000");
-        TransferHelpers.printModel(etext);
+        //TransferHelpers.printModel(etext);
         assertTrue(etext.isIsomorphicWith(correctMerge));
     }
 }

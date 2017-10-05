@@ -23,9 +23,8 @@ WHERE {
      ?w :workPrintType ?value .
      BIND ("printTypeURI" AS ?property)
   } UNION {
-     ?b rdf:type :PersonEventBirth .
-     ?b :onOrAbout ?value .
-     BIND ("birth" AS ?property)
+     ?w :workHasItem ?value .
+     BIND ("item[]" AS ?property)
   } UNION {
      ?w adm:workLegacyNode ?nodeRID .
      ?w rdf:type :Work .

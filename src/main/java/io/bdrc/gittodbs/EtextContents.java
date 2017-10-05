@@ -37,24 +37,24 @@ public class EtextContents {
         r.addProperty(m.getProperty(TransferHelpers.BDO, "slice"+startEndString+"Char"), m.createTypedLiteral(charNum, XSDDatatype.XSDinteger));
     }
     
-    public static int[] translatePoint(List<Integer> pointBreaks, int pointIndex, boolean isStart) {
+    public static int[] translatePoint(final List<Integer> pointBreaks, final int pointIndex, final boolean isStart) {
         // pointIndex depends on the context, 
-        // if it's about the starting point (isEnd == false):
+        // if it's about the starting point (isStart == true):
         //     it's the index of the starting char: ab|cd -> pointIndex 2 for the beginning of the second segment (cd)
         // else 
         //     it's the index after the end char: ab|cd -> pointIndex 2 for the end of the first segment (ab)
         int curLine = 1;
         int toSubstract = 0;
         for (final int pointBreak : pointBreaks) {
-            // pointBreak is the index at which the break occurs, for instance
+            // pointBreak is the index of the char after which the break occurs, for instance
             // a|bc|d will have pointBreaks of 1 and 3
-            if (pointBreak > pointIndex || (!isStart && pointBreak == pointIndex)) {
+            if (pointBreak >= pointIndex) {
                 break;
             }
             toSubstract = pointBreak;
             curLine += 1;
         }
-        return new int[] {curLine, pointIndex-toSubstract+1}; // +1 so that characters start at 1
+        return new int[] {curLine, pointIndex-toSubstract};
     }
     
     public static EtextStrInfo getInfos(final String origString) {
@@ -148,7 +148,7 @@ public class EtextContents {
             etext.addProperty(hasChunk, chunk);
             chunk.addProperty(seqNum, m.createTypedLiteral(chunkSeqNum, XSDDatatype.XSDinteger));
             chunk.addProperty(chunkContents, m.createLiteral(contents, "bo")); // TODO: what about multilingual etexts?
-            final int[] start = translatePoint(initialBreakList, lastPointBreakIndex, LOC_START);
+            final int[] start = translatePoint(initialBreakList, lastPointBreakIndex+1, LOC_START);
             final int[] end = translatePoint(initialBreakList, pointBreakIndex, LOC_END);
             addChunkLocation(m, chunk, start[0], start[1], LOC_START);
             addChunkLocation(m, chunk, end[0], end[1], LOC_END);
@@ -161,7 +161,7 @@ public class EtextContents {
             etext.addProperty(hasChunk, chunk);
             chunk.addProperty(seqNum, m.createTypedLiteral(chunkSeqNum, XSDDatatype.XSDinteger));
             chunk.addProperty(chunkContents, m.createLiteral(contents, "bo"));
-            final int[] start = translatePoint(initialBreakList, lastPointBreakIndex, LOC_START);
+            final int[] start = translatePoint(initialBreakList, lastPointBreakIndex+1, LOC_START);
             final int[] end = translatePoint(initialBreakList, totalStringPointNum, LOC_END);
             addChunkLocation(m, chunk, start[0], start[1], LOC_START);
             addChunkLocation(m, chunk, end[0], end[1], LOC_END);
