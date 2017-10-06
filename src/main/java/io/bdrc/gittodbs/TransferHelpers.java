@@ -148,6 +148,10 @@ public class TransferHelpers {
 	    nbLeft = nbLeft - syncType(DocType.PERSON, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.ITEM, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.WORK, nbLeft);
+	    if (GitToDB.libFormat) {
+	        closeConnections();
+	        return;
+	    }
 	    nbLeft = nbLeft - syncType(DocType.CORPORATION, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.PLACE, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.TOPIC, nbLeft);

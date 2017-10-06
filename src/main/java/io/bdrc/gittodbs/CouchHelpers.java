@@ -38,6 +38,7 @@ import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.riot.system.StreamRDFLib;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
+import org.ektorp.DbAccessException;
 import org.ektorp.DocumentNotFoundException;
 import org.ektorp.http.HttpClient;
 import org.ektorp.http.HttpResponse;
@@ -61,7 +62,7 @@ public class CouchHelpers {
     public static final String CouchDBPrefixGen = "bdrc_";
     public static final String CouchDBPrefixLib = "lib_";
     public static String CouchDBPrefix = CouchDBPrefixGen;
-    public static final String GitRevDoc = "_gitSync";
+    public static final String GitRevDoc = "gitSync";
     public static final String GitRevField = "adm:gitRev"; // cannot start with '_'...
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
