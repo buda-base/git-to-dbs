@@ -1,0 +1,51 @@
+@prefix :      <http://purl.bdrc.io/ontology/core/> .
+@prefix adm:   <http://purl.bdrc.io/ontology/admin/> .
+@prefix bdd:   <http://purl.bdrc.io/data/> .
+@prefix bdr:   <http://purl.bdrc.io/resource/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix tbr:   <http://purl.bdrc.io/ontology/toberemoved/> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+bdr:I12827_I001  a      :ItemImageAsset ;
+    :itemForWork        bdr:W12827 ;
+    :itemHasVolume      [ :imageCount         459 ;
+                          :imageList          "020610001.tiff:459" ;
+                          :volumeNumber       1 ;
+                          :volumePagesIntro   10 ;
+                          :volumePagesTbrcIntro  2 ;
+                          :volumePagesText    450 ;
+                          :volumePagesTotal   459 ;
+                          adm:legacyImageGroupRID  "I2061" ;
+                          adm:volumeQcDate    "07/30/02" ;
+                          adm:volumeQcNote    "No problems" ;
+                          adm:volumeQcPerson  "Tony Lulek"
+                        ] ,
+            [ :imageCount         493 ;
+              :imageList          "020620001.tiff:493" ;
+              :volumeNumber       2 ;
+              :volumePagesIntro   12 ;
+              :volumePagesTbrcIntro  2 ;
+              :volumePagesText    482 ;
+              :volumePagesTotal   493 ;
+              adm:legacyImageGroupRID  "I2062" ;
+              adm:volumeQcDate    "07/30/02" ;
+              adm:volumeQcNote    "No problems" ;
+              adm:volumeQcPerson  "Tony Lulek"
+            ] ,
+            [ :imageCount         451 ;
+              :imageList          "020630001.tiff:451" ;
+              :volumeNumber       3 ;
+              :volumePagesIntro   14 ;
+              :volumePagesTbrcIntro  2 ;
+              :volumePagesText    438 ;
+              :volumePagesTotal   451 ;
+              adm:legacyImageGroupRID  "I2063" ;
+              adm:volumeQcDate    "07/30/02" ;
+              adm:volumeQcNote    "No problems" ;
+              adm:volumeQcPerson  "Tony Lulek"
+            ] ;
+    :itemVolumes        13 .

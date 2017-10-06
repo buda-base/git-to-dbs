@@ -149,20 +149,33 @@ public class AppTest
         assertTrue(fusekiM.isIsomorphicWith(m));
 	}
 	
+	// BDRC Lib format tests
 	@Test
 	public void test2() throws IOException {
+	    Map<String,Object> res;
+	    Map<String,Object> correct;
 	    Model person = TransferHelpers.modelFromPath("P1583.ttl", DocType.PERSON, "P1583");
-	    Map<String,Object> res = LibFormat.objectFromModel(person, DocType.PERSON);
-	    Map<String, Object> correct = objectFromJson("P1583.json");
+	    res = LibFormat.objectFromModel(person, DocType.PERSON);
+	    correct = objectFromJson("P1583.json");
 	    assertTrue(correct.equals(res));
 	    Model work = TransferHelpers.modelFromPath("WorkTestFPL.ttl", DocType.PERSON, "W12837FPL");
         res = LibFormat.objectFromModel(work, DocType.WORK);
         correct = objectFromJson("WorkTestFPL.json");
+        //System.out.println(om.writerWithDefaultPrettyPrinter().writeValueAsString(res));
         assertTrue(correct.equals(res));
         Model outline = TransferHelpers.modelFromPath("OutlineTest.ttl", DocType.PERSON, "W30020");
         res = LibFormat.objectFromModel(outline, DocType.WORK);
         correct = objectFromJson("OutlineTest.json");
         //System.out.println(om.writerWithDefaultPrettyPrinter().writeValueAsString(res));
+        assertTrue(correct.equals(res));
+        Model itemEtext = TransferHelpers.modelFromPath("ItemEtextTest.ttl", DocType.PERSON, "I21019_E001");
+        res = LibFormat.objectFromModel(itemEtext, DocType.ITEM);
+        correct = objectFromJson("ItemEtextTest.json");
+        //System.out.println(om.writerWithDefaultPrettyPrinter().writeValueAsString(res));
+        assertTrue(correct.equals(res));
+        Model itemImages = TransferHelpers.modelFromPath("ItemImageTest.ttl", DocType.PERSON, "I12827_I001");
+        res = LibFormat.objectFromModel(itemImages, DocType.ITEM);
+        correct = objectFromJson("ItemImageTest.json");
         assertTrue(correct.equals(res));
 	}
 	

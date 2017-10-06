@@ -24,7 +24,7 @@ WHERE {
      BIND ("printTypeURI" AS ?property)
   } UNION {
      ?w :workHasItem ?value .
-     BIND ("item[]" AS ?property)
+     BIND ("item[URI]" AS ?property)
   } UNION {
      ?w adm:workLegacyNode ?nodeRID .
      ?w rdf:type :Work .

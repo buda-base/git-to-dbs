@@ -1,0 +1,78 @@
+@prefix :      <http://purl.bdrc.io/ontology/core/> .
+@prefix adm:   <http://purl.bdrc.io/ontology/admin/> .
+@prefix bdr:   <http://purl.bdrc.io/resource/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix tbr:   <http://purl.bdrc.io/ontology/toberemoved/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+bdr:I21019_E001  a      bdr:ItemEtextNonPaginated ;
+    :eTextDistributor   bdr:CP006 ;
+    :itemForWork        bdr:W21019 ;
+    :itemHasVolume      [ :volumeHasEtext     [ :eTextResource      bdr:UT21019_001_0001 ;
+                                                :seqNum             1
+                                              ] ,
+                                  [ :eTextResource      bdr:UT21019_001_0002 ;
+                                    :seqNum             2
+                                  ] ,
+                                  [ :eTextResource      bdr:UT21019_001_0003 ;
+                                    :seqNum             3
+                                  ] ,
+                                  [ :eTextResource      bdr:UT21019_001_0004 ;
+                                    :seqNum             4
+                                  ] ,
+                                  [ :eTextResource      bdr:UT21019_001_0005 ;
+                                    :seqNum             5
+                                  ] ,
+                                  [ :eTextResource      bdr:UT21019_001_0006 ;
+                                    :seqNum             6
+                                  ] ,
+                                  [ :eTextResource      bdr:UT21019_001_0007 ;
+                                    :seqNum             7
+                                  ] ,
+                                  [ :eTextResource      bdr:UT21019_001_0008 ;
+                                    :seqNum             8
+                                  ] ,
+                                  [ :eTextResource      bdr:UT21019_001_0009 ;
+                                    :seqNum             9
+                                  ] ;
+                          :volumeNumber       1
+                        ] ,
+            [ :volumeHasEtext     [ :eTextResource      bdr:UT21019_002_0001 ;
+                                    :seqNum             1
+                                  ] ,
+                      [ :eTextResource      bdr:UT21019_002_0002 ;
+                        :seqNum             2
+                      ] ,
+                      [ :eTextResource      bdr:UT21019_002_0003 ;
+                        :seqNum             3
+                      ] ,
+                      [ :eTextResource      bdr:UT21019_002_0004 ;
+                        :seqNum             4
+                      ] ,
+                      [ :eTextResource      bdr:UT21019_002_0005 ;
+                        :seqNum             5
+                      ] ,
+                      [ :eTextResource      bdr:UT21019_002_0006 ;
+                        :seqNum             6
+                      ] ,
+                      [ :eTextResource      bdr:UT21019_002_0007 ;
+                        :seqNum             7
+                      ] ;
+              :volumeNumber       2
+            ] ,
+            [ :volumeHasEtext     [ :eTextResource      bdr:UT21019_003_0001 ;
+                                    :seqNum             1
+                                  ] ,
+                      [ :eTextResource      bdr:UT21019_003_0002 ;
+                        :seqNum             2
+                      ] ,
+                      [ :eTextResource      bdr:UT21019_003_0003 ;
+                        :seqNum             3
+                      ] ,
+                      [ :eTextResource      bdr:UT21019_003_0004 ;
+                        :seqNum             4
+                      ] ;
+              :volumeNumber       3
+            ] .

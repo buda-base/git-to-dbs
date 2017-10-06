@@ -1,0 +1,17 @@
+{
+  "volumes" : {
+    "1" : {
+      "imageCount" : 459,
+      "legacyRID" : "I2061"
+    },
+    "2" : {
+      "imageCount" : 493,
+      "legacyRID" : "I2062"
+    },
+    "3" : {
+      "imageCount" : 451,
+      "legacyRID" : "I2063"
+    }
+  },
+  "type" : "ItemImageAsset"
+}

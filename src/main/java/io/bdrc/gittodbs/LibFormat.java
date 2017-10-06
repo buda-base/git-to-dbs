@@ -3,6 +3,8 @@ package io.bdrc.gittodbs;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -60,10 +62,6 @@ public class LibFormat {
         return converter.toUnicode(ewtsString);
     }
     
-    public static String uriToShort(final String uri) {
-        return uri.substring(TransferHelpers.BDR.length());
-    }
-    
     public static String getUnicodeStrFromProp(QuerySolution soln, String var) {
         RDFNode valueN = soln.get(var);
         if (valueN == null)
@@ -86,6 +84,17 @@ public class LibFormat {
             node.put(prop, val);    
         }
     }
+
+    public static void addStr(QuerySolution soln, Map<String,Object> node, String prop) {
+        if (!soln.contains(prop))
+            return;
+        node.put(prop, soln.getLiteral(prop).getString());
+    }
+    
+    public static final int BDRlen = TransferHelpers.BDR.length();
+    public static String removeBdrPrefix(final String s) {
+        return s.substring(BDRlen);
+    }
     
     public static Map<String, Object> objectFromModel(Model m, DocType type) {
         Query query = getQuery(type);
@@ -96,7 +105,29 @@ public class LibFormat {
             ResultSet results = qexec.execSelect() ;
             while (results.hasNext()) {
                 QuerySolution soln = results.nextSolution();
+                if (!soln.contains("property"))
+                    continue;
                 String property = soln.get("property").asLiteral().getString();
+                if (property.equals("volumes[]")) {
+                    Map<String, Map<String, Object>> nodes = (Map<String, Map<String, Object>>) res.computeIfAbsent("volumes", x -> new TreeMap<String,Map<String, Object>>());
+                    String nodeId = soln.getLiteral("volNum").getString();
+                    Map<String,Object> node = (Map<String, Object>) nodes.computeIfAbsent(nodeId, x -> new TreeMap<String,Object>());
+                    addInt(soln, node, "imageCount");
+                    addStr(soln, node, "legacyRID");
+                    if (soln.contains("type"))
+                        res.put("type", soln.getResource("type").getLocalName());
+                    if (soln.contains("etexts")) {
+                        String etextsStr = soln.getLiteral("etexts").getString();
+                        String[] etextsA = etextsStr.split(";");
+                        List<String> etexts = new ArrayList<>();
+                        for (String etextStr : etextsA) {
+                            etextStr = removeBdrPrefix(etextStr);
+                            etexts.add(etextStr);
+                        }
+                        Collections.sort(etexts);
+                        node.put("etexts", etexts);
+                    }
+                } 
                 if (property.equals("node[]")) {
                     String nodeId = soln.getLiteral("nodeRID").getString();
                     Map<String, Map<String, Object>> nodes = (Map<String, Map<String, Object>>) res.computeIfAbsent("nodes", x -> new TreeMap<String,Map<String, Object>>());
@@ -121,7 +152,7 @@ public class LibFormat {
                 } 
                 else if (property.contains("URI")) {
                     Resource valueURI = soln.get("value").asResource();
-                    String value = uriToShort(valueURI.getURI());
+                    String value = valueURI.getLocalName();
                     if (property.endsWith("[URI]")) {
                         property = property.substring(0, property.length()-5);
                         List<String> valList = (List<String>) res.computeIfAbsent(property, x -> new ArrayList<String>());
