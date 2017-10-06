@@ -278,7 +278,7 @@ public class TransferHelpers {
                 return 0;
             }
 	    } else {
-	        List<DiffEntry> entries;
+	        final List<DiffEntry> entries;
 	        try {
 	            entries = GitHelpers.getChanges(type, distRev);
 	        } catch (InvalidObjectIdException | MissingObjectException e) {
@@ -290,11 +290,11 @@ public class TransferHelpers {
 	            if (i+1 > nbLeft)
 	                return nbLeft;
 	            i = i + 1;
-	            String path = de.getNewPath();
+	            final String path = de.getNewPath();
 	            logFileHandling(i, path, true);
-	            String oldPath = de.getOldPath();
+	            final String oldPath = de.getOldPath();
 	            if (path.equals("/dev/null") || !path.equals(oldPath)) {
-	                String mainId = mainIdFromPath(oldPath, type);
+	                final String mainId = mainIdFromPath(oldPath, type);
 	                if (mainId != null) {
     	                try {
                             FusekiHelpers.deleteModel(BDR+mainId);
@@ -311,26 +311,32 @@ public class TransferHelpers {
 	    return i;
 	}
 	
-	public static void addFileCouch(DocType type, String dirPath, String filePath) {
-        String mainId = mainIdFromPath(filePath, type);
+	public static void addFileCouch(final DocType type, final String dirPath, final String filePath) {
+        final String mainId = mainIdFromPath(filePath, type);
         if (mainId == null)
             return;
-        Model m = modelFromPath(dirPath+filePath, type, mainId);
-        String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
-        Map<String,Object> jsonObject = JSONLDFormatter.modelToJsonObject(m, type, mainId);
+        final Model m = modelFromPath(dirPath+filePath, type, mainId);
+        final String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
+        final Map<String,Object> jsonObject;
+        if (GitToDB.libFormat)
+            jsonObject = LibFormat.modelToJsonObject(m, type);
+        else
+            jsonObject = JSONLDFormatter.modelToJsonObject(m, type, mainId);
+        if (jsonObject == null)
+            return;
         CouchHelpers.jsonObjectToCouch(jsonObject, mainId, type, rev);
     }
 	
 	public static int syncTypeCouch(DocType type, int nbLeft) {
        if (nbLeft == 0)
             return 0;
-        String gitRev = GitHelpers.getHeadRev(type);
-        String dirpath = GitToDB.gitDir+TransferHelpers.typeToStr.get(type)+"s/";
+        final String gitRev = GitHelpers.getHeadRev(type);
+        final String dirpath = GitToDB.gitDir+TransferHelpers.typeToStr.get(type)+"s/";
         if (gitRev == null) {
             TransferHelpers.logger.error("cannot extract latest revision from the git repo at "+dirpath);
             return 0;
         }
-        String distRev = CouchHelpers.getLastRevision(type);
+        final String distRev = CouchHelpers.getLastRevision(type);
         int i = 0;
         if (distRev == null || distRev.isEmpty()) {
             TransferHelpers.logger.info("sending all "+typeToStr.get(type)+" files to Couch");
@@ -348,7 +354,7 @@ public class TransferHelpers {
                 return 0;
             }
         } else {
-            List<DiffEntry> entries;
+            final List<DiffEntry> entries;
             try {
                 entries = GitHelpers.getChanges(type, distRev);
             } catch (InvalidObjectIdException | MissingObjectException e1) {
@@ -360,17 +366,13 @@ public class TransferHelpers {
                 if (i+1 > nbLeft)
                     return nbLeft;
                 i = i + 1;
-                String path = de.getNewPath();
+                final String path = de.getNewPath();
                 logFileHandling(i, path, false);
-                String oldPath = de.getOldPath();
+                final String oldPath = de.getOldPath();
                 if (path.equals("/dev/null") || !path.equals(oldPath)) {
-                    String mainId = mainIdFromPath(oldPath, type);
+                    final String mainId = mainIdFromPath(oldPath, type);
                     if (mainId != null) {
-                        try {
-                            FusekiHelpers.deleteModel(BDR+mainId);
-                        } catch (TimeoutException e) {
-                            TransferHelpers.logger.error("", e);
-                        }
+                        CouchHelpers.couchDelete(mainId, type);
                     }
                 }
                 if (!path.equals("/dev/null"))

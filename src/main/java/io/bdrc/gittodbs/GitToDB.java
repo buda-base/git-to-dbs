@@ -102,6 +102,7 @@ public class GitToDB {
                 transferCouch = true;
             } else if (arg.equals("-libFormat")) {
                 libFormat = true;
+                transferCouch = true;
             } else if (arg.equals("-gitDir")) {
                 gitDir = (++i < args.length ? args[i] : null);
 			} else if (arg.equals("-n")) {

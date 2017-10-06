@@ -49,7 +49,7 @@ public class CouchHelpers {
     public static final String CouchDBPrefixLib = "lib_";
     public static String CouchDBPrefix = CouchDBPrefixGen;
     public static final String GitRevDoc = "_gitSync";
-    public static final String GitRevField = "_gitRev";
+    public static final String GitRevField = "adm:gitRev"; // cannot start with '_'...
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
     // test mode indicates if we're using mcouch or not. This matters because
@@ -89,19 +89,22 @@ public class CouchHelpers {
     
     public static void putDB(DocType type) {
         String DBName = CouchDBPrefix+TransferHelpers.typeToStr.get(type);
+        boolean needsToTransferDesignDoc = deleteDbBeforeInsert;
         if (deleteDbBeforeInsert)
             dbInstance.deleteDatabase(DBName);
-        if (deleteDbBeforeInsert || !dbInstance.checkIfDbExists(DBName))
-            dbInstance.createDatabase(DBName);
+        if (deleteDbBeforeInsert || !dbInstance.checkIfDbExists(DBName)) {
+            dbInstance.createDatabase(DBName); 
+            needsToTransferDesignDoc = true;
+        }
         //TransferHelpers.logger.info("connecting to database "+DBName);
         System.out.println("connecting to database "+DBName);
         CouchDbConnector db = new StdCouchDbConnector(DBName, dbInstance);
         ClassLoader classLoader = CouchHelpers.class.getClassLoader();
-        if (deleteDbBeforeInsert || !dbInstance.checkIfDbExists(DBName)) {
+        if (needsToTransferDesignDoc) {
             InputStream inputStream = classLoader.getResourceAsStream("design-jsonld.json");
             Map<String, Object> jsonMap;
             try {
-                jsonMap = objectMapper.readValue(inputStream, typeRef);;
+                jsonMap = objectMapper.readValue(inputStream, typeRef);
                 db.create(jsonMap);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -150,18 +153,18 @@ public class CouchHelpers {
             }
             return null;
         }
-        String uri = CouchDBPrefix+type+"/_design/jsonld/_show/revOnly/" + documentName;
-        HttpResponse r = db.getConnection().get(uri);
-        InputStream stuff = r.getContent();
-        String result = inputStreamToString(stuff);
+        final String uri = "/"+CouchDBPrefix+TransferHelpers.typeToStr.get(type)+"/_design/jsonld/_show/revOnly/" + documentName;
+        final HttpResponse r = db.getConnection().get(uri);
+        final InputStream stuff = r.getContent();
+        final String result = inputStreamToString(stuff);
         if (result.charAt(0) == '{') {
             return null;
         }
         return result.substring(1, result.length()-1);
     }
     
-    public static void couchUpdateOrCreate(Map<String,Object> jsonObject, String documentName, DocType type, String commitRev) {
-        CouchDbConnector db = dbs.get(type);
+    public static void couchUpdateOrCreate(final Map<String,Object> jsonObject, final String documentName, final DocType type, final String commitRev) {
+        final CouchDbConnector db = dbs.get(type);
         if (db == null) {
             System.err.println("cannot get couch connector for type "+type);
             return;
@@ -169,7 +172,7 @@ public class CouchHelpers {
         jsonObject.put("_id", documentName);
         jsonObject.put(GitRevField, commitRev);
         try {
-            String oldRev = getRevision(documentName, type);
+            final String oldRev = getRevision(documentName, type);
             if (oldRev == null)
                 db.create(jsonObject);
             else {
@@ -181,15 +184,15 @@ public class CouchHelpers {
         }
     }
     
-    public static void couchDelete(String mainId, DocType type) {
-        CouchDbConnector db = dbs.get(type);
+    public static void couchDelete(final String mainId, final DocType type) {
+        final CouchDbConnector db = dbs.get(type);
         if (db == null) {
             System.err.println("cannot get couch connector for type "+type);
             return;
         }
-        String documentName = "bdr:"+mainId;
+        final String documentName = "bdr:"+mainId;
         try {
-            String oldRev = getRevision(documentName, type);
+            final String oldRev = getRevision(documentName, type);
             if (oldRev != null)
                 db.delete(documentName, oldRev);
         } catch (DocumentNotFoundException e) { }
@@ -205,8 +208,8 @@ public class CouchHelpers {
     }
     
     public static Model getModelFromDocId(String docId, DocType type) {
-        CouchDbConnector db = dbs.get(type);
-        Model res = ModelFactory.createDefaultModel();
+        final CouchDbConnector db = dbs.get(type);
+        final Model res = ModelFactory.createDefaultModel();
         if (testMode) {
             final InputStream oldDocStream;
             try {
@@ -236,13 +239,13 @@ public class CouchHelpers {
             return res;
         }
         // https://github.com/helun/Ektorp/issues/263
-        String uri = "/"+TransferHelpers.typeToStr.get(type)+"/_design/jsonld/_show/jsonld/" + docId;
-        HttpResponse r = db.getConnection().get(uri);
-        InputStream stuff = r.getContent();
+        final String uri = "/"+CouchDBPrefix+TransferHelpers.typeToStr.get(type)+"/_design/jsonld/_show/jsonld/" + docId;
+        final HttpResponse r = db.getConnection().get(uri);
+        final InputStream stuff = r.getContent();
         // feeding the inputstream directly to jena for json-ld parsing
         // instead of ektorp json parsing
-        StreamRDF dest = StreamRDFLib.graph(res.getGraph());
-        RDFParserBuilder rdfp = RDFParser.source(stuff).lang(Lang.JSONLD);
+        final StreamRDF dest = StreamRDFLib.graph(res.getGraph());
+        final RDFParserBuilder rdfp = RDFParser.source(stuff).lang(Lang.JSONLD);
         rdfp.parse(dest);
         try {
             stuff.close();
@@ -253,32 +256,32 @@ public class CouchHelpers {
         return res;
     }
     
-    public static void setLastRevision(String revision, DocType type) {
+    public static void setLastRevision(final String revision, final DocType type) {
         Model m = getSyncModel(type);
         if (m == null)
             m = ModelFactory.createDefaultModel();
-        Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo");
-        Property p = m.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
-        Literal l = m.createLiteral(revision);
-        Statement s = m.getProperty(res, p);
+        final Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo");
+        final Property p = m.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
+        final Literal l = m.createLiteral(revision);
+        final Statement s = m.getProperty(res, p);
         if (s == null) {
             m.add(res, p, l);
         } else {
             s.changeObject(revision);
         }
-        Map<String,Object> syncJson = JSONLDFormatter.modelToJsonObject(m, type, null, RDFFormat.JSONLD_COMPACT_PRETTY);
+        final Map<String,Object> syncJson = JSONLDFormatter.modelToJsonObject(m, type, null, RDFFormat.JSONLD_COMPACT_PRETTY);
         couchUpdateOrCreate(syncJson, GitRevDoc, type, revision);
     }
 
-    public static String getLastRevision(DocType type) {
+    public static String getLastRevision(final DocType type) {
         Model m = getSyncModel(type);
         if (m == null)
             m = ModelFactory.createDefaultModel();
         String typeStr = TransferHelpers.typeToStr.get(type);
         typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
-        Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo"+typeStr);
-        Property p = m.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
-        Statement s = m.getProperty(res, p);
+        final Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo"+typeStr);
+        final Property p = m.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
+        final Statement s = m.getProperty(res, p);
         if (s == null) return null;
         return s.getString();
     }

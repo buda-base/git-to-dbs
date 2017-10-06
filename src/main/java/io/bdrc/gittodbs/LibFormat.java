@@ -73,19 +73,19 @@ public class LibFormat {
             return valueL.getString();
     }
     
-    public static void addInt(QuerySolution soln, Map<String,Object> node, String prop) {
+    public static void addInt(final QuerySolution soln, final Map<String,Object> node, final String prop) {
         if (!soln.contains(prop))
             return;
-        String val = soln.getLiteral(prop).getString();
+        final String val = soln.getLiteral(prop).getString();
         try {
-            int valInt = Integer.valueOf(val);
+            final int valInt = Integer.valueOf(val);
             node.put(prop, valInt);
         } catch (NumberFormatException ex) {
             node.put(prop, val);    
         }
     }
 
-    public static void addStr(QuerySolution soln, Map<String,Object> node, String prop) {
+    public static void addStr(final QuerySolution soln, final Map<String,Object> node, final String prop) {
         if (!soln.contains(prop))
             return;
         node.put(prop, soln.getLiteral(prop).getString());
@@ -96,22 +96,22 @@ public class LibFormat {
         return s.substring(BDRlen);
     }
     
-    public static Map<String, Object> objectFromModel(Model m, DocType type) {
-        Query query = getQuery(type);
-        InfModel im = TransferHelpers.getInferredModel(m);
+    public static Map<String, Object> modelToJsonObject(final Model m, final DocType type) {
+        final Query query = getQuery(type);
+        final InfModel im = TransferHelpers.getInferredModel(m);
         //TransferHelpers.printModel(im);
-        Map<String,Object> res = new HashMap<String,Object>();
+        final Map<String,Object> res = new HashMap<String,Object>();
         try (QueryExecution qexec = QueryExecutionFactory.create(query, im)) {
-            ResultSet results = qexec.execSelect() ;
+            final ResultSet results = qexec.execSelect() ;
             while (results.hasNext()) {
-                QuerySolution soln = results.nextSolution();
+                final QuerySolution soln = results.nextSolution();
                 if (!soln.contains("property"))
                     continue;
                 String property = soln.get("property").asLiteral().getString();
                 if (property.equals("volumes[]")) {
-                    Map<String, Map<String, Object>> nodes = (Map<String, Map<String, Object>>) res.computeIfAbsent("volumes", x -> new TreeMap<String,Map<String, Object>>());
-                    String nodeId = soln.getLiteral("volNum").getString();
-                    Map<String,Object> node = (Map<String, Object>) nodes.computeIfAbsent(nodeId, x -> new TreeMap<String,Object>());
+                    final Map<String, Map<String, Object>> nodes = (Map<String, Map<String, Object>>) res.computeIfAbsent("volumes", x -> new TreeMap<String,Map<String, Object>>());
+                    final String nodeId = soln.getLiteral("volNum").getString();
+                    final Map<String,Object> node = (Map<String, Object>) nodes.computeIfAbsent(nodeId, x -> new TreeMap<String,Object>());
                     addInt(soln, node, "imageCount");
                     addStr(soln, node, "legacyRID");
                     if (soln.contains("type"))
@@ -129,19 +129,19 @@ public class LibFormat {
                     }
                 } 
                 if (property.equals("node[]")) {
-                    String nodeId = soln.getLiteral("nodeRID").getString();
-                    Map<String, Map<String, Object>> nodes = (Map<String, Map<String, Object>>) res.computeIfAbsent("nodes", x -> new TreeMap<String,Map<String, Object>>());
-                    Map<String,Object> node = (Map<String, Object>) nodes.computeIfAbsent(nodeId, x -> new TreeMap<String,Object>());
+                    final String nodeId = soln.getLiteral("nodeRID").getString();
+                    final Map<String, Map<String, Object>> nodes = (Map<String, Map<String, Object>>) res.computeIfAbsent("nodes", x -> new TreeMap<String,Map<String, Object>>());
+                    final Map<String,Object> node = (Map<String, Object>) nodes.computeIfAbsent(nodeId, x -> new TreeMap<String,Object>());
                     if (soln.contains("title")) {
-                        List<String> valList = (List<String>) node.computeIfAbsent("title", x -> new ArrayList<String>());
-                        String title = soln.getLiteral("title").getString();
+                        final List<String> valList = (List<String>) node.computeIfAbsent("title", x -> new ArrayList<String>());
+                        final String title = soln.getLiteral("title").getString();
                         if (!valList.contains(title))
                             valList.add(title);
                     }
                     if (soln.contains("name")) {
                         // both name and title go to title property of the final doc
-                        List<String> valList = (List<String>) node.computeIfAbsent("title", x -> new ArrayList<String>());
-                        String name = soln.getLiteral("name").getString();
+                        final List<String> valList = (List<String>) node.computeIfAbsent("title", x -> new ArrayList<String>());
+                        final String name = soln.getLiteral("name").getString();
                         if (!valList.contains(name))
                             valList.add(name);
                     }
@@ -151,23 +151,23 @@ public class LibFormat {
                     addInt(soln, node, "endsAtVolume");
                 } 
                 else if (property.contains("URI")) {
-                    Resource valueURI = soln.get("value").asResource();
-                    String value = valueURI.getLocalName();
+                    final Resource valueURI = soln.get("value").asResource();
+                    final String value = valueURI.getLocalName();
                     if (property.endsWith("[URI]")) {
                         property = property.substring(0, property.length()-5);
-                        List<String> valList = (List<String>) res.computeIfAbsent(property, x -> new ArrayList<String>());
+                        final List<String> valList = (List<String>) res.computeIfAbsent(property, x -> new ArrayList<String>());
                         valList.add(value);
                     } else {
                         property = property.substring(0, property.length()-3);
                         res.put(property, value);
                     }
                 } else {
-                    String value = getUnicodeStrFromProp(soln, "value");
+                    final String value = getUnicodeStrFromProp(soln, "value");
                     if (value == null || value.isEmpty())
                         continue;
                     if (property.endsWith("[]")) {
                         property = property.substring(0, property.length()-2);
-                        List<String> valList = (List<String>) res.computeIfAbsent(property, x -> new ArrayList<String>());
+                        final List<String> valList = (List<String>) res.computeIfAbsent(property, x -> new ArrayList<String>());
                         valList.add(value);
                     } else {
                         res.put(property, value);                    
@@ -175,6 +175,8 @@ public class LibFormat {
                 }
             }
         }
+        if (res.isEmpty())
+            return null;
         return res;
     }
 }
