@@ -316,6 +316,7 @@ public class TransferHelpers {
         if (mainId == null)
             return;
         final Model m = modelFromPath(dirPath+filePath, type, mainId);
+        final long modelSize = m.size();
         final String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
         final Map<String,Object> jsonObject;
         if (GitToDB.libFormat)
@@ -324,7 +325,7 @@ public class TransferHelpers {
             jsonObject = JSONLDFormatter.modelToJsonObject(m, type, mainId);
         if (jsonObject == null)
             return;
-        CouchHelpers.jsonObjectToCouch(jsonObject, mainId, type, rev);
+        CouchHelpers.jsonObjectToCouch(jsonObject, mainId, type, rev, modelSize);
     }
 	
 	public static int syncTypeCouch(DocType type, int nbLeft) {
@@ -353,6 +354,7 @@ public class TransferHelpers {
                 TransferHelpers.logger.error("", e);
                 return 0;
             }
+            CouchHelpers.finishBulkTransfers();
         } else {
             final List<DiffEntry> entries;
             try {

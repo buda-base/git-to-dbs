@@ -7,10 +7,23 @@ import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
+import org.apache.jena.query.Dataset;
+import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.query.ReadWrite;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -44,7 +57,7 @@ public class CouchHelpers {
     public static CouchDbInstance dbInstance;
     public static HttpClient httpClient;
     public static String url = "http://localhost:13598";
-    public static boolean deleteDbBeforeInsert = false;
+    public static boolean deleteDbBeforeInsert = true;
     public static final String CouchDBPrefixGen = "bdrc_";
     public static final String CouchDBPrefixLib = "lib_";
     public static String CouchDBPrefix = CouchDBPrefixGen;
@@ -52,6 +65,9 @@ public class CouchHelpers {
     public static final String GitRevField = "adm:gitRev"; // cannot start with '_'...
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
+    private static final long bulkSizeTriples = 20000;
+    private static final long bulkSizeDocs = 100;
+    private static boolean useBulks = true;
     // test mode indicates if we're using mcouch or not. This matters because
     // mcouch doesn't support the show function of design documents, but we want
     // to use it in production.
@@ -87,20 +103,24 @@ public class CouchHelpers {
         }
     }
     
+    public static final Map<DocType,Boolean> wasEmpty = new EnumMap<>(DocType.class);
+    
     public static void putDB(DocType type) {
         String DBName = CouchDBPrefix+TransferHelpers.typeToStr.get(type);
-        boolean needsToTransferDesignDoc = deleteDbBeforeInsert;
+        boolean justCreatedDatabase = deleteDbBeforeInsert;
         if (deleteDbBeforeInsert)
             dbInstance.deleteDatabase(DBName);
         if (deleteDbBeforeInsert || !dbInstance.checkIfDbExists(DBName)) {
             dbInstance.createDatabase(DBName); 
-            needsToTransferDesignDoc = true;
+            justCreatedDatabase = true;
+            wasEmpty.put(type, true);
+            System.out.println(DBName+" empty");
         }
         //TransferHelpers.logger.info("connecting to database "+DBName);
         System.out.println("connecting to database "+DBName);
         CouchDbConnector db = new StdCouchDbConnector(DBName, dbInstance);
         ClassLoader classLoader = CouchHelpers.class.getClassLoader();
-        if (needsToTransferDesignDoc) {
+        if (justCreatedDatabase) {
             InputStream inputStream = classLoader.getResourceAsStream("design-jsonld.json");
             Map<String, Object> jsonMap;
             try {
@@ -163,7 +183,105 @@ public class CouchHelpers {
         return result.substring(1, result.length()-1);
     }
     
-    public static void couchUpdateOrCreate(final Map<String,Object> jsonObject, final String documentName, final DocType type, final String commitRev) {
+    static private Boolean isTransfering = false;
+    static ArrayBlockingQueue<List<Object>> queue = new ArrayBlockingQueue<>(1);
+    static LinkedList<DocType> typeQueue = new LinkedList<>();
+    
+    private static void loadBulkMutex(final List<Object> bulk, final DocType type) throws TimeoutException {
+        // see comments in FusekiHelpers. The code is similar and should probably be merged 
+        try {
+            queue.put(bulk);
+            typeQueue.add(type);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        // if a transfer is occuring, we return, as the thread will take care of consuming the entire queue
+        if (isTransfering) {
+            return;
+        }
+        
+        final Callable<Void> task = new Callable<Void>() {
+           public Void call() throws InterruptedException {
+               // we consume the queue
+               List<Object> bulk = queue.poll();
+               DocType type = typeQueue.pop();
+               while (bulk != null) {
+                   final CouchDbConnector db = dbs.get(type);
+                   System.out.print("starting to transfer "+bulk.size()+" "+TransferHelpers.typeToStr.get(type)+" documents...");
+                   db.executeBulk(bulk);
+                   System.out.println("done");
+                   bulk = queue.poll();
+                   if (bulk != null)
+                       type = typeQueue.pop();
+               }
+               return null;
+           }
+        };
+        Future<Void> future = TransferHelpers.executor.submit(task);
+        try {
+           future.get(TransferHelpers.TRANSFER_TO, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            TransferHelpers.logger.error("interrupted during datast load", e);
+        } catch (ExecutionException e) {
+            TransferHelpers.logger.error("execution error during dataset load, this shouldn't happen, quitting...", e);
+            System.exit(1);
+        } finally {
+           isTransfering = false;
+           future.cancel(true); // this kills the transfer
+        }
+    }
+    
+    static List<Object> currentBulk = null;
+    static DocType currentType = null;
+    static long triplesInBulk = 0;
+    static long docsInBulk = 0;
+    static void addToTransferBulk(final Object o, final long sizeHintTriples, final DocType type) {
+        if (currentType != type && currentBulk != null) {
+            try {
+                loadBulkMutex(currentBulk, currentType);
+                currentBulk = null;
+                triplesInBulk = 0;
+                docsInBulk = 0;
+            } catch (TimeoutException e) {
+                e.printStackTrace();
+                return;
+            }
+        }
+        
+        currentType = type;
+        
+        if (currentBulk == null)
+            currentBulk = new ArrayList<Object>();
+        
+        currentBulk.add(o);
+        triplesInBulk += sizeHintTriples;
+        docsInBulk += 1;
+        if (triplesInBulk >= bulkSizeTriples || docsInBulk >= bulkSizeDocs) {
+            try {
+                loadBulkMutex(currentBulk, type);
+                currentBulk = null;
+                triplesInBulk = 0;
+                docsInBulk = 0;
+            } catch (TimeoutException e) {
+                e.printStackTrace();
+                return;
+            }
+        }
+    }
+    
+    static void finishBulkTransfers() {
+        // if map is not empty, transfer the last one
+        if (currentBulk != null) {
+            try {
+                loadBulkMutex(currentBulk, currentType);
+            } catch (TimeoutException e) {
+                e.printStackTrace();
+                return;
+            }
+        }
+    }
+    
+    public static void couchUpdateOrCreate(final Map<String,Object> jsonObject, final String documentName, final DocType type, final String commitRev, final long sizeHintTriples) {
         final CouchDbConnector db = dbs.get(type);
         if (db == null) {
             System.err.println("cannot get couch connector for type "+type);
@@ -171,16 +289,33 @@ public class CouchHelpers {
         }
         jsonObject.put("_id", documentName);
         jsonObject.put(GitRevField, commitRev);
+        if (wasEmpty.containsKey(type)) {
+            // if we start from an empty base, no need to check for an old revision for a document
+            if (useBulks) {
+                addToTransferBulk(jsonObject, sizeHintTriples, type);
+            } else {
+                db.create(jsonObject);
+            }
+            return;
+        }
         try {
             final String oldRev = getRevision(documentName, type);
-            if (oldRev == null)
-                db.create(jsonObject);
-            else {
+            if (oldRev == null) {
+                if (useBulks) {
+                    addToTransferBulk(jsonObject, sizeHintTriples, type);
+                } else {
+                    db.create(jsonObject);
+                }
+            } else {
                 jsonObject.put("_rev", oldRev);
                 db.update(jsonObject);
             }
         } catch (DocumentNotFoundException e) {
-            db.create(jsonObject);
+            if (useBulks) {
+                addToTransferBulk(jsonObject, sizeHintTriples, type);
+            } else {
+                db.create(jsonObject);
+            }
         }
     }
     
@@ -198,9 +333,9 @@ public class CouchHelpers {
         } catch (DocumentNotFoundException e) { }
     }
     
-    public static void jsonObjectToCouch(Map<String,Object> jsonObject, String mainId, DocType type, String commitRev) {
+    public static void jsonObjectToCouch(Map<String,Object> jsonObject, String mainId, DocType type, String commitRev, long sizeHint) {
         String documentName = "bdr:"+mainId;
-        couchUpdateOrCreate(jsonObject, documentName, type, commitRev);
+        couchUpdateOrCreate(jsonObject, documentName, type, commitRev, sizeHint);
     }
 
     public static synchronized Model getSyncModel(DocType type) {
@@ -270,7 +405,7 @@ public class CouchHelpers {
             s.changeObject(revision);
         }
         final Map<String,Object> syncJson = JSONLDFormatter.modelToJsonObject(m, type, null, RDFFormat.JSONLD_COMPACT_PRETTY);
-        couchUpdateOrCreate(syncJson, GitRevDoc, type, revision);
+        couchUpdateOrCreate(syncJson, GitRevDoc, type, revision, 10);
     }
 
     public static String getLastRevision(final DocType type) {
