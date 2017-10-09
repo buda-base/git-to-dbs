@@ -148,6 +148,7 @@ public class TransferHelpers {
 	    nbLeft = nbLeft - syncType(DocType.PERSON, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.ITEM, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.WORK, nbLeft);
+	    nbLeft = nbLeft - syncType(DocType.ETEXT, nbLeft);
 	    if (GitToDB.libFormat) {
 	        closeConnections();
 	        return;
@@ -158,7 +159,6 @@ public class TransferHelpers {
 	    nbLeft = nbLeft - syncType(DocType.LINEAGE, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.PRODUCT, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.OFFICE, nbLeft);
-	    nbLeft = nbLeft - syncType(DocType.ETEXT, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.ETEXTCONTENT, nbLeft);
 	    closeConnections();
 	}

@@ -66,6 +66,8 @@ public class AppTest
         StdCouchDbInstance stdCouchDbInstance = new StdCouchDbInstance(stdHttpClient);
         CouchHelpers.dbInstance = stdCouchDbInstance;
         CouchHelpers.testMode = true;
+        CouchHelpers.deleteDbBeforeInsert = false;
+        CouchHelpers.useBulks = false;
         CouchHelpers.putDB(DocType.TEST);
         tempDir = Files.createTempDir();
         JSONLDFormatter.typeToRootShortUri.put(DocType.TEST, "Test");
@@ -176,6 +178,11 @@ public class AppTest
         Model itemImages = TransferHelpers.modelFromPath("ItemImageTest.ttl", DocType.PERSON, "I12827_I001");
         res = LibFormat.modelToJsonObject(itemImages, DocType.ITEM);
         correct = objectFromJson("ItemImageTest.json");
+        assertTrue(correct.equals(res));
+        Model etext = TransferHelpers.modelFromPath("Etext.ttl", DocType.PERSON, "UT4CZ5369_I1KG9127_0000");
+        res = LibFormat.modelToJsonObject(etext, DocType.ETEXT);
+        //System.out.println(om.writerWithDefaultPrettyPrinter().writeValueAsString(res));
+        correct = objectFromJson("Etext.json");
         assertTrue(correct.equals(res));
 	}
 	

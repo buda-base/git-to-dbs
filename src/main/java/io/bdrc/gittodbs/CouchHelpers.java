@@ -68,7 +68,7 @@ public class CouchHelpers {
     private static final TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
     private static final long bulkSizeTriples = 20000;
     private static final long bulkSizeDocs = 100;
-    private static boolean useBulks = true;
+    static boolean useBulks = true;
     // test mode indicates if we're using mcouch or not. This matters because
     // mcouch doesn't support the show function of design documents, but we want
     // to use it in production.

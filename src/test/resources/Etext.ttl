@@ -1,0 +1,56 @@
+@prefix :      <http://purl.bdrc.io/ontology/core/> .
+@prefix adm:   <http://purl.bdrc.io/ontology/admin/> .
+@prefix bdr:   <http://purl.bdrc.io/resource/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix tbr:   <http://purl.bdrc.io/ontology/toberemoved/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+bdr:UT4CZ5369_I1KG9127_0000
+    a                   bdr:EtextPaginated ;
+    :eTextHasPage       [ :seqNum             1 ;
+                          :sliceEndChar       25 ;
+                          :sliceEndChunk      1 ;
+                          :sliceStartChar     1 ;
+                          :sliceStartChunk    1
+                        ] ,
+            [ :pageHasLine        [ :seqNum             1 ;
+                                    :sliceEndChar       12 ;
+                                    :sliceEndChunk      8 ;
+                                    :sliceStartChar     1 ;
+                                    :sliceStartChunk    2
+                                  ] ,
+                      [ :seqNum             2 ;
+                        :sliceEndChar       23 ;
+                        :sliceEndChunk      11 ;
+                        :sliceStartChar     13 ;
+                        :sliceStartChunk    8
+                      ] ,
+                      [ :seqNum             3 ;
+                        :sliceEndChar       31 ;
+                        :sliceEndChunk      14 ;
+                        :sliceStartChar     24 ;
+                        :sliceStartChunk    11
+                      ] ,
+                      [ :seqNum             4 ;
+                        :sliceEndChar       20 ;
+                        :sliceEndChunk      18 ;
+                        :sliceStartChar     32 ;
+                        :sliceStartChunk    14
+                      ] ,
+                      [ :seqNum             5 ;
+                        :sliceEndChar       13 ;
+                        :sliceEndChunk      23 ;
+                        :sliceStartChar     21 ;
+                        :sliceStartChunk    18
+                      ] ;
+              :seqNum             2 ;
+              :sliceEndChar       13 ;
+              :sliceEndChunk      23 ;
+              :sliceStartChar     1 ;
+              :sliceStartChunk    2
+            ] ;
+    :eTextIsVolume      1 ;
+    :eTextSourcePath    "eKangyur/W4CZ5369/sources/W4CZ5369-I1KG9127/W4CZ5369-I1KG9127-0000.txt" ;
+    :eTextTitle         "༄༅། །འདུལ་བ་ཀ་བཞུགས་སོ། ། [1]"@bo .
