@@ -94,6 +94,7 @@ public class CouchHelpers {
         putDB(DocType.ITEM);
         putDB(DocType.WORK);
         putDB(DocType.PERSON);
+        putDB(DocType.ETEXT);
         if (!libFormat) {
             putDB(DocType.CORPORATION);
             putDB(DocType.LINEAGE);
@@ -109,7 +110,7 @@ public class CouchHelpers {
     public static void putDB(DocType type) {
         String DBName = CouchDBPrefix+TransferHelpers.typeToStr.get(type);
         boolean justCreatedDatabase = deleteDbBeforeInsert;
-        if (deleteDbBeforeInsert)
+        if (deleteDbBeforeInsert && dbInstance.checkIfDbExists(DBName))
             dbInstance.deleteDatabase(DBName);
         if (deleteDbBeforeInsert || !dbInstance.checkIfDbExists(DBName)) {
             dbInstance.createDatabase(DBName); 
