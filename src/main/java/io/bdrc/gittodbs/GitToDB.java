@@ -137,11 +137,6 @@ public class GitToDB {
 				System.exit(0);
 			}
 		}
-		
-		if (!transferCouch && !transferFuseki) {
-		    TransferHelpers.logger.error("nothing to do, quitting...");
-            System.exit(1);
-		}
 
         if (gitDir == null || gitDir.isEmpty()) {
             TransferHelpers.logger.error("please specify the git directory");
@@ -159,12 +154,13 @@ public class GitToDB {
 			System.exit(1);
 		}
 
-        if (transferOnto) {
+        if (transferOnto && transferFuseki) {
             TransferHelpers.transferOntology(); // use ontology from jar
         }
 	
 		try {
-			TransferHelpers.sync(howMany);
+			//TransferHelpers.sync(howMany);
+		    CSVExport.export();
 		} catch (Exception ex) {
 			TransferHelpers.logger.error("error in complete transfer", ex);
 			System.exit(1);

@@ -1,0 +1,45 @@
+PREFIX : <http://purl.bdrc.io/ontology/core/>
+PREFIX adm: <http://purl.bdrc.io/ontology/admin/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+SELECT ?property ?value ?name ?title
+WHERE {
+  {
+     ?w :workCreator ?value .
+     BIND ("creator[URI]" AS ?property)
+  } UNION {
+     ?w :workPublisherName ?value .
+     BIND ("workPublisherName" AS ?property)
+  } UNION {
+     ?w :workPublisherDate ?value .
+     BIND ("workPublisherDate" AS ?property)
+  } UNION {
+     ?w :workPublisherLocation ?value .
+     BIND ("workPublisherLocation" AS ?property)
+  } UNION {
+     ?w adm:access ?value .
+     BIND ("accessURI" AS ?property)
+  } UNION {
+     ?w :workPrintery ?value .
+     BIND ("workPrintery" AS ?property)
+  } UNION {
+     ?w :workEditionStatement ?value .
+     BIND ("workEditionStatement" AS ?property)
+  } UNION {
+     ?w :workAuthorshipStatement ?value .
+     BIND ("workAuthorshipStatement" AS ?property)
+  } UNION {
+     ?w :workBiblioNote ?value .
+     BIND ("workBiblioNote" AS ?property)
+  } UNION {
+     ?w :workSourceNote ?value .
+     BIND ("workSourceNote" AS ?property)
+  } UNION {
+     ?w :workTitle/rdfs:label ?value .
+     BIND ("title[]" AS ?property)
+     FILTER NOT EXISTS {?w adm:workLegacyNode ?nodeRID } .
+  }
+}
