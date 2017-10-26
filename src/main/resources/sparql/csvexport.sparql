@@ -26,6 +26,12 @@ WHERE {
      ?w adm:status ?value .
      BIND ("workStatusURI" AS ?property)
   } UNION {
+     ?w :workDimensions ?value .
+     BIND ("workDimensions" AS ?property)
+  } UNION {
+     ?w :workPrintType ?value .
+     BIND ("workPrintTypeURI" AS ?property)
+  } UNION {
      ?w :workPrintery ?value .
      BIND ("workPrintery" AS ?property)
   } UNION {

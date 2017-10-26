@@ -37,7 +37,7 @@ public class CSVExport {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        final String[] titles = new String[13];
+        final String[] titles = new String[15];
         titles[0] = "Work RID";
         titles[1] = "Creators RIDs";
         titles[2] = "Work Titles"; // 
@@ -51,6 +51,8 @@ public class CSVExport {
         titles[10] = "Bibliographic Notes"; // workBiblioNote
         titles[11] = "Source Notes"; // workSourceNote
         titles[12] = "Status"; // workStatus
+        titles[13] = "Dimensions"; // workDimensions
+        titles[14] = "Print Type"; // workDimensions
         writer.writeNext(titles);
         propToColNum.put("creator[URI]", 1);
         propToColNum.put("title[]", 2);
@@ -64,6 +66,8 @@ public class CSVExport {
         propToColNum.put("workBiblioNote", 10);
         propToColNum.put("workSourceNote", 11);
         propToColNum.put("workStatusURI", 12);
+        propToColNum.put("workDimensions", 13);
+        propToColNum.put("workPrintTypeURI", 14);
         ClassLoader classLoader = TransferHelpers.class.getClassLoader();
         InputStream inputStream = classLoader.getResourceAsStream("sparql/csvexport.sparql");
         Scanner s = new Scanner(inputStream);
@@ -100,7 +104,7 @@ public class CSVExport {
     }
     
     public static void handleModel(Model m, String mainRID) {
-        final String[] res = new String[] { mainRID, "", "", "", "", "", "", "", "", "", "", "", ""};
+        final String[] res = new String[] { mainRID, "", "", "", "", "", "", "", "", "", "", "", "", "", ""};
         final InfModel im = TransferHelpers.getInferredModel(m);
         try (QueryExecution qexec = QueryExecutionFactory.create(query, im)) {
             final ResultSet results = qexec.execSelect();
