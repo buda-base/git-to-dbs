@@ -162,6 +162,7 @@ public class GitToDB {
 			//TransferHelpers.sync(howMany);
 		    CSVExport.export();
 		} catch (Exception ex) {
+		    ex.printStackTrace();
 			TransferHelpers.logger.error("error in complete transfer", ex);
 			System.exit(1);
 		}

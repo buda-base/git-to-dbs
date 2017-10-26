@@ -23,6 +23,9 @@ WHERE {
      ?w adm:access ?value .
      BIND ("accessURI" AS ?property)
   } UNION {
+     ?w adm:status ?value .
+     BIND ("workStatusURI" AS ?property)
+  } UNION {
      ?w :workPrintery ?value .
      BIND ("workPrintery" AS ?property)
   } UNION {
