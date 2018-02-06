@@ -8,6 +8,7 @@ import java.net.MalformedURLException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.EnumMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -230,17 +231,28 @@ public class TransferHelpers {
         return path.substring(0, path.length()-4);
 	}
 	
+	static Hashtable<String, String> seen = new Hashtable<String, String>();
+	
 	public static void addFileFuseki(DocType type, String dirPath, String filePath, boolean firstTransfer) {
-        final String mainId = mainIdFromPath(filePath, type);
-        if (mainId == null)
-            return;
-        Model m = modelFromPath(dirPath+filePath, type, mainId);
-        final String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
-        FusekiHelpers.setModelRevision(m, type, rev, mainId);
-        m = getInferredModel(m);
-        String graphName = BDR+mainId;
-        if (type == DocType.ETEXTCONTENT)
-            graphName += "_STR";
+	    final String mainId = mainIdFromPath(filePath, type);
+	    if (mainId == null)
+	        return;
+	    
+	    if (type != DocType.ETEXT && type != DocType.ETEXTCONTENT) {
+	        if (seen.get(mainId) != null) {
+	            logger.error("addFileFuseki already added: " + mainId + " has already been processed from: " + seen.get(mainId));
+	        } else {
+	            seen.put(mainId, dirPath+filePath);
+	        }
+	    }
+	    
+	    Model m = modelFromPath(dirPath+filePath, type, mainId);
+	    final String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
+	    FusekiHelpers.setModelRevision(m, type, rev, mainId);
+	    m = getInferredModel(m);
+	    String graphName = BDR+mainId;
+	    if (type == DocType.ETEXTCONTENT)
+	        graphName += "_STR";
         try {
             FusekiHelpers.transferModel(graphName, m, firstTransfer);
         } catch (TimeoutException e) {
