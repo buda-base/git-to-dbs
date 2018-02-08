@@ -40,7 +40,8 @@ public class GitToDB {
 		        + "-gitDir <path>      - path to the git directory\n"
 		        + "-transferOnto       - transfer the core ontology in Fuseki\n"
 		        + "-timeout <int>      - specify how seconds to wait for a doc transfer to complete. Defaults to 15 seconds\n"
-		        + "-progress           - enables progress output during transfer\n"
+                + "-progress           - enables progress output during transfer\n"
+                + "-checkDoubled       - enables model checking for doubled blank nodes\n"
 		        + "-debug              - enables DEBUG log level - mostly jena logging\n"
 		        + "-trace              - enables TRACE log level - mostly jena logging\n"
 		        + "-help               - print this message and exits\n"
@@ -111,8 +112,10 @@ public class GitToDB {
 				TransferHelpers.TRANSFER_TO = (++i < args.length ? Integer.parseInt(args[i]) : null);
             } else if (arg.equals("-transferOnto")) {
                 transferOnto = true;
-			} else if (arg.equals("-progress")) {
-		        TransferHelpers.progress = true;
+            } else if (arg.equals("-progress")) {
+                TransferHelpers.progress = true;
+            } else if (arg.equals("-checkDoubled")) {
+                TransferHelpers.checkForDoubling = true;
 			} else if (arg.equals("-debug")) {
 		        System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "DEBUG");
 		        TransferHelpers.logger = LoggerFactory.getLogger("fuseki-couchdb");

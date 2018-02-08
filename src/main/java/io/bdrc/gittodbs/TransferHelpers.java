@@ -116,7 +116,8 @@ public class TransferHelpers {
     
 	public static Logger logger = LoggerFactory.getLogger("git2dbs");
 	
-	public static boolean progress = false;
+    public static boolean progress = false;
+    public static boolean checkForDoubling = false;
 	
 	public static long TRANSFER_TO = 50; // seconds
 	
@@ -238,7 +239,7 @@ public class TransferHelpers {
 	    if (mainId == null)
 	        return;
 	    
-	    if (type != DocType.ETEXT && type != DocType.ETEXTCONTENT) {
+	    if (checkForDoubling && type != DocType.ETEXT && type != DocType.ETEXTCONTENT) {
 	        if (seen.get(mainId) != null) {
 	            logger.error("addFileFuseki already added: " + mainId + " has already been processed from: " + seen.get(mainId));
 	        } else {
@@ -247,9 +248,19 @@ public class TransferHelpers {
 	    }
 	    
 	    Model m = modelFromPath(dirPath+filePath, type, mainId);
+	    
+	    if (checkForDoubling && FusekiHelpers.resourceDoubled(BDR+mainId, m, type)) {
+	        logger.error("addFileFuseki found doubled model from modelFromPath for " + mainId);
+	    }
+	    
 	    final String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
 	    FusekiHelpers.setModelRevision(m, type, rev, mainId);
 	    m = getInferredModel(m);
+        
+        if (checkForDoubling && FusekiHelpers.resourceDoubled(BDR+mainId, m, type)) {
+            logger.error("addFileFuseki found doubled model from getInferredModel for " + mainId);
+        }
+        
 	    String graphName = BDR+mainId;
 	    if (type == DocType.ETEXTCONTENT)
 	        graphName += "_STR";
