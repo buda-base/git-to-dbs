@@ -42,7 +42,7 @@ public class LibFormat {
             return typeQuery.get(type);
         // the following nonsense just reads a freaking file
         ClassLoader classLoader = TransferHelpers.class.getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("sparql/"+TransferHelpers.typeToStr.get(type)+".sparql");
+        InputStream inputStream = classLoader.getResourceAsStream("sparql/" + type + ".sparql");
         Scanner s = new Scanner(inputStream);
         s.useDelimiter("\\A");
         String result = s.hasNext() ? s.next() : "";

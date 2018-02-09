@@ -108,7 +108,7 @@ public class CouchHelpers {
     public static final Map<DocType,Boolean> wasEmpty = new EnumMap<>(DocType.class);
     
     public static void putDB(DocType type) {
-        String DBName = CouchDBPrefix+TransferHelpers.typeToStr.get(type);
+        String DBName = CouchDBPrefix + type;
         boolean justCreatedDatabase = deleteDbBeforeInsert;
         if (deleteDbBeforeInsert && dbInstance.checkIfDbExists(DBName))
             dbInstance.deleteDatabase(DBName);
@@ -175,7 +175,7 @@ public class CouchHelpers {
             }
             return null;
         }
-        final String uri = "/"+CouchDBPrefix+TransferHelpers.typeToStr.get(type)+"/_design/jsonld/_show/revOnly/" + documentName;
+        final String uri = "/"+CouchDBPrefix + type + "/_design/jsonld/_show/revOnly/" + documentName;
         final HttpResponse r = db.getConnection().get(uri);
         final InputStream stuff = r.getContent();
         final String result = inputStreamToString(stuff);
@@ -209,7 +209,7 @@ public class CouchHelpers {
                DocType type = typeQueue.pop();
                while (bulk != null) {
                    final CouchDbConnector db = dbs.get(type);
-                   System.out.print("starting to transfer "+bulk.size()+" "+TransferHelpers.typeToStr.get(type)+" documents...");
+                   System.out.print("starting to transfer "+bulk.size()+" " + type + " documents...");
                    db.executeBulk(bulk);
                    System.out.println("done");
                    bulk = queue.poll();
@@ -376,7 +376,7 @@ public class CouchHelpers {
             return res;
         }
         // https://github.com/helun/Ektorp/issues/263
-        final String uri = "/"+CouchDBPrefix+TransferHelpers.typeToStr.get(type)+"/_design/jsonld/_show/jsonld/" + docId;
+        final String uri = "/"+CouchDBPrefix + type + "/_design/jsonld/_show/jsonld/" + docId;
         final HttpResponse r = db.getConnection().get(uri);
         final InputStream stuff = r.getContent();
         // feeding the inputstream directly to jena for json-ld parsing
@@ -414,7 +414,7 @@ public class CouchHelpers {
         Model m = getSyncModel(type);
         if (m == null)
             m = ModelFactory.createDefaultModel();
-        String typeStr = TransferHelpers.typeToStr.get(type);
+        String typeStr = type.toString();
         typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
         final Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo"+typeStr);
         final Property p = m.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");

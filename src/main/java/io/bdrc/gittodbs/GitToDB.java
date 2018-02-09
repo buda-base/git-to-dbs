@@ -24,6 +24,8 @@ public class GitToDB {
     static boolean transferOnto = false;
 	static boolean listenToChanges = true;
 	
+	static TransferHelpers.DocType docType = null;
+	
 	private static void printHelp() {
 		System.err.print("java -jar GitToDB.jar OPTIONS\n"
 		        + "Synchronize couchdb JSON-LD documents with fuseki\n"
@@ -31,17 +33,22 @@ public class GitToDB {
 		        + "-fuseki             - do transfer to Fuseki\n"
 		        + "-fusekiHost <host>  - host fuseki is running on. Defaults to localhost\n"
 		        + "-fusekiPort <port>  - port fuseki is running on. Defaults to 13180\n"
-		        + "-fusekiName <name>  - name of the fuseki endpoint. Defaults to 'bdrcrw'\n"
+                + "-fusekiName <name>  - name of the fuseki endpoint. Defaults to 'bdrcrw'\n"
 		        + "-couchdb            - do transfer to CouchDB\n"
 		        + "-couchdbHost <host> - host couchdb is running on. Defaults to localhost\n"
 		        + "-couchdbPort <port> - port couchdb is running on. Defaults to 13598\n"
 		        + "-libFormat          - Transfer to CouchDB in the Lib App format\n"
+                + "-type <typeName>    - name of the type to transfer: person, item, place, work, topic, lineage, office, product, etext, corporation, etextcontent\n"
 		        + "-force              - Transfer all documents if git and distant revisions don't match\n"
 		        + "-gitDir <path>      - path to the git directory\n"
 		        + "-transferOnto       - transfer the core ontology in Fuseki\n"
-		        + "-timeout <int>      - specify how seconds to wait for a doc transfer to complete. Defaults to 15 seconds\n"
+                + "-timeout <int>      - specify how seconds to wait for a doc transfer to complete. Defaults to 15 seconds\n"
+                + "-n <int>            - specify how many resources to transfer; for testing. Default MaxInt\n"
+                + "-bulkSz <int>       - specify how many triples to transfer in a bulk transaction. Default 50000\n"
                 + "-progress           - enables progress output during transfer\n"
                 + "-checkDoubled       - enables model checking for doubled blank nodes\n"
+                + "-singleModel        - transfers a single model at a time\n"
+                + "-serial             - single threaded, waits each dataset to transfer\n"
 		        + "-debug              - enables DEBUG log level - mostly jena logging\n"
 		        + "-trace              - enables TRACE log level - mostly jena logging\n"
 		        + "-help               - print this message and exits\n"
@@ -101,13 +108,18 @@ public class GitToDB {
                 transferCouch = true;
             } else if (arg.equals("-couchdb")) {
                 transferCouch = true;
+            } else if (arg.equals("-type")) {
+                String typeName = (++i < args.length ? args[i] : null);
+                docType  = TransferHelpers.DocType.getType(typeName);
             } else if (arg.equals("-libFormat")) {
                 libFormat = true;
                 transferCouch = true;
             } else if (arg.equals("-gitDir")) {
                 gitDir = (++i < args.length ? args[i] : null);
-			} else if (arg.equals("-n")) {
-				howMany = (++i < args.length ? Integer.parseInt(args[i]) : null);
+            } else if (arg.equals("-n")) {
+                howMany = (++i < args.length ? Integer.parseInt(args[i]) : null);
+            } else if (arg.equals("-bulkSz")) {
+                FusekiHelpers.initialLoadBulkSize = (++i < args.length ? Integer.parseInt(args[i]) : null);
 			} else if (arg.equals("-timeout")) {
 				TransferHelpers.TRANSFER_TO = (++i < args.length ? Integer.parseInt(args[i]) : null);
             } else if (arg.equals("-transferOnto")) {
@@ -116,6 +128,10 @@ public class GitToDB {
                 TransferHelpers.progress = true;
             } else if (arg.equals("-checkDoubled")) {
                 TransferHelpers.checkForDoubling = true;
+            } else if (arg.equals("-singleModel")) {
+                FusekiHelpers.singleModel = true;
+            } else if (arg.equals("-serial")) {
+                FusekiHelpers.serial = true;
 			} else if (arg.equals("-debug")) {
 		        System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "DEBUG");
 		        TransferHelpers.logger = LoggerFactory.getLogger("fuseki-couchdb");
@@ -165,13 +181,23 @@ public class GitToDB {
         if (transferOnto) {
             TransferHelpers.transferOntology(); // use ontology from jar
         }
-	
-		try {
-			TransferHelpers.sync(howMany);
-		} catch (Exception ex) {
-			TransferHelpers.logger.error("error in complete transfer", ex);
-			System.exit(1);
-		}
+
+        if (docType != null) {
+            try {
+                TransferHelpers.syncType(docType, howMany);
+                TransferHelpers.closeConnections();
+            } catch (Exception ex) {
+                TransferHelpers.logger.error("error transfering" + docType, ex);
+                System.exit(1);
+            }
+        } else {
+            try {
+                TransferHelpers.sync(howMany);
+            } catch (Exception ex) {
+                TransferHelpers.logger.error("error in complete transfer", ex);
+                System.exit(1);
+            }
+        }
 
 		TransferHelpers.logger.info("FusekiTranser shutting down");
 		shutdownAndAwaitTermination(TransferHelpers.executor);

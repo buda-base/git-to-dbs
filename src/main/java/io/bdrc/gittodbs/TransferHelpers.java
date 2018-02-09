@@ -8,6 +8,7 @@ import java.net.MalformedURLException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -65,39 +66,39 @@ public class TransferHelpers {
     public static final Context ctx = new Context();
     static MessageDigest md;
     private static final int hashNbChars = 2;
-	
-	public static enum DocType {
-	    CORPORATION,
-	    LINEAGE,
-	    ETEXT,
-	    ETEXTCONTENT,
-	    OFFICE,
-	    PERSON,
-	    PLACE,
-	    TOPIC,
-	    ITEM,
-	    WORK,
-	    PRODUCT,
-	    TEST
-	    ;  
-	  }
-	
-	public static final Map<DocType, String> typeToStr = new EnumMap<>(DocType.class);
-	
-	static {
-	    typeToStr.put(DocType.CORPORATION, "corporation");
-	    typeToStr.put(DocType.ETEXT, "etext");
-	    typeToStr.put(DocType.ETEXTCONTENT, "etextcontent");
-	    typeToStr.put(DocType.LINEAGE, "lineage");
-	    typeToStr.put(DocType.OFFICE, "office");
-	    typeToStr.put(DocType.PERSON, "person");
-	    typeToStr.put(DocType.PLACE, "place");
-	    typeToStr.put(DocType.TOPIC, "topic");
-	    typeToStr.put(DocType.ITEM, "item");
-	    typeToStr.put(DocType.WORK, "work");
-	    typeToStr.put(DocType.PRODUCT, "product");
-	    typeToStr.put(DocType.TEST, "test");
-	}
+    
+    private static Map<String, DocType> strToDocType = new HashMap<>();
+    public enum DocType {
+
+        CORPORATION("corporation"), 
+        ETEXT("etext"), 
+        ETEXTCONTENT("etextcontent"),
+        ITEM("item"), 
+        LINEAGE("lineage"), 
+        OFFICE("office"), 
+        PERSON("person"),
+        PLACE("place"), 
+        PRODUCT("product"), 
+        TOPIC("topic"),
+        WORK("work"),
+        TEST("test");
+
+        private String label;
+
+        private DocType(String label) {
+            this.label = label;
+            strToDocType.put(label, this);
+        }
+
+        public static DocType getType(String label) {
+            return strToDocType.get(label);
+        }
+        
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
 	
     public static void setPrefixes(Model m, DocType type) {
         m.setNsPrefix("", CORE_PREFIX);
@@ -281,7 +282,7 @@ public class TransferHelpers {
 	    if (nbLeft == 0)
 	        return 0;
 	    String gitRev = GitHelpers.getHeadRev(type);
-        String dirpath = GitToDB.gitDir+TransferHelpers.typeToStr.get(type)+"s/";
+        String dirpath = GitToDB.gitDir + type + "s/";
 	    if (gitRev == null) {
 	        TransferHelpers.logger.error("cannot extract latest revision from the git repo at "+dirpath);
 	        return 0;
@@ -290,7 +291,7 @@ public class TransferHelpers {
 	    int i = 0;
 	    if (distRev == null || distRev.isEmpty()) {
 	        TreeWalk tw = GitHelpers.listRepositoryContents(type);
-	        TransferHelpers.logger.info("sending all "+typeToStr.get(type)+" files to Fuseki");
+	        TransferHelpers.logger.info("sending all " + type + " files to Fuseki");
 	        try {
                 while (tw.next()) {
                     if (i+1 > nbLeft)
@@ -312,7 +313,7 @@ public class TransferHelpers {
 	            TransferHelpers.logger.error("distant fuseki revision "+distRev+" is invalid, please fix it");
 	            return 0;
 	        }
-	        TransferHelpers.logger.info("sending changed "+typeToStr.get(type)+" files changed since "+distRev+" to Fuseki");
+	        TransferHelpers.logger.info("sending changed " + type + " files changed since "+distRev+" to Fuseki");
 	        for (DiffEntry de : entries) {
 	            if (i+1 > nbLeft)
 	                return nbLeft;
@@ -359,7 +360,7 @@ public class TransferHelpers {
        if (nbLeft == 0)
             return 0;
         final String gitRev = GitHelpers.getHeadRev(type);
-        final String dirpath = GitToDB.gitDir+TransferHelpers.typeToStr.get(type)+"s/";
+        final String dirpath = GitToDB.gitDir + type + "s/";
         if (gitRev == null) {
             TransferHelpers.logger.error("cannot extract latest revision from the git repo at "+dirpath);
             return 0;
@@ -367,7 +368,7 @@ public class TransferHelpers {
         final String distRev = CouchHelpers.getLastRevision(type);
         int i = 0;
         if (distRev == null || distRev.isEmpty()) {
-            TransferHelpers.logger.info("sending all "+typeToStr.get(type)+" files to Couch");
+            TransferHelpers.logger.info("sending all " + type + " files to Couch");
             TreeWalk tw = GitHelpers.listRepositoryContents(type);
             try {
                 while (tw.next()) {
@@ -390,7 +391,7 @@ public class TransferHelpers {
                 TransferHelpers.logger.error("distant couch revision "+distRev+" is invalid, please fix it");
                 return 0;
             }
-            TransferHelpers.logger.info("sending "+entries.size()+" "+typeToStr.get(type)+" files changed since "+distRev+" to Couch");
+            TransferHelpers.logger.info("sending "+entries.size()+" " + type + " files changed since "+distRev+" to Couch");
             for (DiffEntry de : entries) {
                 if (i+1 > nbLeft)
                     return nbLeft;

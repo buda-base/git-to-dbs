@@ -39,6 +39,8 @@ public class FusekiHelpers {
     public static String FusekiSparqlEndpoint = null;
     public static RDFConnection fuConn;
     public static boolean useRdfConnection = true;
+    public static boolean singleModel = false;
+    public static boolean serial = false;
     public static int initialLoadBulkSize = 50000; // the number of triples above which a dataset load is triggered
     public static boolean addGitRevision = true;
 
@@ -84,7 +86,7 @@ public class FusekiHelpers {
     
     public static synchronized String getLastRevision(DocType type) {
         Model m = getSyncModel();
-        String typeStr = TransferHelpers.typeToStr.get(type);
+        String typeStr = type.toString();
         typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
         Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo"+typeStr);
         Property p = m.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
@@ -113,7 +115,7 @@ public class FusekiHelpers {
     
     public static synchronized void setLastRevision(String revision, DocType type) {
         final Model m = getSyncModel();
-        String typeStr = TransferHelpers.typeToStr.get(type);
+        String typeStr = type.toString();
         typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
         Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo"+typeStr);
         Property p = m.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
@@ -229,7 +231,7 @@ public class FusekiHelpers {
                        fuConn.begin(ReadWrite.WRITE);
                    }
                    fuConn.loadDataset(ds);
-                   System.out.println("transferred ~ "+initialLoadBulkSize+" triples");
+                   System.out.println("transferred ~ " + ds.getUnionModel().size() + " triples");
                    ds = queue.poll();
                }
                fuConn.commit();
@@ -250,25 +252,53 @@ public class FusekiHelpers {
         }
     }
     
+    private static void loadDataset(final Dataset ds) throws TimeoutException {
+        if (!fuConn.isInTransaction()) {
+            fuConn.begin(ReadWrite.WRITE);
+        }
+        fuConn.loadDataset(ds);
+        System.out.println("transferred ~ " + ds.getUnionModel().size() + " triples");
+        fuConn.commit();
+    }
+    
     static Dataset currentDataset = null;
     static int triplesInDataset = 0;
     static void addToTransferBulk(final String graphName, final Model m) {
         if (currentDataset == null)
             currentDataset = DatasetFactory.createGeneral();
         currentDataset.addNamedModel(graphName, m);
-        triplesInDataset += m.size();
-        if (triplesInDataset > initialLoadBulkSize) {
+
+        if (singleModel) {
             try {
-                loadDatasetMutex(currentDataset);
+                if (serial) {
+                    loadDataset(currentDataset);
+                } else {
+                    loadDatasetMutex(currentDataset);
+                }
                 currentDataset = null;
-                triplesInDataset = 0;
             } catch (TimeoutException e) {
                 e.printStackTrace();
                 return;
             }
+        } else {
+            triplesInDataset += m.size();
+            if (triplesInDataset > initialLoadBulkSize) {
+                try {
+                    if (serial) {
+                        loadDataset(currentDataset);
+                    } else {
+                        loadDatasetMutex(currentDataset);
+                    }
+                    currentDataset = null;
+                    triplesInDataset = 0;
+                } catch (TimeoutException e) {
+                    e.printStackTrace();
+                    return;
+                }
+            }
         }
     }
-    
+
     static void finishDatasetTransfers() {
         // if map is not empty, transfer the last one
         if (currentDataset != null) {

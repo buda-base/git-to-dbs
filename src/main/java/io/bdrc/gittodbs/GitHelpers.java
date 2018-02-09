@@ -45,7 +45,7 @@ public class GitHelpers {
     
     // for tests only
     public static void createGitRepo(DocType type) {
-        String dirpath = GitToDB.gitDir+TransferHelpers.typeToStr.get(type)+'s';
+        String dirpath = GitToDB.gitDir + type + 's';
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         File gitDir = new File(dirpath+"/.git");
         File wtDir = new File(dirpath);
@@ -63,7 +63,7 @@ public class GitHelpers {
     public static void ensureGitRepo(DocType type) {
         if (typeRepo.containsKey(type))
             return;
-        String dirpath = GitToDB.gitDir+TransferHelpers.typeToStr.get(type)+'s';
+        String dirpath = GitToDB.gitDir + type + 's';
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         File gitDir = new File(dirpath+"/.git");
         File wtDir = new File(dirpath);
