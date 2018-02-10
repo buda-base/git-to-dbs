@@ -6,6 +6,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.LoggerFactory;
 
+import io.bdrc.gittodbs.TransferHelpers.DocType;
+
 public class GitToDB {
 	static String VERSION =  TransferHelpers.class.getPackage().getImplementationVersion();
 
@@ -22,7 +24,8 @@ public class GitToDB {
 	static int howMany = Integer.MAX_VALUE;
     static boolean transferAllDB = false;
     static boolean transferOnto = false;
-	static boolean listenToChanges = true;
+    static boolean listenToChanges = true;
+    static boolean testDoubling = false;
 	
 	static TransferHelpers.DocType docType = null;
 	
@@ -49,6 +52,7 @@ public class GitToDB {
                 + "-checkDoubled       - enables model checking for doubled blank nodes\n"
                 + "-singleModel        - transfers a single model at a time\n"
                 + "-serial             - single threaded, waits each dataset to transfer\n"
+                + "-testDoubling       - enables testing for doubling of blank nodes in fuseki transfer\n"
 		        + "-debug              - enables DEBUG log level - mostly jena logging\n"
 		        + "-trace              - enables TRACE log level - mostly jena logging\n"
 		        + "-help               - print this message and exits\n"
@@ -132,6 +136,8 @@ public class GitToDB {
                 FusekiHelpers.singleModel = true;
             } else if (arg.equals("-serial")) {
                 FusekiHelpers.serial = true;
+            } else if (arg.equals("-testDoubling")) {
+                testDoubling = true;
 			} else if (arg.equals("-debug")) {
 		        System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "DEBUG");
 		        TransferHelpers.logger = LoggerFactory.getLogger("fuseki-couchdb");
@@ -170,7 +176,10 @@ public class GitToDB {
         if (!gitDir.endsWith("/"))
             gitDir+='/';
 		
-        GitHelpers.init();
+        if (! testDoubling) {
+            GitHelpers.init();
+        }
+        
 		try {
 			TransferHelpers.init();
 		} catch (Exception e) {
@@ -181,8 +190,14 @@ public class GitToDB {
         if (transferOnto) {
             TransferHelpers.transferOntology(); // use ontology from jar
         }
-
-        if (docType != null) {
+        
+        
+        if (testDoubling) {
+            int nbLeft = howMany;
+            nbLeft = nbLeft - TransferHelpers.syncType(DocType.PERSON, nbLeft);
+            nbLeft = nbLeft - TransferHelpers.syncType(DocType.ITEM, nbLeft);
+            TransferHelpers.closeConnections();
+        } else if (docType != null) {
             try {
                 TransferHelpers.syncType(docType, howMany);
                 TransferHelpers.closeConnections();

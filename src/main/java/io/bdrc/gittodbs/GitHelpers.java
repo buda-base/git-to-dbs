@@ -43,6 +43,11 @@ public class GitHelpers {
         ensureGitRepo(DocType.PRODUCT);
     }
     
+    public static void initDoublingTest() {
+        ensureGitRepo(DocType.PERSON);
+        ensureGitRepo(DocType.ITEM);
+    }
+    
     // for tests only
     public static void createGitRepo(DocType type) {
         String dirpath = GitToDB.gitDir + type + 's';
