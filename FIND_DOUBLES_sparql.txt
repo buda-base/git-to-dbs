@@ -67,8 +67,8 @@ where {
 
 FIND Work DOUBLES:
 
-# select ?r ?diff
-select (count(?diff) as ?ds)
+select ?r ?diff ?c ?cd
+# select (count(?diff) as ?ds)
 where {
   {
     ?r a :Work .
@@ -125,13 +125,14 @@ where {
 	  select (count(?id) as ?c) (count(distinct ?id) as ?cd)
 	  where {
         ?r :note ?b .
-        ?b :noteText ?id .
+        ?b :noteText ?nt .
+        ?b :noteWork ?nw .
+        ?b :noteLocationStatement ?nls .
+        bind (lang(?nt) as ?lang)
+        ?id apf:concat (?nt '+' ?nw '+' ?nls '+' ?lang) .
 	  }
      }
   } .
   bind (?c - ?cd as ?diff)
   filter (?diff != 0)
 } limit 100
-
-
-
