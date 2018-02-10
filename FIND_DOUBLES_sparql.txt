@@ -1,6 +1,6 @@
 # Variations on probing the triple store for doublings of blank nodes
 
-# given a Person does it show doubling? ?diff gt 0
+# given a Person does it show doubling? i.e., ?diff gt 0
 select ?diff
 where {
   { select (count(?id) as ?c) (count(distinct ?id) as ?cd)
@@ -17,7 +17,7 @@ where {
 
 
 
-FIND Person DOUBLES:
+# FIND Person DOUBLES:
 
 select ?r ?diff
 # select (count(?diff) as ?ds)
@@ -42,7 +42,7 @@ where {
 
 
 
-FIND Item DOUBLES:
+# FIND Item DOUBLES:
 
 # select ?r ?diff
 select (count(?diff) as ?ds)
@@ -65,7 +65,10 @@ where {
 
 
 
-FIND Work DOUBLES:
+# FIND Work DOUBLES:
+# ?id includes the resource uri, ?w, because a typical :Work graph, ?r,
+# contains a lot of :Works derived from Outline Nodes and sometimes
+# there may be titles that match across these :Works
 
 select ?r ?diff ?c ?cd
 # select (count(?diff) as ?ds)
@@ -75,11 +78,11 @@ where {
     graph ?r {
 	  select (count(?id) as ?c) (count(distinct ?id) as ?cd)
 	  where {
-        ?r :workTitle ?b .
+        ?w :workTitle ?b .
         ?b rdfs:label ?nm .
         ?b a ?type .
         bind (lang(?nm) as ?lang)
-        ?id apf:concat (?type "+" ?nm "@" ?lang) .
+        ?id apf:concat (?w "+" ?type "+" ?nm "@" ?lang) .
 	  }
      }
   } .
