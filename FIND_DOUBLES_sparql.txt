@@ -1,0 +1,137 @@
+# Variations on probing the triple store for doublings of blank nodes
+
+# given a Person does it show doubling? ?diff gt 0
+select ?diff
+where {
+  { select (count(?id) as ?c) (count(distinct ?id) as ?cd)
+	where {
+      bdr:P7497 :personName ?b .
+      ?b rdfs:label ?nm .
+      ?b a ?type .
+      bind (lang(?nm) as ?lang)
+      ?id apf:concat(?type "+" ?nm "@" ?lang)
+	}
+  } .
+  bind (?c - ?cd as ?diff)
+}
+
+
+
+FIND Person DOUBLES:
+
+select ?r ?diff
+# select (count(?diff) as ?ds)
+where {
+  {
+    ?r a :Person .
+    graph ?r {
+	  select (count(?id) as ?c) (count(distinct ?id) as ?cd)
+	  where {
+        ?r :personName ?b .
+        ?b rdfs:label ?nm .
+        ?b a ?type .
+        bind (lang(?nm) as ?lang)
+        ?id apf:concat (?type "+" ?nm "@" ?lang) .
+	  }
+     }
+  } .
+  bind (?c - ?cd as ?diff)
+  filter (?diff != 0)
+} limit 10
+
+
+
+
+FIND Item DOUBLES:
+
+# select ?r ?diff
+select (count(?diff) as ?ds)
+where {
+  {
+    ?r a :Item .
+    graph ?r {
+	  select (count(?id) as ?c) (count(distinct ?id) as ?cd)
+	  where {
+        ?r :itemHasVolume ?b .
+        ?b adm:legacyImageGroupRID ?id .
+	  }
+     }
+  } .
+  bind (?c - ?cd as ?diff)
+  filter (?diff != 0)
+} limit 100
+
+
+
+
+
+FIND Work DOUBLES:
+
+# select ?r ?diff
+select (count(?diff) as ?ds)
+where {
+  {
+    ?r a :Work .
+    graph ?r {
+	  select (count(?id) as ?c) (count(distinct ?id) as ?cd)
+	  where {
+        ?r :workTitle ?b .
+        ?b rdfs:label ?nm .
+        ?b a ?type .
+        bind (lang(?nm) as ?lang)
+        ?id apf:concat (?type "+" ?nm "@" ?lang) .
+	  }
+     }
+  } .
+  bind (?c - ?cd as ?diff)
+  filter (?diff != 0)
+} limit 100
+
+
+
+
+
+FIND Etext DOUBLES:
+
+# select ?r ?diff
+select (count(?diff) as ?ds)
+where {
+  {
+    ?r a :EtextPaginated .
+    graph ?r {
+	  select (count(?id) as ?c) (count(distinct ?id) as ?cd)
+	  where {
+        ?r :eTextHasPage ?b .
+        ?b :seqNum ?id .
+	  }
+     }
+  } .
+  bind (?c - ?cd as ?diff)
+  filter (?diff != 0)
+} limit 100
+
+
+
+
+
+FIND Place DOUBLES:
+
+select ?r ?diff
+# select (count(?diff) as ?ds)
+where {
+  {
+    ?r a :Place .
+    graph ?r {
+	  select (count(?id) as ?c) (count(distinct ?id) as ?cd)
+	  where {
+        ?r :note ?b .
+        ?b :noteText ?id .
+	  }
+     }
+  } .
+  bind (?c - ?cd as ?diff)
+  filter (?diff != 0)
+} limit 100
+
+
+
