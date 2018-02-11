@@ -8,17 +8,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetAccessor;
 import org.apache.jena.query.DatasetAccessorFactory;
 import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.query.ParameterizedSparqlString;
-import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
-import org.apache.jena.query.QueryFactory;
-import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ReadWrite;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Literal;
@@ -39,37 +34,9 @@ public class FusekiHelpers {
     public static String FusekiSparqlEndpoint = null;
     public static RDFConnection fuConn;
     public static boolean useRdfConnection = true;
-    public static boolean singleModel = false;
-    public static boolean serial = false;
     public static int initialLoadBulkSize = 50000; // the number of triples above which a dataset load is triggered
     public static boolean addGitRevision = true;
-
-    protected static final String QUERY_PROLOG = 
-            StrUtils.strjoinNL(
-                    "prefix : <http://purl.bdrc.io/ontology/core/>",
-                    "prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
-                    "prefix bdr: <http://purl.bdrc.io/resource/>",
-                    "prefix apf: <http://jena.apache.org/ARQ/property#>"
-                    );
-
-    protected static final String PERSON_DOUBLE_QUERY = StrUtils.strjoinNL(
-            QUERY_PROLOG,
-            "select ?diff",
-            "where {",
-            "  {",
-            "    select (count(?id) as ?c) (count(distinct ?id) as ?cd)",
-            "    where {",
-            "      ?R :personName ?b .",
-            "      ?b rdfs:label ?nm .",
-            "      ?b a ?type .",
-            "      bind (lang(?nm) as ?lang) ",
-            "      ?id apf:concat(?type '+' ?nm '@' ?lang) .",
-            "    }",
-            "  } .",
-            "  bind (?c - ?cd as ?diff)",
-            "}"
-            );
-
+    
     public static void init(String fusekiHost, String fusekiPort, String fusekiEndpoint) throws MalformedURLException {
         String baseUrl = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/"+fusekiEndpoint;
         FusekiUrl = baseUrl+"/data";
@@ -143,33 +110,6 @@ public class FusekiHelpers {
             p = m.getProperty(TransferHelpers.ADM, "gitRevision");
         final Resource r = m.getResource(TransferHelpers.BDR+mainId);
         r.addProperty(p, m.createLiteral(rev));
-    }
-    
-    /*
-     * return true if there are doubled triples in the model; otherwise, false
-     * currently only tests DocType.PERSON and returns false otherwise
-     */
-    public static boolean resourceDoubled(String resource, Model m, DocType type) {
-        if (type == DocType.PERSON) {
-            ParameterizedSparqlString qStr = new ParameterizedSparqlString(PERSON_DOUBLE_QUERY);
-            qStr.setIri("?R", resource);
-            Query query = QueryFactory.create(qStr.asQuery());
-            try (QueryExecution qexec = QueryExecutionFactory.create(query, m)) {
-                ResultSet results = qexec.execSelect() ;
-                if (results.hasNext()) {
-                    QuerySolution soln = results.nextSolution();
-                    Literal diffLit = soln.getLiteral("diff");
-                    int diff = diffLit.getInt();
-                    if (diff > 0) {
-                        return true;
-                    }
-                }
-            } catch (Exception ex) {
-                TransferHelpers.logger.error("checkForDoubling failed: " + ex.getMessage(), ex);
-            } 
-        }
-            
-        return false;
     }
     
     private static Model callFuseki(final String operation, final String graphName, final Model m) throws TimeoutException {
@@ -252,53 +192,25 @@ public class FusekiHelpers {
         }
     }
     
-    private static void loadDataset(final Dataset ds) throws TimeoutException {
-        if (!fuConn.isInTransaction()) {
-            fuConn.begin(ReadWrite.WRITE);
-        }
-        fuConn.loadDataset(ds);
-        System.out.println("transferred ~ " + ds.getUnionModel().size() + " triples");
-        fuConn.commit();
-    }
-    
     static Dataset currentDataset = null;
     static int triplesInDataset = 0;
     static void addToTransferBulk(final String graphName, final Model m) {
         if (currentDataset == null)
             currentDataset = DatasetFactory.createGeneral();
         currentDataset.addNamedModel(graphName, m);
-
-        if (singleModel) {
+        triplesInDataset += m.size();
+        if (triplesInDataset > initialLoadBulkSize) {
             try {
-                if (serial) {
-                    loadDataset(currentDataset);
-                } else {
-                    loadDatasetMutex(currentDataset);
-                }
+                loadDatasetMutex(currentDataset);
                 currentDataset = null;
+                triplesInDataset = 0;
             } catch (TimeoutException e) {
                 e.printStackTrace();
                 return;
             }
-        } else {
-            triplesInDataset += m.size();
-            if (triplesInDataset > initialLoadBulkSize) {
-                try {
-                    if (serial) {
-                        loadDataset(currentDataset);
-                    } else {
-                        loadDatasetMutex(currentDataset);
-                    }
-                    currentDataset = null;
-                    triplesInDataset = 0;
-                } catch (TimeoutException e) {
-                    e.printStackTrace();
-                    return;
-                }
-            }
         }
     }
-
+    
     static void finishDatasetTransfers() {
         // if map is not empty, transfer the last one
         if (currentDataset != null) {

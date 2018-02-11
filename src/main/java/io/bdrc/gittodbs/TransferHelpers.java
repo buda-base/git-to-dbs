@@ -7,9 +7,7 @@ import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -33,8 +31,6 @@ import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.RDFParserBuilder;
 import org.apache.jena.riot.RiotException;
-import org.apache.jena.riot.system.PrefixMap;
-import org.apache.jena.riot.system.PrefixMapFactory;
 import org.apache.jena.riot.system.StreamRDFLib;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -117,8 +113,7 @@ public class TransferHelpers {
     
 	public static Logger logger = LoggerFactory.getLogger("git2dbs");
 	
-    public static boolean progress = false;
-    public static boolean checkForDoubling = false;
+	public static boolean progress = false;
 	
 	public static long TRANSFER_TO = 50; // seconds
 	
@@ -233,38 +228,17 @@ public class TransferHelpers {
         return path.substring(0, path.length()-4);
 	}
 	
-	static Hashtable<String, String> seen = new Hashtable<String, String>();
-	
 	public static void addFileFuseki(DocType type, String dirPath, String filePath, boolean firstTransfer) {
-	    final String mainId = mainIdFromPath(filePath, type);
-	    if (mainId == null)
-	        return;
-	    
-	    if (checkForDoubling && type != DocType.ETEXT && type != DocType.ETEXTCONTENT) {
-	        if (seen.get(mainId) != null) {
-	            logger.error("addFileFuseki already added: " + mainId + " has already been processed from: " + seen.get(mainId));
-	        } else {
-	            seen.put(mainId, dirPath+filePath);
-	        }
-	    }
-	    
-	    Model m = modelFromPath(dirPath+filePath, type, mainId);
-	    
-	    if (checkForDoubling && FusekiHelpers.resourceDoubled(BDR+mainId, m, type)) {
-	        logger.error("addFileFuseki found doubled model from modelFromPath for " + mainId);
-	    }
-	    
-	    final String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
-	    FusekiHelpers.setModelRevision(m, type, rev, mainId);
-	    m = getInferredModel(m);
-        
-        if (checkForDoubling && FusekiHelpers.resourceDoubled(BDR+mainId, m, type)) {
-            logger.error("addFileFuseki found doubled model from getInferredModel for " + mainId);
-        }
-        
-	    String graphName = BDR+mainId;
-	    if (type == DocType.ETEXTCONTENT)
-	        graphName += "_STR";
+        final String mainId = mainIdFromPath(filePath, type);
+        if (mainId == null)
+            return;
+        Model m = modelFromPath(dirPath+filePath, type, mainId);
+        final String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
+        FusekiHelpers.setModelRevision(m, type, rev, mainId);
+        m = getInferredModel(m);
+        String graphName = BDR+mainId;
+        if (type == DocType.ETEXTCONTENT)
+            graphName += "_STR";
         try {
             FusekiHelpers.transferModel(graphName, m, firstTransfer);
         } catch (TimeoutException e) {
