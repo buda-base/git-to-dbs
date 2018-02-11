@@ -176,7 +176,9 @@ public class GitToDB {
         if (!gitDir.endsWith("/"))
             gitDir+='/';
 		
-        if (! testDoubling) {
+        if (testDoubling) {
+            GitHelpers.initDoublingTest();
+        } else {
             GitHelpers.init();
         }
         
