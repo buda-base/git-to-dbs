@@ -228,7 +228,7 @@ public class TransferHelpers {
         return path.substring(0, path.length()-4);
 	}
 	
-	public static void addFileFuseki(DocType type, String dirPath, String filePath, boolean firstTransfer) {
+	public static void addFileFuseki(DocType type, String dirPath, String filePath) {
         final String mainId = mainIdFromPath(filePath, type);
         if (mainId == null)
             return;
@@ -239,13 +239,9 @@ public class TransferHelpers {
         String graphName = BDR+mainId;
         if (type == DocType.ETEXTCONTENT)
             graphName += "_STR";
-        try {
-            FusekiHelpers.transferModel(graphName, m, firstTransfer);
-        } catch (TimeoutException e) {
-            TransferHelpers.logger.error("", e);
-        }
+        FusekiHelpers.transferModel(graphName, m);
 	}
-	
+
 	public static void logFileHandling(int i, String path, boolean fuseki) {
 	    TransferHelpers.logger.debug("sending "+path+" to "+(fuseki ? "Fuseki" : "Couchdb"));
 	    if (i % 100 == 0 && progress)
@@ -272,7 +268,7 @@ public class TransferHelpers {
                         return nbLeft;
                     i = i + 1;
                     logFileHandling(i, tw.getPathString(), true);
-                    addFileFuseki(type, dirpath, tw.getPathString(), true);
+                    addFileFuseki(type, dirpath, tw.getPathString());
                 }
                 FusekiHelpers.finishDatasetTransfers();
             } catch (IOException e) {
@@ -298,15 +294,11 @@ public class TransferHelpers {
 	            if (path.equals("/dev/null") || !path.equals(oldPath)) {
 	                final String mainId = mainIdFromPath(oldPath, type);
 	                if (mainId != null) {
-    	                try {
-                            FusekiHelpers.deleteModel(BDR+mainId);
-                        } catch (TimeoutException e) {
-                            TransferHelpers.logger.error("", e);
-                        }
+	                    FusekiHelpers.deleteModel(BDR+mainId);
 	                }
 	            }
 	            if (!path.equals("/dev/null"))
-	                addFileFuseki(type, dirpath, path, false);
+	                addFileFuseki(type, dirpath, path);
 	        }
 	    }
 	    FusekiHelpers.setLastRevision(gitRev, type);
@@ -447,10 +439,6 @@ public class TransferHelpers {
 	}
 
 	public static void transferOntology() {
-		try {
-			FusekiHelpers.transferModel(CORE_PREFIX+"ontologySchema", ontModel, false);
-		} catch (TimeoutException e) {
-			logger.error("Timeout sending ontology model", e);
-		}
+	    FusekiHelpers.transferModel(CORE_PREFIX+"ontologySchema", ontModel);
 	}
 }
