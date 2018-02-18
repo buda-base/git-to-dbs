@@ -5,16 +5,10 @@ import java.net.MalformedURLException;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.ReadWrite;
-import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFactory;
-
-import io.bdrc.gittodbs.TransferHelpers.DocType;
 
 public class FusekiHelpers {
     
@@ -22,7 +16,6 @@ public class FusekiHelpers {
     public static String FusekiSparqlEndpoint = null;
     public static RDFConnection fuConn;
     public static int initialLoadBulkSize = 50000; // the number of triples above which a dataset load is triggered
-    public static boolean addGitRevision = true;
     
     public static void init(String fusekiHost, String fusekiPort, String fusekiEndpoint) throws MalformedURLException {
         String baseUrl = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/"+fusekiEndpoint;
@@ -32,28 +25,17 @@ public class FusekiHelpers {
         fuConn = RDFConnectionFactory.connect(baseUrl, baseUrl+"/query", baseUrl+"/update", baseUrl+"/data");
     }
     
-    public static synchronized String getLastRevision(DocType type) {
-        Model m = getSyncModel();
-        String typeStr = type.toString();
-        typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
-        Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo"+typeStr);
-        Property p = m.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
-        Statement s = m.getProperty(res, p);
-        if (s == null) return null;
-        return s.getString();
-    }
-    
     private static volatile Model syncModel = ModelFactory.createDefaultModel();
     private static volatile boolean syncModelInitialized = false;
     
-    public static synchronized final Model getSyncModel() {
+    public static final Model getSyncModel() {
         if (syncModelInitialized)
             return syncModel;
         initSyncModel();
         return syncModel;
     }
     
-    public static synchronized final void initSyncModel() {
+    public static final void initSyncModel() {
         syncModelInitialized = true;
         TransferHelpers.logger.info("initSyncModel: " + TransferHelpers.ADMIN_PREFIX+"system");
         Model distantSyncModel = getModel(TransferHelpers.ADMIN_PREFIX+"system");
@@ -61,40 +43,12 @@ public class FusekiHelpers {
             syncModel.add(distantSyncModel);
         }
     }
-    
-    public static synchronized void setLastRevision(String revision, DocType type) {
-        final Model m = getSyncModel();
-        String typeStr = type.toString();
-        typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
-        Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo"+typeStr);
-        Property p = m.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
-        Literal l = m.createLiteral(revision);
-        Statement s = m.getProperty(res, p);
-        if (s == null) {
-            m.add(res, p, l);
-        } else {
-            s.changeObject(l);
-        }
-
-        transferModel(TransferHelpers.ADMIN_PREFIX+"system", m);
-    }
-
-    public static void setModelRevision(Model m, DocType type, String rev, String mainId) {
-        if (!addGitRevision)
-            return;
-        final Property p;
-        if (type == DocType.ETEXTCONTENT) 
-            p = m.getProperty(TransferHelpers.ADM, "contentsGitRevision");
-        else
-            p = m.getProperty(TransferHelpers.ADM, "gitRevision");
-        final Resource r = m.getResource(TransferHelpers.BDR+mainId);
-        r.addProperty(p, m.createLiteral(rev));
-    }
 
     private static void loadDatasetSimple(final Dataset ds) {
         if (!fuConn.isInTransaction()) {
             fuConn.begin(ReadWrite.WRITE);
         }
+        TransferHelpers.logger.info("transferring ~ " + ds.getUnionModel().toString().substring(0, 512));
         fuConn.loadDataset(ds);
         TransferHelpers.logger.info("transferred ~ " + ds.getUnionModel().size() + " triples");
         fuConn.commit();
@@ -118,9 +72,11 @@ public class FusekiHelpers {
 
     static void finishDatasetTransfers() {
         // if map is not empty, transfer the last one
-        TransferHelpers.logger.info("finishDatasetTransfers addFileFuseki " + (currentDataset != null ? "not null" : "null"));
+        TransferHelpers.logger.info("finishDatasetTransfers addFileFuseki currentDataset " + (currentDataset != null ? "not null" : "null"));
         if (currentDataset != null) {
             loadDatasetSimple(currentDataset);
+            currentDataset = null;
+            triplesInDataset = 0;
         }
     }
 
@@ -129,15 +85,6 @@ public class FusekiHelpers {
         FusekiHelpers.fuConn.commit();
         FusekiHelpers.fuConn.end();
         FusekiHelpers.fuConn.close();
-    }
-
-    static void deleteModel(String graphName) {
-        TransferHelpers.logger.info("deleteModel:" + graphName);
-        if (!fuConn.isInTransaction()) {
-            fuConn.begin(ReadWrite.WRITE);
-        }
-        fuConn.delete(graphName);
-        fuConn.commit();
     }
 
     static Model getModel(String graphName) {

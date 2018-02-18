@@ -2,27 +2,16 @@ package io.bdrc.gittodbs;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.EnumMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.diff.DiffFormatter;
-import org.eclipse.jgit.errors.InvalidObjectIdException;
-import org.eclipse.jgit.errors.MissingObjectException;
-import org.eclipse.jgit.lib.ObjectId;
+
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
-import org.eclipse.jgit.util.io.DisabledOutputStream;
 
 import io.bdrc.gittodbs.TransferHelpers.DocType;
 
@@ -30,34 +19,8 @@ public class GitHelpers {
     public static Map<DocType,Repository> typeRepo = new EnumMap<>(DocType.class);
     
     public static void init() {
-        ensureGitRepo(DocType.CORPORATION);
-        ensureGitRepo(DocType.LINEAGE);
-        ensureGitRepo(DocType.OFFICE);
         ensureGitRepo(DocType.PERSON);
-        ensureGitRepo(DocType.PLACE);
-        ensureGitRepo(DocType.TOPIC);
         ensureGitRepo(DocType.ITEM);
-        ensureGitRepo(DocType.WORK);
-        ensureGitRepo(DocType.ETEXT);
-        ensureGitRepo(DocType.ETEXTCONTENT);
-        ensureGitRepo(DocType.PRODUCT);
-    }
-    
-    // for tests only
-    public static void createGitRepo(DocType type) {
-        String dirpath = GitToDB.gitDir + type + 's';
-        FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        File gitDir = new File(dirpath+"/.git");
-        File wtDir = new File(dirpath);
-        try {
-            Repository repository = builder.setGitDir(gitDir)
-              .setWorkTree(wtDir)
-              .readEnvironment()
-              .build();
-            repository.create();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
     
     public static void ensureGitRepo(DocType type) {
@@ -82,73 +45,6 @@ public class GitHelpers {
             TransferHelpers.logger.error(dirpath+" does not seem to be a valid git repository, quitting");
             System.exit(1);
         }
-    }
-    
-    public static String getLastRefOfFile(DocType type, String path) {
-        Repository r = typeRepo.get(type);
-        Git git = new Git(r);
-        Iterator<RevCommit> commits;
-        try {
-            commits = git.log().addPath(path).setMaxCount(1).call().iterator();
-        } catch (GitAPIException e) {
-            e.printStackTrace();
-            git.close();
-            return null;
-        }
-        RevCommit rc = commits.next();
-        if (rc == null)
-            TransferHelpers.logger.error(path+" does not seem to have any associated commit");
-        String res = rc.getName();
-        git.close();
-        return res;
-    }
-    
-    public static String getHeadRev(DocType type) {
-        Repository r = typeRepo.get(type); 
-        if (r == null)
-            return null;
-        Ref headRef;
-        try {
-            headRef = r.exactRef(r.getFullBranch());
-        } catch (IOException e) {
-            TransferHelpers.logger.error("", e);
-            return null;
-        }
-        if (headRef == null)
-            return null;
-        return headRef.getObjectId().name();
-    }
-    
-    public static List<DiffEntry> getChanges(DocType type, String sinceRev) throws InvalidObjectIdException, MissingObjectException {
-        Repository r = typeRepo.get(type); 
-        if (r == null)
-            return null;
-        ObjectId commitId;
-        commitId = ObjectId.fromString(sinceRev);
-        RevCommit commit;
-        List<DiffEntry> entries = null;
-        try {
-            RevWalk walk = new RevWalk(r);
-            commit = walk.parseCommit( commitId );
-            walk.close();
-            CanonicalTreeParser oldTreeIter = new CanonicalTreeParser();
-            oldTreeIter.reset(r.newObjectReader(), commit.getTree());
-            OutputStream outputStream = DisabledOutputStream.INSTANCE;
-            ObjectId head = r.resolve("HEAD^{tree}");
-            CanonicalTreeParser newTreeIter = new CanonicalTreeParser();
-            newTreeIter.reset(r.newObjectReader(), head);
-            DiffFormatter formatter = new DiffFormatter(outputStream);
-            formatter.setRepository(r);
-            entries = formatter.scan(oldTreeIter, newTreeIter);
-            formatter.close();
-        } catch (MissingObjectException e) {
-            // oddity due to MissingObjectException inheriting from IOException
-            throw new MissingObjectException(commitId, e.getMessage());
-        } catch (IOException e) {
-            TransferHelpers.logger.error("", e);
-            return null;
-        }
-        return entries;
     }
     
     public static TreeWalk listRepositoryContents(DocType type) {
