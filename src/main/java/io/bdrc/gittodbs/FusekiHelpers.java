@@ -122,6 +122,8 @@ public class FusekiHelpers {
         if (currentDataset != null) {
             loadDatasetSimple(currentDataset);
         }
+        currentDataset = null;
+        triplesInDataset = 0;
     }
 
     public static void closeConnections() {
