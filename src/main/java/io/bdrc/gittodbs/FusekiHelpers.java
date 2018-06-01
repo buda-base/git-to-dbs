@@ -12,7 +12,7 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionFactory;
+import org.apache.jena.rdfconnection.RDFConnectionFuseki;
 
 import io.bdrc.gittodbs.TransferHelpers.DocType;
 
@@ -29,7 +29,12 @@ public class FusekiHelpers {
         FusekiUrl = baseUrl+"/data";
         FusekiSparqlEndpoint = baseUrl+"/query";
         TransferHelpers.logger.info("connecting to fuseki via RDFConnection at "+FusekiUrl);
-        fuConn = RDFConnectionFactory.connect(baseUrl, baseUrl+"/query", baseUrl+"/update", baseUrl+"/data");
+        fuConn = RDFConnectionFuseki.create()
+                .destination(baseUrl)
+                .queryEndpoint(baseUrl+"/query")
+                .gspEndpoint(baseUrl+"/data")
+                .updateEndpoint(baseUrl+"/update")
+                .build();
     }
     
     public static synchronized String getLastRevision(DocType type) {

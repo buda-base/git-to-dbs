@@ -8,6 +8,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.reasoner.Reasoner;
+import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -46,8 +47,12 @@ public class ReasonerTest {
         Property incarnationActivities = m.createProperty(BDO, "incarnationActivities");
         Property isIncarnation = m.createProperty(BDO, "isIncarnation");
         m.add(r1, incarnationActivities, r2);
+        // with annotations
+        Property sameAsrKTs = m.createProperty(BDO, "sameAsrKTs");
+        m.add(r1, sameAsrKTs, r2);
         InfModel im = ModelFactory.createInfModel(reasoner, m);
         assertTrue(im.contains(r1, isIncarnation, r2));
+        assertTrue(im.contains(r1, OWL.sameAs, r2));
     }
     
     @Test
