@@ -1,4 +1,4 @@
-# git-to-dbs
+# git-to-dbs 
 
 This repository contains code to transfer BDRC data from local git repos to Fuseki and/or couchdb. It can transfer the whole database or just listen to changes in the git repos.
 
