@@ -429,17 +429,19 @@ public class TransferHelpers {
 	    	logger.error("Error reading ontology file", e);
 	    	return null;
 	    }
+		logger.info("Ontology BaseModel " + res.size());
 		return res;
 	}
 	
 	public static OntModel getOntologyModel(Model baseModel) {
 		OntModel ontoModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM, baseModel);
 	    rdf10tordf11(ontoModel);
+	    logger.info("OntologyModel " + ontoModel.size());
 	    return ontoModel;
 	}
 
 	public static void transferOntology() {
 	    logger.info("Transferring Ontology: " + CORE_PREFIX+"ontologySchema");
-	    FusekiHelpers.transferModel(CORE_PREFIX+"ontologySchema", ontModel);
+	    FusekiHelpers.transferModel(CORE_PREFIX+"ontologySchema", ontModel, true);
 	}
 }

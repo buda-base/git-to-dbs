@@ -110,11 +110,15 @@ public class FusekiHelpers {
     static int triplesInDataset = 0;
     
     static void transferModel(final String graphName, final Model m) {
+        transferModel(graphName, m, false);
+    }
+    
+    static void transferModel(final String graphName, final Model m, boolean simple) {
         if (currentDataset == null)
             currentDataset = DatasetFactory.createGeneral();
         currentDataset.addNamedModel(graphName, m);
         triplesInDataset += m.size();
-        if (triplesInDataset > initialLoadBulkSize) {
+        if (simple || triplesInDataset > initialLoadBulkSize) {
             loadDatasetSimple(currentDataset);
             currentDataset = null;
             triplesInDataset = 0;
