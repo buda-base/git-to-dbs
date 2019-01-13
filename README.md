@@ -15,13 +15,13 @@ curl -s https://api.github.com/repos/BuddhistDigitalResourceCenter/fuseki-couchd
 ##### from the jar file 
 
 ```
-java -jar target/gittodbs-0.7.jar -help
+java -jar target/gittodbs-0.8.0.jar -help
 ```
 
 A typical usage is:
 
 ```
-time java -jar target/gittodbs-0.8.jar -transferOnto -transferAllDB -doNotListen -timeout 60 -progress
+time java -jar target/gittodbs-0.8.0.jar -transferOnto -transferAllDB -doNotListen -timeout 60 -progress
 ```
 
 ##### from the java code
@@ -51,4 +51,4 @@ When there is a change in the owl-schema repo the following may be used to sync 
 ```
 git submodule update --recursive --remote
 ```
-And then mvn clean package to update the gittodbs-x.y.z.jar
+And then ```mvn clean package``` to update the gittodbs-x.y.z.jar
