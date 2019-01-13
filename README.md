@@ -21,7 +21,7 @@ java -jar target/gittodbs-0.7.jar -help
 A typical usage is:
 
 ```
-time java -jar target/gittodbs-0.7.jar -transferOnto -transferAllDB -doNotListen -timeout 60 -progress
+time java -jar target/gittodbs-0.8.jar -transferOnto -transferAllDB -doNotListen -timeout 60 -progress
 ```
 
 ##### from the java code
@@ -39,9 +39,16 @@ or
 ```
 mvn clean package -Dmaven.test.skip=true
 ```
-When there is a change in the owl-schema repo the following is needed:
+
+The first time after cloning the repo:
 
 ```
 git submodule update --init
 ```
 
+When there is a change in the owl-schema repo the following may be used to sync to the head of the owl-schema repo:
+
+```
+git submodule update --recursive --remote
+```
+And then mvn clean package to update the gittodbs-x.y.z.jar
