@@ -1,11 +1,4 @@
 #!/bin/bash
 
-java -jar target/fusekicouchdb-0.7.jar -transferAllDB -progress -doNotListen -couchdbName bdrc_corporation
-java -jar target/fusekicouchdb-0.7.jar -transferAllDB -progress -doNotListen -couchdbName bdrc_lineage
-java -jar target/fusekicouchdb-0.7.jar -transferAllDB -progress -doNotListen -couchdbName bdrc_office
-java -jar target/fusekicouchdb-0.7.jar -transferAllDB -progress -doNotListen -timeout 30 -couchdbName bdrc_outline
-java -jar target/fusekicouchdb-0.7.jar -transferAllDB -progress -doNotListen -couchdbName bdrc_person
-java -jar target/fusekicouchdb-0.7.jar -transferAllDB -progress -doNotListen -couchdbName bdrc_place
-java -jar target/fusekicouchdb-0.7.jar -transferAllDB -progress -doNotListen -couchdbName bdrc_topic
-java -jar target/fusekicouchdb-0.7.jar -transferAllDB -progress -doNotListen -couchdbName bdrc_volumes
-java -jar target/fusekicouchdb-0.7.jar -transferAllDB -progress -doNotListen -couchdbName bdrc_work
+export GITS="../bdrc-gits"
+time java -jar target/gittodbs-0.8.0.jar -fuseki -transferOnto -timeout 60 -progress -gitDir ${GITS} -bulkSz 250000 $@
