@@ -25,7 +25,8 @@ public class ReasonerTest {
     
     @BeforeClass
     public static void init() {
-        ontModel = TransferHelpers.getOntologyBaseModel();
+//        ontModel = TransferHelpers.getOntologyBaseModel();
+        ontModel = TransferHelpers.getOntologyModel();
         BDRCReasoner.inferSymetry = true;
         reasoner = BDRCReasoner.getReasoner(ontModel);
     }

@@ -34,6 +34,7 @@ import org.apache.jena.riot.RDFParserBuilder;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.riot.system.StreamRDFLib;
 import org.apache.jena.sparql.util.Context;
+import org.apache.jena.util.FileManager;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.OWL2;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -443,9 +444,12 @@ public class TransferHelpers {
 	    OntModelSpec ontSpec = new OntModelSpec( OntModelSpec.OWL_DL_MEM );
 
 	    if (baseModel == null) {
-	        OntDocumentManager mgr = new OntDocumentManager("file:owl-schema/ont-policy.rdf;https://raw.githubusercontent.com/buda-base/owl-schema/master/ont-policy.rdf");
+            OntDocumentManager mgr = new OntDocumentManager("owl-schema/ont-policy.rdf;https://raw.githubusercontent.com/buda-base/owl-schema/master/ont-policy.rdf");
 	        ontSpec.setDocumentManager( mgr );
 	        ontModel = ModelFactory.createOntologyModel( ontSpec );
+	        ClassLoader classLoader = TransferHelpers.class.getClassLoader();
+	        InputStream inputStream = classLoader.getResourceAsStream("owl-schema/adm/admin.ttl");
+	        ontModel.read(inputStream, "", "TURTLE");
 	    } else {
 	        ontModel = ModelFactory.createOntologyModel(ontSpec, baseModel);
 	    }
