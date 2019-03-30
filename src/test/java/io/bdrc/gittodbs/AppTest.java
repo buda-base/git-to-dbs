@@ -26,8 +26,8 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoFilepatternException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.ektorp.http.StdHttpClient;
-import org.ektorp.impl.StdCouchDbInstance;
+//import org.ektorp.http.StdHttpClient;
+//import org.ektorp.impl.StdCouchDbInstance;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -40,7 +40,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.bdrc.gittodbs.TransferHelpers.DocType;
-import mcouch.core.InMemoryCouchDb;
+//import mcouch.core.InMemoryCouchDb;
 
 /**
  * Unit test for simple App.
@@ -62,16 +62,16 @@ public class AppTest
 	    // for some reason, using both DataAccessor and RDFConnection on the same dataset doesn't work
 //        FusekiHelpers.useRdfConnection = true;
 //        FusekiHelpers.useRdfConnection = false;
-	    InMemoryCouchDb couchDbClient = new InMemoryCouchDb();
-        couchDbClient.createDatabase("bdrc_test");
-        StdHttpClient stdHttpClient = new StdHttpClient(couchDbClient);
-        CouchHelpers.httpClient = stdHttpClient;
-        StdCouchDbInstance stdCouchDbInstance = new StdCouchDbInstance(stdHttpClient);
-        CouchHelpers.dbInstance = stdCouchDbInstance;
-        CouchHelpers.testMode = true;
-        CouchHelpers.deleteDbBeforeInsert = false;
-        CouchHelpers.useBulks = false;
-        CouchHelpers.putDB(DocType.TEST);
+//	    InMemoryCouchDb couchDbClient = new InMemoryCouchDb();
+//        couchDbClient.createDatabase("bdrc_test");
+//        StdHttpClient stdHttpClient = new StdHttpClient(couchDbClient);
+//        CouchHelpers.httpClient = stdHttpClient;
+//        StdCouchDbInstance stdCouchDbInstance = new StdCouchDbInstance(stdHttpClient);
+//        CouchHelpers.dbInstance = stdCouchDbInstance;
+//        CouchHelpers.testMode = true;
+//        CouchHelpers.deleteDbBeforeInsert = false;
+//        CouchHelpers.useBulks = false;
+//        CouchHelpers.putDB(DocType.TEST);
         tempDir = Files.createTempDir();
         JSONLDFormatter.typeToRootShortUri.put(DocType.TEST, "Test");
         System.out.println("create temporary directory for git testing in "+tempDir.getAbsolutePath());
@@ -81,6 +81,8 @@ public class AppTest
         Model baseModel = TransferHelpers.getOntologyBaseModel();
         BDRCReasoner.inferSymetry = true;
         TransferHelpers.bdrcReasoner = BDRCReasoner.getReasoner(baseModel);
+//        Model ontModel = TransferHelpers.getOntologyModel();
+//        TransferHelpers.bdrcReasoner = BDRCReasoner.getReasoner(ontModel);
         om = new ObjectMapper();
 	}
 	
@@ -133,9 +135,9 @@ public class AppTest
 	    String rev = writeModelToGitPath(m, "r1.ttl");
 	    assertTrue(GitHelpers.getHeadRev(DocType.TEST).equals(rev));
 	    assertTrue(GitHelpers.getLastRefOfFile(DocType.TEST, "r1.ttl").equals(rev));
-	    TransferHelpers.syncTypeCouch(DocType.TEST, 1000);
-	    Model couchM = CouchHelpers.getModelFromDocId("bdr:r1", DocType.TEST);
-	    assertTrue(couchM.isIsomorphicWith(m));
+//	    TransferHelpers.syncTypeCouch(DocType.TEST, 1000);
+//	    Model couchM = CouchHelpers.getModelFromDocId("bdr:r1", DocType.TEST);
+//	    assertTrue(couchM.isIsomorphicWith(m));
 	    TransferHelpers.syncTypeFuseki(DocType.TEST, 1000);
 	    Model fusekiM = FusekiHelpers.getModel(BDR+"r1");
 	    // adding the revision to m so that it corresponds to what's in Fuseki

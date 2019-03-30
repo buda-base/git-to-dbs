@@ -18,16 +18,16 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ReasonerTest {
 
-    public static Model baseModel;
+    public static Model ontModel;
     public static Reasoner reasoner;
     private static final String BDR = TransferHelpers.BDR;
     private static final String BDO = TransferHelpers.BDO;
     
     @BeforeClass
     public static void init() {
-        baseModel = TransferHelpers.getOntologyBaseModel();
+        ontModel = TransferHelpers.getOntologyBaseModel();
         BDRCReasoner.inferSymetry = true;
-        reasoner = BDRCReasoner.getReasoner(baseModel);
+        reasoner = BDRCReasoner.getReasoner(ontModel);
     }
     
     @Test

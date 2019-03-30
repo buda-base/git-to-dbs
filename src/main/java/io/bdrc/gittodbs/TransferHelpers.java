@@ -16,6 +16,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.ontology.DatatypeProperty;
+import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Restriction;
@@ -111,7 +112,7 @@ public class TransferHelpers {
             m.setNsPrefix("vcard", VCARD_PREFIX);
     }
     
-	public static Logger logger = LoggerFactory.getLogger("git2dbs");
+	public static Logger logger = LoggerFactory.getLogger(TransferHelpers.class);
 	
 	public static boolean progress = false;
 	
@@ -421,9 +422,9 @@ public class TransferHelpers {
 		Model res;
 		try {
     		ClassLoader classLoader = TransferHelpers.class.getClassLoader();
-    		InputStream inputStream = classLoader.getResourceAsStream("owl-schema/bdrc.owl");
+    		InputStream inputStream = classLoader.getResourceAsStream("owl-schema/core/bdo.ttl");
 	        res = ModelFactory.createDefaultModel();
-	    	res.read(inputStream, "", "RDF/XML");
+	    	res.read(inputStream, "", "TURTLE");
 	        inputStream.close();
 	    } catch (Exception e) {
 	    	logger.error("Error reading ontology file", e);
@@ -432,12 +433,26 @@ public class TransferHelpers {
 		logger.info("Ontology BaseModel " + res.size());
 		return res;
 	}
-	
+    
+	public static OntModel getOntologyModel() {
+        return getOntologyModel(null);
+    }
+
 	public static OntModel getOntologyModel(Model baseModel) {
-		OntModel ontoModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM, baseModel);
-	    rdf10tordf11(ontoModel);
-	    logger.info("OntologyModel " + ontoModel.size());
-	    return ontoModel;
+	    OntModel ontModel = null;
+	    OntModelSpec ontSpec = new OntModelSpec( OntModelSpec.OWL_DL_MEM );
+
+	    if (baseModel == null) {
+	        OntDocumentManager mgr = new OntDocumentManager("file:owl-schema/ont-policy.rdf;https://raw.githubusercontent.com/buda-base/owl-schema/master/ont-policy.rdf");
+	        ontSpec.setDocumentManager( mgr );
+	        ontModel = ModelFactory.createOntologyModel( ontSpec );
+	    } else {
+	        ontModel = ModelFactory.createOntologyModel(ontSpec, baseModel);
+	    }
+	    
+	    rdf10tordf11(ontModel);
+	    logger.info("OntologyModel " + ontModel.size());
+	    return ontModel;
 	}
 
 	public static void transferOntology() {
