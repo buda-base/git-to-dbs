@@ -13,6 +13,8 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFuseki;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.bdrc.gittodbs.TransferHelpers.DocType;
 
@@ -24,11 +26,13 @@ public class FusekiHelpers {
     public static int initialLoadBulkSize = 50000; // the number of triples above which a dataset load is triggered
     public static boolean addGitRevision = true;
     
+    public static Logger logger = LoggerFactory.getLogger(FusekiHelpers.class);
+    
     public static void init(String fusekiHost, String fusekiPort, String fusekiEndpoint) throws MalformedURLException {
         String baseUrl = "http://" + fusekiHost + ":" +  fusekiPort + "/fuseki/"+fusekiEndpoint;
         FusekiUrl = baseUrl+"/data";
         FusekiSparqlEndpoint = baseUrl+"/query";
-        TransferHelpers.logger.info("connecting to fuseki via RDFConnection at "+FusekiUrl);
+        logger.info("connecting to fuseki via RDFConnection at "+FusekiUrl);
         fuConn = RDFConnectionFuseki.create()
                 .destination(baseUrl)
                 .queryEndpoint(baseUrl+"/query")
@@ -60,7 +64,7 @@ public class FusekiHelpers {
     
     public static synchronized final void initSyncModel() {
         syncModelInitialized = true;
-        TransferHelpers.logger.info("initSyncModel: " + TransferHelpers.ADMIN_PREFIX+"system");
+        logger.info("initSyncModel: " + TransferHelpers.ADMIN_PREFIX+"system");
         Model distantSyncModel = getModel(TransferHelpers.ADMIN_PREFIX+"system");
         if (distantSyncModel != null) {
             syncModel.add(distantSyncModel);
@@ -101,7 +105,7 @@ public class FusekiHelpers {
             fuConn.begin(ReadWrite.WRITE);
         }
         fuConn.loadDataset(ds);
-        TransferHelpers.logger.info("transferred ~ " + ds.getUnionModel().size() + " triples");
+        logger.info("transferred ~ " + ds.getUnionModel().size() + " triples");
         fuConn.commit();
     }
 
@@ -127,7 +131,7 @@ public class FusekiHelpers {
 
     static void finishDatasetTransfers() {
         // if map is not empty, transfer the last one
-        TransferHelpers.logger.info("finishDatasetTransfers addFileFuseki " + (currentDataset != null ? "not null" : "null"));
+        logger.info("finishDatasetTransfers addFileFuseki " + (currentDataset != null ? "not null" : "null"));
         if (currentDataset != null) {
             loadDatasetSimple(currentDataset);
         }
@@ -136,14 +140,14 @@ public class FusekiHelpers {
     }
 
     public static void closeConnections() {
-        TransferHelpers.logger.info("closeConnections fuConn.commit, end, close");
+        logger.info("closeConnections fuConn.commit, end, close");
         FusekiHelpers.fuConn.commit();
         FusekiHelpers.fuConn.end();
         FusekiHelpers.fuConn.close();
     }
 
     static void deleteModel(String graphName) {
-        TransferHelpers.logger.info("deleteModel:" + graphName);
+        logger.info("deleteModel:" + graphName);
         if (!fuConn.isInTransaction()) {
             fuConn.begin(ReadWrite.WRITE);
         }
@@ -152,7 +156,7 @@ public class FusekiHelpers {
     }
 
     static Model getModel(String graphName) {
-        TransferHelpers.logger.info("getModel:" + graphName);
+        logger.info("getModel:" + graphName);
         try {
             return fuConn.fetch(graphName); 
         } catch (Exception ex) {

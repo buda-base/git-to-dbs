@@ -57,6 +57,7 @@ public class AppTest
 	
 	@BeforeClass
 	public static void init() throws IOException {
+	    logger.debug("AppTest.init() START");
 	    ds = DatasetFactory.createGeneral();
 //        FusekiHelpers.fu = DatasetAccessorFactory.create(ds);
         FusekiHelpers.fuConn = RDFConnectionFactory.connect(ds);
@@ -72,9 +73,12 @@ public class AppTest
         BDRCReasoner.inferSymetry = true;
 //        Model baseModel = TransferHelpers.getOntologyBaseModel();
 //        TransferHelpers.bdrcReasoner = BDRCReasoner.getReasoner(baseModel);
+        logger.debug("TransferHelpers.getOntologyModel()");
         Model ontModel = TransferHelpers.getOntologyModel();
+        logger.debug("BDRCReasoner.getReasoner(ontModel)");
         TransferHelpers.bdrcReasoner = BDRCReasoner.getReasoner(ontModel);
         om = new ObjectMapper();
+        logger.debug("AppTest.init() DONE");
 	}
 	
 	public static void deleteRec(File f) throws IOException {
