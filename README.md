@@ -52,3 +52,23 @@ When there is a change in the owl-schema repo the following may be used to sync 
 git submodule update --recursive --remote
 ```
 And then ```mvn clean package``` to update the gittodbs-x.y.z.jar
+
+## Debugging Unit tests etc
+
+To use slf4j bound to log4j the pom.xml needs a dependency like:
+
+```
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.7.25</version>
+    </dependency>
+```
+To get logging during running unit tests, update the src/test/resources with desired log level settings and then to run a single test such as AppTest:
+
+```
+mvn -Dlog4j.debug  surefire:test -Dtest=AppTest
+```
+will run AppTest with the log4j.properties settings and the `-Dlog4j.debug` will output debugging from log4j as it locates the effective log4j.properties.
+
+Adding an appropriate log4j.properties to src/main/resources allows to control logging of the main application.
