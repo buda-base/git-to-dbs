@@ -123,12 +123,14 @@ public class GitToDB {
                 transferOnto = true;
             } else if (arg.equals("-progress")) {
                 TransferHelpers.progress = true;
-			} else if (arg.equals("-debug")) {
-		        System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "DEBUG");
-		        TransferHelpers.logger = LoggerFactory.getLogger("fuseki-couchdb");
-			} else if (arg.equals("-trace")) {
-		        System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "TRACE");
-		        TransferHelpers.logger = LoggerFactory.getLogger("fuseki-couchdb");
+            } else if (arg.equals("-debug")) {
+                org.apache.log4j.Logger logger4j = org.apache.log4j.Logger.getRootLogger();
+                logger4j.setLevel(org.apache.log4j.Level.toLevel("DEBUG"));
+                TransferHelpers.logger = LoggerFactory.getLogger(GitToDB.class);
+            } else if (arg.equals("-trace")) {
+                org.apache.log4j.Logger logger4j = org.apache.log4j.Logger.getRootLogger();
+                logger4j.setLevel(org.apache.log4j.Level.toLevel("TRACE"));
+                TransferHelpers.logger = LoggerFactory.getLogger(GitToDB.class);
 			} else if (arg.equals("-help")) {
 				printHelp();
 				System.exit(0);

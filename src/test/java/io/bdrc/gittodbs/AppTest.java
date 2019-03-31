@@ -31,6 +31,8 @@ import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -45,7 +47,9 @@ import io.bdrc.gittodbs.TransferHelpers.DocType;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class AppTest 
 {
-	private static File tempDir;
+    public static Logger logger = LoggerFactory.getLogger(AppTest.class);
+
+    private static File tempDir;
 	private static final String BDR = TransferHelpers.BDR;
 	private static final String BDO = TransferHelpers.BDO;
 	private static Dataset ds;
@@ -61,7 +65,7 @@ public class AppTest
 //        FusekiHelpers.useRdfConnection = false;
         tempDir = Files.createTempDir();
         JSONLDFormatter.typeToRootShortUri.put(DocType.TEST, "Test");
-        System.out.println("create temporary directory for git testing in "+tempDir.getAbsolutePath());
+        logger.info("create temporary directory for git testing in "+tempDir.getAbsolutePath());
         GitToDB.gitDir = tempDir.getAbsolutePath()+'/';
         GitHelpers.createGitRepo(DocType.TEST);
         GitHelpers.ensureGitRepo(DocType.TEST);
