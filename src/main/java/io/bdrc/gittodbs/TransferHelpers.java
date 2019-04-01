@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeoutException;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.ontology.DatatypeProperty;
@@ -34,7 +33,6 @@ import org.apache.jena.riot.RDFParserBuilder;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.riot.system.StreamRDFLib;
 import org.apache.jena.sparql.util.Context;
-import org.apache.jena.util.FileManager;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.OWL2;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -121,9 +119,8 @@ public class TransferHelpers {
 	
 	public static ExecutorService executor = Executors.newCachedThreadPool();
 
-
+	public static String adminNS = "http://purl.bdrc.io/ontology/admin/";
 	public static OntModel ontModel = null;
-	public static Model baseModel = null;
 	public static Reasoner bdrcReasoner = null;
 	
 	public static void init() throws MalformedURLException {
@@ -138,8 +135,8 @@ public class TransferHelpers {
 	    if (GitToDB.transferCouch) {
 	        CouchHelpers.init(GitToDB.couchdbHost, GitToDB.couchdbPort, GitToDB.libFormat);
 	    }
-		baseModel = getOntologyBaseModel(); 
-		ontModel = getOntologyModel(baseModel);
+		
+	    ontModel = getOntologyModel();
 		bdrcReasoner = BDRCReasoner.getReasoner(ontModel);
 	}
 	
@@ -418,44 +415,18 @@ public class TransferHelpers {
             }
         }
 	}
-	
-	public static Model getOntologyBaseModel() {
-		Model res;
-		try {
-    		ClassLoader classLoader = TransferHelpers.class.getClassLoader();
-    		InputStream inputStream = classLoader.getResourceAsStream("owl-schema/core/bdo.ttl");
-	        res = ModelFactory.createDefaultModel();
-	    	res.read(inputStream, "", "TURTLE");
-	        inputStream.close();
-	    } catch (Exception e) {
-	    	logger.error("Error reading ontology file", e);
-	    	return null;
-	    }
-		logger.info("Ontology BaseModel " + res.size());
-		return res;
-	}
-    
+
 	public static OntModel getOntologyModel() {
-        return getOntologyModel(null);
-    }
-
-	public static OntModel getOntologyModel(Model baseModel) {
-	    OntModel ontModel = null;
-	    OntModelSpec ontSpec = new OntModelSpec( OntModelSpec.OWL_DL_MEM );
-
-	    if (baseModel == null) {
-            OntDocumentManager mgr = new OntDocumentManager("owl-schema/ont-policy.rdf;https://raw.githubusercontent.com/buda-base/owl-schema/master/ont-policy.rdf");
-	        ontSpec.setDocumentManager( mgr );
-	        ontModel = ModelFactory.createOntologyModel( ontSpec );
-	        ClassLoader classLoader = TransferHelpers.class.getClassLoader();
-	        InputStream inputStream = classLoader.getResourceAsStream("owl-schema/adm/admin.ttl");
-	        ontModel.read(inputStream, "", "TURTLE");
-	    } else {
-	        ontModel = ModelFactory.createOntologyModel(ontSpec, baseModel);
-	    }
+	    OntDocumentManager ontManager = new OntDocumentManager("owl-schema/ont-policy.rdf;https://raw.githubusercontent.com/buda-base/owl-schema/master/ont-policy.rdf");
+        ontManager.setProcessImports(true); // not really needed since ont-policy sets it, but what if someone changes the policy
 	    
+	    OntModelSpec ontSpec = new OntModelSpec( OntModelSpec.OWL_DL_MEM );
+	    ontSpec.setDocumentManager( ontManager );	        
+	    
+	    OntModel ontModel = ontManager.getOntology( adminNS, ontSpec );
+
 	    rdf10tordf11(ontModel);
-	    logger.info("OntologyModel " + ontModel.size());
+	    logger.info("getOntologyModel ontModel.size() = " + ontModel.size());
 	    return ontModel;
 	}
 
