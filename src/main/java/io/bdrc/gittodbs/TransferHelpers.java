@@ -444,7 +444,7 @@ public class TransferHelpers {
 	    OntModelSpec ontSpec = new OntModelSpec( OntModelSpec.OWL_DL_MEM );
 
 	    if (baseModel == null) {
-            OntDocumentManager mgr = new OntDocumentManager("file:owl-schema/ont-policy.rdf;https://raw.githubusercontent.com/buda-base/owl-schema/master/ont-policy.rdf");
+            OntDocumentManager mgr = new OntDocumentManager("owl-schema/ont-policy.rdf;https://raw.githubusercontent.com/buda-base/owl-schema/master/ont-policy.rdf");
 	        ontSpec.setDocumentManager( mgr );
 	        ontModel = ModelFactory.createOntologyModel( ontSpec );
 	        ClassLoader classLoader = TransferHelpers.class.getClassLoader();
