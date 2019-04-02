@@ -11,7 +11,6 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.jena.ext.com.google.common.io.Files;
 import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetAccessorFactory;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -57,7 +56,6 @@ public class AppTest
 	
 	@BeforeClass
 	public static void init() throws IOException {
-	    logger.debug("AppTest.init() START");
 	    ds = DatasetFactory.createGeneral();
 //        FusekiHelpers.fu = DatasetAccessorFactory.create(ds);
         FusekiHelpers.fuConn = RDFConnectionFactory.connect(ds);
@@ -71,14 +69,9 @@ public class AppTest
         GitHelpers.createGitRepo(DocType.TEST);
         GitHelpers.ensureGitRepo(DocType.TEST);
         BDRCReasoner.inferSymetry = true;
-//        Model baseModel = TransferHelpers.getOntologyBaseModel();
-//        TransferHelpers.bdrcReasoner = BDRCReasoner.getReasoner(baseModel);
-        logger.debug("TransferHelpers.getOntologyModel()");
         Model ontModel = TransferHelpers.getOntologyModel();
-        logger.debug("BDRCReasoner.getReasoner(ontModel)");
         TransferHelpers.bdrcReasoner = BDRCReasoner.getReasoner(ontModel);
         om = new ObjectMapper();
-        logger.debug("AppTest.init() DONE");
 	}
 	
 	public static void deleteRec(File f) throws IOException {
