@@ -8,6 +8,7 @@ import java.net.MalformedURLException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -19,6 +20,7 @@ import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Restriction;
+import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -200,17 +202,34 @@ public class TransferHelpers {
 	    }
         Model model = ModelFactory.createDefaultModel();
         Graph g = model.getGraph();
-        try {
-            // workaround for https://github.com/jsonld-java/jsonld-java/issues/199
-            RDFParserBuilder pb = RDFParser.create()
-                     .source(path)
-                     .lang(RDFLanguages.TTL);
-                     //.canonicalLiterals(true);
-            pb.parse(StreamRDFLib.graph(g));
-        } catch (RiotException e) {
-            TransferHelpers.logger.error("error reading "+path);
-            return null;
+        
+        if (path.endsWith(".ttl")) {
+            try {
+                // workaround for https://github.com/jsonld-java/jsonld-java/issues/199
+                RDFParser.create()
+                    .source(path)
+                    .lang(RDFLanguages.TTL)
+                    .parse(StreamRDFLib.graph(g));
+            } catch (RiotException e) {
+                logger.error("error reading "+path);
+                return null;
+            }
+        } else if (path.endsWith(".trig")) {
+            try {
+                Dataset dataset = RDFDataMgr.loadDataset(path);
+                Iterator<String> iter = dataset.listNames();
+                if (iter.hasNext()) {
+                    String graphUri = iter.next();
+                    if (iter.hasNext())
+                        logger.error("modelFromFileName " + path + " getting named model: " + graphUri + ". Has more graphs! ");
+                    model = dataset.getNamedModel(graphUri);
+                }
+            } catch (RiotException e) {
+                logger.error("error reading "+path);
+                return null;
+            }
         }
+        
         setPrefixes(model, type);
         return model;
 	}
@@ -218,15 +237,15 @@ public class TransferHelpers {
 	public static String mainIdFromPath(String path, DocType type) {
         if (path == null || path.length() < 6)
             return null;
-        if (type != DocType.ETEXTCONTENT && !path.endsWith(".ttl"))
+        if (type != DocType.ETEXTCONTENT && !(path.endsWith(".ttl") || path.endsWith(".trig")))
             return null;
         if (type == DocType.ETEXTCONTENT && !path.endsWith(".txt"))
             return null;
         if (path.charAt(2) == '/')
-            return path.substring(3, path.length()-4);
-        return path.substring(0, path.length()-4);
+            return path.substring(3, path.length()-(path.endsWith(".trig") ? 5 : 4));
+        return path.substring(0, path.length() - (path.endsWith(".trig") ? 5 : 4));
 	}
-	
+    
 	public static void addFileFuseki(DocType type, String dirPath, String filePath) {
         final String mainId = mainIdFromPath(filePath, type);
         if (mainId == null)
