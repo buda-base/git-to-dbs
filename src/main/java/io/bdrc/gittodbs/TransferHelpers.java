@@ -45,11 +45,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TransferHelpers {
-	public static final String RESOURCE_PREFIX = "http://purl.bdrc.io/resource/";
+    public static final String RESOURCE_PREFIX = "http://purl.bdrc.io/resource/";
+    public static final String GRAPH_PREFIX = "http://purl.bdrc.io/graph/";
 	public static final String CORE_PREFIX = "http://purl.bdrc.io/ontology/core/";
 	public static final String CONTEXT_URL = "http://purl.bdrc.io/context.jsonld";
 	public static final String ADMIN_PREFIX = "http://purl.bdrc.io/ontology/admin/";
-	public static final String DATA_PREFIX = "http://purl.bdrc.io/data/";
+    public static final String DATA_PREFIX = "http://purl.bdrc.io/data/";
+    public static final String ADMIN_DATA_PREFIX = "http://purl.bdrc.io/admindata/";
     public static final String SKOS_PREFIX = "http://www.w3.org/2004/02/skos/core#";
     public static final String VCARD_PREFIX = "http://www.w3.org/2006/vcard/ns#";
     public static final String TBR_PREFIX = "http://purl.bdrc.io/ontology/toberemoved/";
@@ -58,6 +60,8 @@ public class TransferHelpers {
     public static final String RDFS_PREFIX = "http://www.w3.org/2000/01/rdf-schema#";
     public static final String XSD_PREFIX = "http://www.w3.org/2001/XMLSchema#";
     
+    public static final String BDA = ADMIN_DATA_PREFIX;
+    public static final String BDG = GRAPH_PREFIX;
     public static final String BDR = RESOURCE_PREFIX;
     public static final String BDO = CORE_PREFIX;
     public static final String ADM = ADMIN_PREFIX;
@@ -254,7 +258,7 @@ public class TransferHelpers {
         final String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
         FusekiHelpers.setModelRevision(m, type, rev, mainId);
         m = getInferredModel(m);
-        String graphName = BDR+mainId;
+        String graphName = BDG+mainId;
         if (type == DocType.ETEXTCONTENT)
             graphName += "_STR";
         FusekiHelpers.transferModel(graphName, m);

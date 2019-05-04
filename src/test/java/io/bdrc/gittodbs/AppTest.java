@@ -49,7 +49,8 @@ public class AppTest
     public static Logger logger = LoggerFactory.getLogger(AppTest.class);
 
     private static File tempDir;
-	private static final String BDR = TransferHelpers.BDR;
+    private static final String BDG = TransferHelpers.BDG;
+    private static final String BDR = TransferHelpers.BDR;
 	private static final String BDO = TransferHelpers.BDO;
 	private static Dataset ds;
 	private static ObjectMapper om;
@@ -124,7 +125,7 @@ public class AppTest
 	    assertTrue(GitHelpers.getHeadRev(DocType.TEST).equals(rev));
 	    assertTrue(GitHelpers.getLastRefOfFile(DocType.TEST, "r1.ttl").equals(rev));
 	    TransferHelpers.syncTypeFuseki(DocType.TEST, 1000);
-	    Model fusekiM = FusekiHelpers.getModel(BDR+"r1");
+	    Model fusekiM = FusekiHelpers.getModel(BDG+"r1");
 	    // adding the revision to m so that it corresponds to what's in Fuseki
 	    FusekiHelpers.setModelRevision(m, DocType.TEST, rev, "r1");
 	    assertTrue(fusekiM.isIsomorphicWith(m));

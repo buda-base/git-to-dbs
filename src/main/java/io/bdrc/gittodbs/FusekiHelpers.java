@@ -96,7 +96,7 @@ public class FusekiHelpers {
             p = m.getProperty(TransferHelpers.ADM, "contentsGitRevision");
         else
             p = m.getProperty(TransferHelpers.ADM, "gitRevision");
-        final Resource r = m.getResource(TransferHelpers.BDR+mainId);
+        final Resource r = m.getResource(TransferHelpers.BDA+mainId);
         r.addProperty(p, m.createLiteral(rev));
     }
 
