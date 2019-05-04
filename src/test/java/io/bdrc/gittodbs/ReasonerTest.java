@@ -20,6 +20,7 @@ public class ReasonerTest {
 
     public static Model ontModel;
     public static Reasoner reasoner;
+    private static final String ADM = TransferHelpers.ADM;
     private static final String BDR = TransferHelpers.BDR;
     private static final String BDO = TransferHelpers.BDO;
     
@@ -49,7 +50,7 @@ public class ReasonerTest {
         Property isIncarnation = m.createProperty(BDO, "isIncarnation");
         m.add(r1, incarnationActivities, r2);
         // with annotations
-        Property sameAsrKTs = m.createProperty(BDO, "sameAsrKTs");
+        Property sameAsrKTs = m.createProperty(ADM, "sameAsrKTs");
         m.add(r1, sameAsrKTs, r2);
         InfModel im = ModelFactory.createInfModel(reasoner, m);
         assertTrue(im.contains(r1, isIncarnation, r2));
