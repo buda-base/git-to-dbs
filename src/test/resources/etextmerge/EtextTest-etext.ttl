@@ -1,201 +1,100 @@
 @prefix :      <http://purl.bdrc.io/ontology/core/> .
-@prefix adm:   <http://purl.bdrc.io/ontology/admin/> .
 @prefix bdr:   <http://purl.bdrc.io/resource/> .
+@prefix bdg:   <http://purl.bdrc.io/graph/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-@prefix tbr:   <http://purl.bdrc.io/ontology/toberemoved/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix adm:   <http://purl.bdrc.io/ontology/admin/> .
+@prefix rkts:  <http://purl.rkts.eu/resource/> .
+@prefix bda:   <http://purl.bdrc.io/admindata/> .
+
+bda:GTB64C9FC43C2A  a  adm:GitInfo ;
+        adm:gitPath  "cd/UT1CZ2485_001_0000.trig" ;
+        adm:gitRepo  bda:GR0002 .
 
 bdr:UT1CZ2485_001_0000
-    a                   bdr:EtextPaginated ;
-    :eTextHasPage       [ :pageHasLine        [ :seqNum             1 ;
-                                                :sliceEndChar       26 ;
-                                                :sliceEndChunk      1 ;
-                                                :sliceStartChar     1 ;
-                                                :sliceStartChunk    1
-                                              ] ;
-                          :seqNum             1 ;
-                          :sliceEndChar       26 ;
-                          :sliceEndChunk      1 ;
-                          :sliceStartChar     1 ;
-                          :sliceStartChunk    1
-                        ] ,
-            [ :pageHasLine        [ :seqNum             1 ;
-                                    :sliceEndChar       13 ;
-                                    :sliceEndChunk      8 ;
-                                    :sliceStartChar     1 ;
-                                    :sliceStartChunk    2
-                                  ] ,
-                      [ :seqNum             2 ;
-                        :sliceEndChar       24 ;
-                        :sliceEndChunk      11 ;
-                        :sliceStartChar     13 ;
-                        :sliceStartChunk    8
-                      ] ,
-                      [ :seqNum             3 ;
-                        :sliceEndChar       32 ;
-                        :sliceEndChunk      14 ;
-                        :sliceStartChar     24 ;
-                        :sliceStartChunk    11
-                      ] ,
-                      [ :seqNum             4 ;
-                        :sliceEndChar       21 ;
-                        :sliceEndChunk      18 ;
-                        :sliceStartChar     32 ;
-                        :sliceStartChunk    14
-                      ] ,
-                      [ :seqNum             5 ;
-                        :sliceEndChar       14 ;
-                        :sliceEndChunk      23 ;
-                        :sliceStartChar     21 ;
-                        :sliceStartChunk    18
-                      ] ;
-              :seqNum             2 ;
-              :sliceEndChar       14 ;
-              :sliceEndChunk      23 ;
-              :sliceStartChar     1 ;
-              :sliceStartChunk    2
-            ] ,
-            [ :pageHasLine        [ :seqNum             1 ;
-                                    :sliceEndChar       8 ;
-                                    :sliceEndChunk      29 ;
-                                    :sliceStartChar     14 ;
-                                    :sliceStartChunk    23
-                                  ] ,
-                      [ :seqNum             2 ;
-                        :sliceEndChar       48 ;
-                        :sliceEndChunk      35 ;
-                        :sliceStartChar     8 ;
-                        :sliceStartChunk    29
-                      ] ,
-                      [ :seqNum             3 ;
-                        :sliceEndChar       35 ;
-                        :sliceEndChunk      39 ;
-                        :sliceStartChar     1 ;
-                        :sliceStartChunk    36
-                      ] ,
-                      [ :seqNum             4 ;
-                        :sliceEndChar       50 ;
-                        :sliceEndChunk      42 ;
-                        :sliceStartChar     35 ;
-                        :sliceStartChunk    39
-                      ] ,
-                      [ :seqNum             5 ;
-                        :sliceEndChar       57 ;
-                        :sliceEndChunk      48 ;
-                        :sliceStartChar     50 ;
-                        :sliceStartChunk    42
-                      ] ,
-                      [ :seqNum             6 ;
-                        :sliceEndChar       35 ;
-                        :sliceEndChunk      54 ;
-                        :sliceStartChar     57 ;
-                        :sliceStartChunk    48
-                      ] ;
-              :seqNum             3 ;
-              :sliceEndChar       35 ;
-              :sliceEndChunk      54 ;
-              :sliceStartChar     14 ;
-              :sliceStartChunk    23
-            ] ,
-            [ :pageHasLine        [ :seqNum             1 ;
-                                    :sliceEndChar       6 ;
-                                    :sliceEndChunk      60 ;
-                                    :sliceStartChar     1 ;
-                                    :sliceStartChunk    55
-                                  ] ,
-                      [ :seqNum             2 ;
-                        :sliceEndChar       12 ;
-                        :sliceEndChunk      64 ;
-                        :sliceStartChar     6 ;
-                        :sliceStartChunk    60
-                      ] ,
-                      [ :seqNum             3 ;
-                        :sliceEndChar       21 ;
-                        :sliceEndChunk      69 ;
-                        :sliceStartChar     12 ;
-                        :sliceStartChunk    64
-                      ] ,
-                      [ :seqNum             4 ;
-                        :sliceEndChar       16 ;
-                        :sliceEndChunk      75 ;
-                        :sliceStartChar     1 ;
-                        :sliceStartChunk    70
-                      ] ,
-                      [ :seqNum             5 ;
-                        :sliceEndChar       13 ;
-                        :sliceEndChunk      83 ;
-                        :sliceStartChar     16 ;
-                        :sliceStartChunk    75
-                      ] ,
-                      [ :seqNum             6 ;
-                        :sliceEndChar       13 ;
-                        :sliceEndChunk      87 ;
-                        :sliceStartChar     13 ;
-                        :sliceStartChunk    83
-                      ] ,
-                      [ :seqNum             7 ;
-                        :sliceEndChar       24 ;
-                        :sliceEndChunk      91 ;
-                        :sliceStartChar     13 ;
-                        :sliceStartChunk    87
-                      ] ;
-              :seqNum             4 ;
-              :sliceEndChar       24 ;
-              :sliceEndChunk      91 ;
-              :sliceStartChar     1 ;
-              :sliceStartChunk    55
-            ] ,
-            [ :pageHasLine        [ :seqNum             1 ;
-                                    :sliceEndChar       29 ;
-                                    :sliceEndChunk      97 ;
-                                    :sliceStartChar     24 ;
-                                    :sliceStartChunk    91
-                                  ] ,
-                      [ :seqNum             2 ;
-                        :sliceEndChar       52 ;
-                        :sliceEndChunk      103 ;
-                        :sliceStartChar     1 ;
-                        :sliceStartChunk    98
-                      ] ,
-                      [ :seqNum             3 ;
-                        :sliceEndChar       18 ;
-                        :sliceEndChunk      106 ;
-                        :sliceStartChar     52 ;
-                        :sliceStartChunk    103
-                      ] ,
-                      [ :seqNum             4 ;
-                        :sliceEndChar       75 ;
-                        :sliceEndChunk      107 ;
-                        :sliceStartChar     18 ;
-                        :sliceStartChunk    106
-                      ] ,
-                      [ :seqNum             5 ;
-                        :sliceEndChar       59 ;
-                        :sliceEndChunk      110 ;
-                        :sliceStartChar     1 ;
-                        :sliceStartChunk    108
-                      ] ,
-                      [ :seqNum             6 ;
-                        :sliceEndChar       40 ;
-                        :sliceEndChunk      112 ;
-                        :sliceStartChar     59 ;
-                        :sliceStartChunk    110
-                      ] ,
-                      [ :seqNum             7 ;
-                        :sliceEndChar       28 ;
-                        :sliceEndChunk      115 ;
-                        :sliceStartChar     40 ;
-                        :sliceStartChunk    112
-                      ] ;
-              :seqNum             5 ;
-              :sliceEndChar       28 ;
-              :sliceEndChunk      115 ;
-              :sliceStartChar     24 ;
-              :sliceStartChunk    91
-            ] ;
-    :eTextInItem        bdr:I1CZ2485_E001 ;
-    :eTextIsVolume      1 ;
-    :eTextSourcePath    "DharmaDownload/Mahamudra/rtfs/06_Chakchen-Drupthob-Judpai-Zhalung/06_Chakchen-Drupthob-Judpai-Zhalung.rtf" ;
-    :eTextTitle         "༄༅། །ཕྱག་རྒྱ་ཆེན་པོ་ལྷན་ཅིག་སྐྱེས་སྦྱོར་ཟབ་དོན་དོན་གྱི་ཆུ་བོ་སྐལ་ལྡན་གྱི་གདུལ་བྱའི་"@bo .
+        a                 :EtextPaginated ;
+        :eTextHasPage     [ :pageHasLine     [ :seqNum          1 ;
+                                               :sliceEndChar    1909 ;
+                                               :sliceStartChar  1696
+                                             ] ;
+                            :pageHasLine     [ :seqNum          6 ;
+                                               :sliceEndChar    3014 ;
+                                               :sliceStartChar  2770
+                                             ] ;
+                            :pageHasLine     [ :seqNum          7 ;
+                                               :sliceEndChar    3239 ;
+                                               :sliceStartChar  3015
+                                             ] ;
+                            :pageHasLine     [ :seqNum          4 ;
+                                               :sliceEndChar    2560 ;
+                                               :sliceStartChar  2345
+                                             ] ;
+                            :pageHasLine     [ :seqNum          2 ;
+                                               :sliceEndChar    2127 ;
+                                               :sliceStartChar  1910
+                                             ] ;
+                            :pageHasLine     [ :seqNum          5 ;
+                                               :sliceEndChar    2769 ;
+                                               :sliceStartChar  2561
+                                             ] ;
+                            :pageHasLine     [ :seqNum          3 ;
+                                               :sliceEndChar    2344 ;
+                                               :sliceStartChar  2128
+                                             ] ;
+                            :seqNum          6 ;
+                            :sliceEndChar    3239 ;
+                            :sliceStartChar  1696
+                          ] ;
+        :eTextHasPage     [ :pageHasLine     [ :seqNum          6 ;
+                                               :sliceEndChar    1694 ;
+                                               :sliceStartChar  1497
+                                             ] ;
+                            :pageHasLine     [ :seqNum          5 ;
+                                               :sliceEndChar    1496 ;
+                                               :sliceStartChar  1312
+                                             ] ;
+                            :pageHasLine     [ :seqNum          4 ;
+                                               :sliceEndChar    1311 ;
+                                               :sliceStartChar  1104
+                                             ] ;
+                            :pageHasLine     [ :seqNum          3 ;
+                                               :sliceEndChar    1103 ;
+                                               :sliceStartChar  893
+                                             ] ;
+                            :pageHasLine     [ :seqNum          2 ;
+                                               :sliceEndChar    892 ;
+                                               :sliceStartChar  700
+                                             ] ;
+                            :pageHasLine     [ :seqNum          1 ;
+                                               :sliceEndChar    699 ;
+                                               :sliceStartChar  521
+                                             ] ;
+                            :seqNum          5 ;
+                            :sliceEndChar    1694 ;
+                            :sliceStartChar  521
+                          ] ;
+        :eTextHasPage     [ :seqNum          4 ;
+                            :sliceEndChar    519 ;
+                            :sliceStartChar  0
+                          ] ;
+        :eTextInItem      bdr:I1CZ2485_E001 ;
+        :eTextIsVolume    1 ;
+        :eTextSourcePath  "DharmaDownload/Mahamudra/rtfs/06_Chakchen-Drupthob-Judpai-Zhalung/06_Chakchen-Drupthob-Judpai-Zhalung.rtf" ;
+        :eTextTitle       "༄༅། །ཕྱག་རྒྱ་ཆེན་པོ་ལྷན་ཅིག་སྐྱེས་སྦྱོར་ཟབ་དོན་དོན་གྱི་ཆུ་བོ་སྐལ་ལྡན་གྱི་གདུལ་བྱའི་"@bo ;
+        :isRoot           true .
+
+bda:UT1CZ2485_001_0000
+        a                  adm:AdminData ;
+        adm:adminAbout     bdr:UT1CZ2485_001_0000 ;
+        adm:adminForGraph  bdg:UT1CZ2485_001_0000 ;
+        adm:facetIndex     "2"^^xsd:int ;
+        adm:gitInfo        bda:GTB64C9FC43C2A ;
+        adm:status         bda:StatusReleased ;
+        :isRoot            true .
+
+bdg:UT1CZ2485_001_0000
+        a             adm:Graph ;
+        adm:hasLegal  bda:LD_BDRC_Open .

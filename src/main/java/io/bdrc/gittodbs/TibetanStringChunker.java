@@ -310,7 +310,7 @@ public class TibetanStringChunker {
                     breakIndexes.put(curIndex -1, true);
                     if (curIndex != finalIndex)
                         breakIndexes.put(curIndex, false);
-                    lastBreakPointIndex = allIndexes[1].get(curIndex-1);;
+                    lastBreakPointIndex = curIndex -1;
                 }
                 lastPossibleBreakIndex = -1;
                 lastPossibleBreakPointIndex = -1;
