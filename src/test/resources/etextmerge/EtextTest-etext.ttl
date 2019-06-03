@@ -10,91 +10,103 @@
 @prefix rkts:  <http://purl.rkts.eu/resource/> .
 @prefix bda:   <http://purl.bdrc.io/admindata/> .
 
-bda:GTB64C9FC43C2A  a  adm:GitInfo ;
-        adm:gitPath  "cd/UT1CZ2485_001_0000.trig" ;
-        adm:gitRepo  bda:GR0002 .
+bdr:ELF4A316C12B64  a    :EtextLine ;
+        :seqNum          4 ;
+        :sliceEndChar    2560 ;
+        :sliceStartChar  2345 .
+
+bdr:EP42D37D9F9EDD  a    :EtextPage ;
+        :pageHasLine     bdr:EL3E1425748F20 , bdr:ELDAC3BAF8FA51 , bdr:ELAF2A5F540B3E , bdr:EL748658F1E65B , bdr:ELF4A316C12B64 , bdr:EL91D01C2D352E , bdr:EL88E01809225B ;
+        :seqNum          6 ;
+        :sliceEndChar    3239 ;
+        :sliceStartChar  1696 .
+
+bdr:EL6A9B484DC311  a    :EtextLine ;
+        :seqNum          3 ;
+        :sliceEndChar    1103 ;
+        :sliceStartChar  893 .
 
 bdr:UT1CZ2485_001_0000
         a                 :EtextPaginated ;
-        :eTextHasPage     [ :pageHasLine     [ :seqNum          1 ;
-                                               :sliceEndChar    1909 ;
-                                               :sliceStartChar  1696
-                                             ] ;
-                            :pageHasLine     [ :seqNum          6 ;
-                                               :sliceEndChar    3014 ;
-                                               :sliceStartChar  2770
-                                             ] ;
-                            :pageHasLine     [ :seqNum          7 ;
-                                               :sliceEndChar    3239 ;
-                                               :sliceStartChar  3015
-                                             ] ;
-                            :pageHasLine     [ :seqNum          4 ;
-                                               :sliceEndChar    2560 ;
-                                               :sliceStartChar  2345
-                                             ] ;
-                            :pageHasLine     [ :seqNum          2 ;
-                                               :sliceEndChar    2127 ;
-                                               :sliceStartChar  1910
-                                             ] ;
-                            :pageHasLine     [ :seqNum          5 ;
-                                               :sliceEndChar    2769 ;
-                                               :sliceStartChar  2561
-                                             ] ;
-                            :pageHasLine     [ :seqNum          3 ;
-                                               :sliceEndChar    2344 ;
-                                               :sliceStartChar  2128
-                                             ] ;
-                            :seqNum          6 ;
-                            :sliceEndChar    3239 ;
-                            :sliceStartChar  1696
-                          ] ;
-        :eTextHasPage     [ :pageHasLine     [ :seqNum          6 ;
-                                               :sliceEndChar    1694 ;
-                                               :sliceStartChar  1497
-                                             ] ;
-                            :pageHasLine     [ :seqNum          5 ;
-                                               :sliceEndChar    1496 ;
-                                               :sliceStartChar  1312
-                                             ] ;
-                            :pageHasLine     [ :seqNum          4 ;
-                                               :sliceEndChar    1311 ;
-                                               :sliceStartChar  1104
-                                             ] ;
-                            :pageHasLine     [ :seqNum          3 ;
-                                               :sliceEndChar    1103 ;
-                                               :sliceStartChar  893
-                                             ] ;
-                            :pageHasLine     [ :seqNum          2 ;
-                                               :sliceEndChar    892 ;
-                                               :sliceStartChar  700
-                                             ] ;
-                            :pageHasLine     [ :seqNum          1 ;
-                                               :sliceEndChar    699 ;
-                                               :sliceStartChar  521
-                                             ] ;
-                            :seqNum          5 ;
-                            :sliceEndChar    1694 ;
-                            :sliceStartChar  521
-                          ] ;
-        :eTextHasPage     [ :seqNum          4 ;
-                            :sliceEndChar    519 ;
-                            :sliceStartChar  0
-                          ] ;
+        :eTextHasPage     bdr:EP42D37D9F9EDD , bdr:EPC69E5706B90F , bdr:EPE9AB004DAF3A ;
         :eTextInItem      bdr:I1CZ2485_E001 ;
         :eTextIsVolume    1 ;
         :eTextSourcePath  "DharmaDownload/Mahamudra/rtfs/06_Chakchen-Drupthob-Judpai-Zhalung/06_Chakchen-Drupthob-Judpai-Zhalung.rtf" ;
         :eTextTitle       "༄༅། །ཕྱག་རྒྱ་ཆེན་པོ་ལྷན་ཅིག་སྐྱེས་སྦྱོར་ཟབ་དོན་དོན་གྱི་ཆུ་བོ་སྐལ་ལྡན་གྱི་གདུལ་བྱའི་"@bo ;
         :isRoot           true .
 
-bda:UT1CZ2485_001_0000
-        a                  adm:AdminData ;
-        adm:adminAbout     bdr:UT1CZ2485_001_0000 ;
-        adm:adminForGraph  bdg:UT1CZ2485_001_0000 ;
-        adm:facetIndex     "2"^^xsd:int ;
-        adm:gitInfo        bda:GTB64C9FC43C2A ;
-        adm:status         bda:StatusReleased ;
-        :isRoot            true .
+bdr:EL8EE2D7098645  a    :EtextLine ;
+        :seqNum          2 ;
+        :sliceEndChar    892 ;
+        :sliceStartChar  700 .
 
-bdg:UT1CZ2485_001_0000
-        a             adm:Graph ;
-        adm:hasLegal  bda:LD_BDRC_Open .
+bdr:ELEF1D634AF6FA  a    :EtextLine ;
+        :seqNum          6 ;
+        :sliceEndChar    1694 ;
+        :sliceStartChar  1497 .
+
+bda:UT1CZ2485_001_0000
+        a               adm:AdminData ;
+        adm:adminAbout  bdr:UT1CZ2485_001_0000 ;
+        adm:facetIndex  17 ;
+        adm:gitPath     "cd/UT1CZ2485_001_0000.trig" ;
+        adm:gitRepo     bda:GR0002 ;
+        adm:graphId     bdg:UT1CZ2485_001_0000 ;
+        adm:status      bda:StatusReleased ;
+        :isRoot         true .
+
+bdr:ELB79A14F3B2A3  a    :EtextLine ;
+        :seqNum          5 ;
+        :sliceEndChar    1496 ;
+        :sliceStartChar  1312 .
+
+bdr:ELDAC3BAF8FA51  a    :EtextLine ;
+        :seqNum          5 ;
+        :sliceEndChar    2769 ;
+        :sliceStartChar  2561 .
+
+bdr:EL96D3309C9A8B  a    :EtextLine ;
+        :seqNum          1 ;
+        :sliceEndChar    699 ;
+        :sliceStartChar  521 .
+
+bdr:EPE9AB004DAF3A  a    :EtextPage ;
+        :seqNum          4 ;
+        :sliceEndChar    519 ;
+        :sliceStartChar  0 .
+
+bdr:EL88E01809225B  a    :EtextLine ;
+        :seqNum          2 ;
+        :sliceEndChar    2127 ;
+        :sliceStartChar  1910 .
+
+bdr:ELAF2A5F540B3E  a    :EtextLine ;
+        :seqNum          7 ;
+        :sliceEndChar    3239 ;
+        :sliceStartChar  3015 .
+
+bdr:EL748658F1E65B  a    :EtextLine ;
+        :seqNum          6 ;
+        :sliceEndChar    3014 ;
+        :sliceStartChar  2770 .
+
+bdr:EL91D01C2D352E  a    :EtextLine ;
+        :seqNum          1 ;
+        :sliceEndChar    1909 ;
+        :sliceStartChar  1696 .
+
+bdr:EL3E1425748F20  a    :EtextLine ;
+        :seqNum          3 ;
+        :sliceEndChar    2344 ;
+        :sliceStartChar  2128 .
+
+bdr:ELD82C4D97DF8F  a    :EtextLine ;
+        :seqNum          4 ;
+        :sliceEndChar    1311 ;
+        :sliceStartChar  1104 .
+
+bdr:EPC69E5706B90F  a    :EtextPage ;
+        :pageHasLine     bdr:ELB79A14F3B2A3 , bdr:ELD82C4D97DF8F , bdr:EL8EE2D7098645 , bdr:EL96D3309C9A8B , bdr:EL6A9B484DC311 , bdr:ELEF1D634AF6FA ;
+        :seqNum          5 ;
+        :sliceEndChar    1694 ;
+        :sliceStartChar  521 .

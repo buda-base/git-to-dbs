@@ -200,8 +200,10 @@ public class TransferHelpers {
 	
 	public static Model modelFromPath(String path, DocType type, String mainId) {
 	    if (type == DocType.ETEXTCONTENT) {
-	        Model res = EtextContents.getModel(path, mainId);
-	        setPrefixes(res, type);
+	        String dirpath = GitToDB.gitDir + DocType.ETEXT + "s/";
+	        Model etextM = modelFromPath(dirpath+mainId+".trig", DocType.ETEXT, mainId);
+	        Model res = EtextContents.getModel(path, mainId, etextM);
+//	        setPrefixes(res, type);
 	        return res;
 	    }
         Model model = ModelFactory.createDefaultModel();
@@ -259,8 +261,8 @@ public class TransferHelpers {
         FusekiHelpers.setModelRevision(m, type, rev, mainId);
         m = getInferredModel(m);
         String graphName = BDG+mainId;
-        if (type == DocType.ETEXTCONTENT)
-            graphName += "_STR";
+//        if (type == DocType.ETEXTCONTENT)
+//            graphName += "_STR";
         FusekiHelpers.transferModel(graphName, m);
 	}
 
