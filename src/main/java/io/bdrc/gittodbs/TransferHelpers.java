@@ -3,12 +3,7 @@ package io.bdrc.gittodbs;
 import static io.bdrc.libraries.Models.getMd5;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.net.MalformedURLException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -33,7 +28,6 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
-import org.apache.jena.riot.RDFParserBuilder;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.riot.system.StreamRDFLib;
 import org.apache.jena.sparql.util.Context;
@@ -68,8 +62,6 @@ public class TransferHelpers {
     public static final String BDO = CORE_PREFIX;
     public static final String ADM = ADMIN_PREFIX;
     public static final Context ctx = new Context();
-    static MessageDigest md;
-    private static final int hashNbChars = 2;
     
     private static Map<String, DocType> strToDocType = new HashMap<>();
     public enum DocType {
@@ -132,11 +124,7 @@ public class TransferHelpers {
 	public static Reasoner bdrcReasoner = null;
 	
 	public static void init() throws MalformedURLException {
-	    try {
-            md = MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
+
 	    if (GitToDB.transferFuseki) {
 	        FusekiHelpers.init(GitToDB.fusekiHost, GitToDB.fusekiPort, GitToDB.fusekiName);	        
 	    }
@@ -168,23 +156,6 @@ public class TransferHelpers {
 	    closeConnections();
 	}
 	
-	public static String getMd5(String resId) {
-	    try {
-            // keeping files from the same work together:
-            final int underscoreIndex = resId.indexOf('_');
-            String message = resId;
-            if (underscoreIndex != -1)
-                message = resId.substring(0, underscoreIndex);
-            final byte[] bytesOfMessage = message.getBytes("UTF-8");
-            final byte[] hashBytes = md.digest(bytesOfMessage);
-            BigInteger bigInt = new BigInteger(1,hashBytes);
-            return String.format("%032x", bigInt).substring(0, hashNbChars);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            return null;
-        }
-	}
-	
 	public static void closeConnections() {
 	    if (GitToDB.transferFuseki)
 	        FusekiHelpers.closeConnections();
@@ -205,7 +176,6 @@ public class TransferHelpers {
 	        String dirpath = GitToDB.gitDir + DocType.ETEXT + "s/"+getMd5(mainId)+"/";
 	        Model etextM = modelFromPath(dirpath+mainId+".trig", DocType.ETEXT, mainId);
 	        Model res = EtextContents.getModel(path, mainId, etextM);
-//	        setPrefixes(res, type);
 	        return res;
 	    }
         Model model = ModelFactory.createDefaultModel();
