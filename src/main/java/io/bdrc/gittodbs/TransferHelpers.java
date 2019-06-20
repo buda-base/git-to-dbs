@@ -1,5 +1,7 @@
 package io.bdrc.gittodbs;
 
+import static io.bdrc.libraries.Models.getMd5;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -200,7 +202,7 @@ public class TransferHelpers {
 	
 	public static Model modelFromPath(String path, DocType type, String mainId) {
 	    if (type == DocType.ETEXTCONTENT) {
-	        String dirpath = GitToDB.gitDir + DocType.ETEXT + "s/";
+	        String dirpath = GitToDB.gitDir + DocType.ETEXT + "s/"+getMd5(mainId)+"/";
 	        Model etextM = modelFromPath(dirpath+mainId+".trig", DocType.ETEXT, mainId);
 	        Model res = EtextContents.getModel(path, mainId, etextM);
 //	        setPrefixes(res, type);
