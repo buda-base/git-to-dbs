@@ -145,6 +145,7 @@ public class FusekiHelpers {
             loadDatasetSimple(currentDataset);
             currentDataset = null;
             triplesInDataset = 0;
+            System.gc();
             printUsage("USAGE  ");
         }
     }
@@ -157,6 +158,7 @@ public class FusekiHelpers {
         }
         currentDataset = null;
         triplesInDataset = 0;
+        System.gc();
         printUsage("FINISH USAGE  ");
     }
 
