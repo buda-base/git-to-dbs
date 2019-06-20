@@ -150,6 +150,8 @@ public class GitToDB {
 			}
 		}
 		
+		FusekiHelpers.printUsage("INITIAL USAGE  ");
+		
 		if (!transferCouch && !transferFuseki) {
 		    TransferHelpers.logger.error("nothing to do, quitting...");
             System.exit(1);

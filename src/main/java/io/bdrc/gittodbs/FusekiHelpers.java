@@ -1,6 +1,7 @@
 package io.bdrc.gittodbs;
 
 import java.net.MalformedURLException;
+import java.text.NumberFormat;
 
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
@@ -117,6 +118,24 @@ public class FusekiHelpers {
         transferModel(graphName, m, false);
     }
     
+    public static void printUsage(String head) {
+        Runtime runtime = Runtime.getRuntime();
+
+        NumberFormat format = NumberFormat.getInstance();
+
+        StringBuilder sb = new StringBuilder();
+        long maxMemory = runtime.maxMemory();
+        long allocatedMemory = runtime.totalMemory();
+        long freeMemory = runtime.freeMemory();
+
+        sb.append("free: " + format.format(freeMemory / 1024));
+        sb.append(";  allocated: " + format.format(allocatedMemory / 1024));
+        sb.append(";  max: " + format.format(maxMemory / 1024));
+        sb.append(";  total free: " + format.format((freeMemory + (maxMemory - allocatedMemory)) / 1024));
+        
+        System.err.println(head + sb.toString());
+    }
+    
     static void transferModel(final String graphName, final Model m, boolean simple) {
         if (currentDataset == null)
             currentDataset = DatasetFactory.createGeneral();
@@ -126,6 +145,7 @@ public class FusekiHelpers {
             loadDatasetSimple(currentDataset);
             currentDataset = null;
             triplesInDataset = 0;
+            printUsage("USAGE  ");
         }
     }
 
@@ -137,6 +157,7 @@ public class FusekiHelpers {
         }
         currentDataset = null;
         triplesInDataset = 0;
+        printUsage("FINISH USAGE  ");
     }
 
     public static void closeConnections() {
