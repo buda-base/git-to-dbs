@@ -180,18 +180,21 @@ public class TransferHelpers {
 	        boolean looking = bucket.compareTo("c3") > 0  && bucket.compareTo("d4") < 0;
 	        
 	        if (looking) {
+	            System.gc();
 	            printUsage(">>>> modelFromPath USAGE for " + mainId + " BEFORE ETEXT modelFromPath  ");
 	        }
 	        
 	        Model etextM = modelFromPath(dirpath+mainId+".trig", DocType.ETEXT, mainId);
 	        
 	        if (looking) {
+	            System.gc();
 	            printUsage("|||| modelFromPath USAGE for " + mainId + " AFTER ETEXT modelFromPath  ");
 	        }
 	        
 	        Model res = EtextContents.getModel(path, mainId, etextM);
             
 	        if (looking) {
+	            System.gc();
                 printUsage("<<<< modelFromPath USAGE for " + mainId + " AFTER ETEXTCONTENTS getModel  ");
             }
 	        
