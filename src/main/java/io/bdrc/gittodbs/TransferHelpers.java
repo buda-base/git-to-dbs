@@ -2,6 +2,8 @@ package io.bdrc.gittodbs;
 
 import static io.bdrc.libraries.Models.getMd5;
 
+import static io.bdrc.gittodbs.FusekiHelpers.printUsage;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.HashMap;
@@ -173,13 +175,30 @@ public class TransferHelpers {
 	
 	public static Model modelFromPath(String path, DocType type, String mainId) {
 	    if (type == DocType.ETEXTCONTENT) {
-	        String dirpath = GitToDB.gitDir + DocType.ETEXT + "s/"+getMd5(mainId)+"/";
+	        String bucket = getMd5(mainId);
+	        String dirpath = GitToDB.gitDir + DocType.ETEXT + "s/"+bucket+"/";
+	        boolean looking = bucket.compareTo("c3") > 0  && bucket.compareTo("d4") < 0;
+	        
+	        if (looking) {
+	            printUsage(">>>> modelFromPath USAGE for " + mainId + " BEFORE ETEXT modelFromPath  ");
+	        }
+	        
 	        Model etextM = modelFromPath(dirpath+mainId+".trig", DocType.ETEXT, mainId);
+	        
+	        if (looking) {
+	            printUsage("|||| modelFromPath USAGE for " + mainId + " AFTER ETEXT modelFromPath  ");
+	        }
+	        
 	        Model res = EtextContents.getModel(path, mainId, etextM);
-	        return res;
+            
+	        if (looking) {
+                printUsage("<<<< modelFromPath USAGE for " + mainId + " AFTER ETEXTCONTENTS getModel  ");
+            }
+	        
+            return res;
 	    }
-        Model model = ModelFactory.createDefaultModel();
-        Graph g = model.getGraph();
+	    Model model = ModelFactory.createDefaultModel();
+	    Graph g = model.getGraph();
         
         if (path.endsWith(".ttl")) {
             try {
@@ -233,8 +252,6 @@ public class TransferHelpers {
         FusekiHelpers.setModelRevision(m, type, rev, mainId);
         m = getInferredModel(m);
         String graphName = BDG+mainId;
-//        if (type == DocType.ETEXTCONTENT)
-//            graphName += "_STR";
         FusekiHelpers.transferModel(graphName, m);
 	}
 
