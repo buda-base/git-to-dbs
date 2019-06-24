@@ -100,13 +100,20 @@ public class TibetanStringChunker {
     public static final int MODE_HEAD = 2;
     public static final int MODE_AFTER_SHAD_LIKE = 3;
     
-    public static List<Integer>[] getBreakingIndexes(final String totalStr, final int meanChunkPointsAim, final int maxChunkPointsAim, final int minChunkNbSylls) {
-        final List<Integer>[] allIndexes = getAllBreakingCharsIndexes(totalStr);
-        final List<Integer>[] res = selectBreakingCharsIndexes(allIndexes, meanChunkPointsAim, maxChunkPointsAim, minChunkNbSylls);
+    public static BreaksInfo getBreakingIndexes(final String totalStr, final int meanChunkPointsAim, final int maxChunkPointsAim, final int minChunkNbSylls) {
+        final BreaksInfo allIndexes = getAllBreakingCharsIndexes(totalStr);
+        final BreaksInfo res = selectBreakingCharsIndexes(allIndexes, meanChunkPointsAim, maxChunkPointsAim, minChunkNbSylls);
         return res;
     }
     
-    public static List<Integer>[] getAllBreakingCharsIndexes(final String totalStr) {
+    public static class BreaksInfo {
+        List<Integer> chars;
+        List<Integer> points;
+        List<Integer> nbSylls;
+        int pointLen;
+    }
+    
+    public static BreaksInfo getAllBreakingCharsIndexes(final String totalStr) {
         final List<Integer> resChars = new ArrayList<Integer>();
         final List<Integer> resPoints = new ArrayList<Integer>();
         final List<Integer> resNbSylls = new ArrayList<Integer>();
@@ -242,20 +249,27 @@ public class TibetanStringChunker {
             lastIsDelimiter = (ct == CharType.SYLLABLE_DELIMITER); 
         }
         resNbSylls.add(curNbSylls); // adding the final chunk's number of syllables 
-        List<Integer>[] res = new List[4];
-        res[0] = resChars;
-        res[1] = resPoints;
-        res[2] = resNbSylls;
-        res[3] = Arrays.asList(curPointIndex); // to get the string length in terms of points
+        
+        BreaksInfo res = new BreaksInfo();
+        res.chars = resChars;
+        res.points = resPoints;
+        res.nbSylls = resNbSylls;
+        res.pointLen = curPointIndex;
+        
+//        List<Integer>[] res = new List[4];
+//        res[0] = chars;
+//        res[1] = points;
+//        res[2] = nbSylls;
+//        res[3] = Arrays.asList(curPointIndex); // to get the string length in terms of points
         return res;
     }
     
-    public static List<Integer>[] selectBreakingCharsIndexes(final List<Integer>[] allIndexes, final int meanChunkPointsAim, final int maxChunkPointsAim, final int minChunkNbSylls) {
+    public static BreaksInfo selectBreakingCharsIndexes(final BreaksInfo allIndexes, final int meanChunkPointsAim, final int maxChunkPointsAim, final int minChunkNbSylls) {
         final List<Integer> resChars = new ArrayList<Integer>();
         final List<Integer> resPoints = new ArrayList<Integer>();
         
         Map<Integer,Boolean> breakIndexes = new HashMap<Integer,Boolean>();
-        for (int i = 0; i < allIndexes[0].size(); i++) {
+        for (int i = 0; i < allIndexes.chars.size(); i++) {
             breakIndexes.put(i, true);
         }
 
@@ -263,30 +277,30 @@ public class TibetanStringChunker {
         filterSmalls(breakIndexes, allIndexes, minChunkNbSylls);
         filterRegroup(breakIndexes, allIndexes, meanChunkPointsAim, maxChunkPointsAim);
 
-        for (int i = 0; i < allIndexes[0].size(); i++) {
+        for (int i = 0; i < allIndexes.chars.size(); i++) {
             if (breakIndexes.get(i)) {
-                resChars.add(allIndexes[0].get(i));
-                resPoints.add(allIndexes[1].get(i));
+                resChars.add(allIndexes.chars.get(i));
+                resPoints.add(allIndexes.points.get(i));
             }
         }
         
-        List<Integer>[] res = new List[2];
-        res[0] = resChars;
-        res[1] = resPoints;
+        BreaksInfo res = new BreaksInfo();
+        res.chars = resChars;
+        res.points = resPoints;
         return res;
     }
 
-    public static void filterRegroup(final Map<Integer, Boolean> breakIndexes, final List<Integer>[] allIndexes,
+    public static void filterRegroup(final Map<Integer, Boolean> breakIndexes, final BreaksInfo allIndexes,
             final int meanChunkPointsAim, final int maxChunkPointsAim) {
         int lastBreakPointIndex = -1;
         int curIndex = 0;
         int lastPossibleBreakPointIndex = -1;
         int lastPossibleBreakIndex = -1;
-        final int totalpoints = allIndexes[3].get(0);
+        final int totalpoints = allIndexes.pointLen;
         // we add the total number of points in string at the end of allIndexes[1] in a temporary way:
-        allIndexes[1].add(totalpoints);
-        final int finalIndex = allIndexes[1].size()-1;
-        for (Integer nbPoints : allIndexes[1]) {
+        allIndexes.points.add(totalpoints);
+        final int finalIndex = allIndexes.points.size()-1;
+        for (Integer nbPoints : allIndexes.points) {
             final int totalPointsBeforeThis = nbPoints - lastBreakPointIndex;
             if (totalPointsBeforeThis < meanChunkPointsAim) {
                 if (curIndex == finalIndex)
@@ -336,13 +350,13 @@ public class TibetanStringChunker {
             curIndex += 1;
         }
         // we remove the final index we added at the beginning:
-        allIndexes[1].remove(finalIndex);
+        allIndexes.points.remove(finalIndex);
     }
 
-    public static void filterSmalls(Map<Integer, Boolean> breakIndexes, List<Integer>[] allIndexes, int minChunkNbSylls) {
+    public static void filterSmalls(Map<Integer, Boolean> breakIndexes, BreaksInfo allIndexes, int minChunkNbSylls) {
         int curIndex = 0;
         int nbInCurGroup = 0;
-        for (Integer nbSyllables : allIndexes[2]) {
+        for (Integer nbSyllables : allIndexes.nbSylls) {
             if (nbSyllables < minChunkNbSylls) {
                 if (nbInCurGroup >= maxSmallGroupSize) {
                     nbInCurGroup = 1;
@@ -358,11 +372,11 @@ public class TibetanStringChunker {
         }
     }
 
-    public static void filterQuatrains(Map<Integer, Boolean> breakIndexes, List<Integer>[] allIndexes) {
+    public static void filterQuatrains(Map<Integer, Boolean> breakIndexes, BreaksInfo allIndexes) {
         int curIndex = 0;
         int lineOfQuatrain = 0;
         int quatrainNbSylls = 0;
-        for (Integer nbSyllables : allIndexes[2]) {
+        for (Integer nbSyllables : allIndexes.nbSylls) {
             if (lineOfQuatrain == 0) {
                 if (nbSyllables <= maxQuatrainNbSylls && nbSyllables >= minQuatrainNbSylls) {
                     lineOfQuatrain = 1;
