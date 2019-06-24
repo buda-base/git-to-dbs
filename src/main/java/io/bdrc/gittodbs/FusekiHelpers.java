@@ -148,11 +148,6 @@ public class FusekiHelpers {
             System.gc();
             printUsage("USAGE  ");
         }
-
-        if (!simple) {
-            // also try to explicitly release the model contents since they're now in currentDataset
-            model.close();
-        }
     }
 
     static void finishDatasetTransfers() {
