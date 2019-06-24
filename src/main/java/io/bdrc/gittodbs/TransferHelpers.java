@@ -175,29 +175,9 @@ public class TransferHelpers {
 	
 	public static Model modelFromPath(String path, DocType type, String mainId) {
 	    if (type == DocType.ETEXTCONTENT) {
-	        String bucket = getMd5(mainId);
-	        String dirpath = GitToDB.gitDir + DocType.ETEXT + "s/"+bucket+"/";
-	        boolean looking = bucket.compareTo("c3") > 0  && bucket.compareTo("d4") < 0;
-	        
-	        if (looking) {
-	            System.gc();
-	            printUsage(">>>> modelFromPath USAGE for " + mainId + " BEFORE ETEXT modelFromPath  ");
-	        }
-	        
-	        Model etextM = modelFromPath(dirpath+mainId+".trig", DocType.ETEXT, mainId);
-	        
-	        if (looking) {
-	            System.gc();
-	            printUsage("|||| modelFromPath USAGE for " + mainId + " AFTER ETEXT modelFromPath  ");
-	        }
-	        
+	        String dirpath = GitToDB.gitDir + DocType.ETEXT + "s/"+getMd5(mainId)+"/";	        
+	        Model etextM = modelFromPath(dirpath+mainId+".trig", DocType.ETEXT, mainId);	        
 	        Model res = EtextContents.getModel(path, mainId, etextM);
-            
-	        if (looking) {
-	            System.gc();
-                printUsage("<<<< modelFromPath USAGE for " + mainId + " AFTER ETEXTCONTENTS getModel  ");
-            }
-	        
             return res;
 	    }
 	    Model model = ModelFactory.createDefaultModel();
