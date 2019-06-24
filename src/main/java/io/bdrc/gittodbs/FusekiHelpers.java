@@ -13,6 +13,7 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdfconnection.RDFConnection;
+import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.rdfconnection.RDFConnectionFuseki;
 import org.apache.jena.rdfconnection.RDFConnectionRemoteBuilder;
 import org.slf4j.Logger;
@@ -25,6 +26,7 @@ public class FusekiHelpers {
     public static String FusekiUrl = "http://localhost:13180/fuseki/bdrcrw/data";
     public static String FusekiSparqlEndpoint = null;
     public static RDFConnection fuConn = null;
+    public static Dataset testDataset = null;;
     private static RDFConnectionRemoteBuilder fuConnBuilder = null;
     public static String baseUrl = null;
     public static int initialLoadBulkSize = 50000; // the number of triples above which a dataset load is triggered
@@ -42,15 +44,19 @@ public class FusekiHelpers {
                 .gspEndpoint(baseUrl+"/data")
                 .updateEndpoint(baseUrl+"/update");
     }
-    
-    private static void openConnection() {
+
+    public static void openConnection() {
         if (fuConn != null) {
             logger.info("openConnection already connected to fuseki via RDFConnection at "+FusekiUrl);
             return;
         }
 
         logger.info("openConnection to fuseki via RDFConnection at "+FusekiUrl);
-        fuConn = fuConnBuilder.build();        
+        if (testDataset != null) {
+            fuConn = RDFConnectionFactory.connect(testDataset);
+        } else {
+            fuConn = fuConnBuilder.build();
+        }
     }
 
     public static void closeConnection() {
@@ -58,7 +64,7 @@ public class FusekiHelpers {
             logger.info("closeConnection already closed for "+FusekiUrl);
             return;
         }
-        
+
         logger.info("closeConnections fuConn.commit, end, close");
         fuConn.commit();
         fuConn.end();
@@ -197,6 +203,7 @@ public class FusekiHelpers {
 
     static void deleteModel(String graphName) {
         logger.info("deleteModel:" + graphName);
+        openConnection();
         if (!fuConn.isInTransaction()) {
             fuConn.begin(ReadWrite.WRITE);
         }
@@ -207,8 +214,12 @@ public class FusekiHelpers {
     static Model getModel(String graphName) {
         logger.info("getModel:" + graphName);
         try {
-            return fuConn.fetch(graphName); 
+            openConnection();
+            Model model = fuConn.fetch(graphName);
+            logger.info("getModel:" + graphName + "  got model: " + model);
+            return model; 
         } catch (Exception ex) {
+            logger.info("getModel:" + graphName + "  FAILED ");
             return null;
         }
     }

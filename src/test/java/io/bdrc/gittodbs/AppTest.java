@@ -16,6 +16,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
@@ -55,11 +56,16 @@ public class AppTest
 	private static Dataset ds;
 	private static ObjectMapper om;
 	
+//	public static RDFConnection openConnection() {
+//	    return RDFConnectionFactory.connect(ds);
+//	}
+	
 	@BeforeClass
 	public static void init() throws IOException {
 	    ds = DatasetFactory.createGeneral();
+	    FusekiHelpers.testDataset = ds;
 //        FusekiHelpers.fu = DatasetAccessorFactory.create(ds);
-        FusekiHelpers.fuConn = RDFConnectionFactory.connect(ds);
+	    FusekiHelpers.openConnection();
 	    // for some reason, using both DataAccessor and RDFConnection on the same dataset doesn't work
 //        FusekiHelpers.useRdfConnection = true;
 //        FusekiHelpers.useRdfConnection = false;
@@ -116,6 +122,7 @@ public class AppTest
 	
 	@Test
 	public void test1() throws NoFilepatternException, GitAPIException, TimeoutException, InterruptedException {
+	    logger.info("Test1 RUNNING");
 	    Model m = ModelFactory.createDefaultModel();
 	    Resource r1 = m.createResource(BDR+"r1");
 	    Property p1 = m.createProperty(BDO, "p1");
@@ -124,8 +131,10 @@ public class AppTest
 	    String rev = writeModelToGitPath(m, "r1.ttl");
 	    assertTrue(GitHelpers.getHeadRev(DocType.TEST).equals(rev));
 	    assertTrue(GitHelpers.getLastRefOfFile(DocType.TEST, "r1.ttl").equals(rev));
+	    logger.info("Test1 SENDING r1 to fuseki");
 	    TransferHelpers.syncTypeFuseki(DocType.TEST, 1000);
 	    Model fusekiM = FusekiHelpers.getModel(BDG+"r1");
+	    logger.info("Test1 FETCHED graph r1: " + fusekiM);
 	    // adding the revision to m so that it corresponds to what's in Fuseki
 	    FusekiHelpers.setModelRevision(m, DocType.TEST, rev, "r1");
 	    assertTrue(fusekiM.isIsomorphicWith(m));
