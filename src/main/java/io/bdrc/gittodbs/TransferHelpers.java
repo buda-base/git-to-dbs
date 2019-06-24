@@ -160,7 +160,7 @@ public class TransferHelpers {
 	
 	public static void closeConnections() {
 	    if (GitToDB.transferFuseki)
-	        FusekiHelpers.closeConnections();
+	        FusekiHelpers.closeConnection();
 	}
 	
 	public static int syncType(DocType type, int nbLeft) {
