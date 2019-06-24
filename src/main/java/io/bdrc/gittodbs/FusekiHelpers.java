@@ -73,20 +73,20 @@ public class FusekiHelpers {
     }
     
     public static synchronized void setLastRevision(String revision, DocType type) {
-        final Model m = getSyncModel();
+        final Model model = getSyncModel();
         String typeStr = type.toString();
         typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
-        Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo"+typeStr);
-        Property p = m.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
-        Literal l = m.createLiteral(revision);
-        Statement s = m.getProperty(res, p);
+        Resource res = model.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo"+typeStr);
+        Property p = model.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
+        Literal l = model.createLiteral(revision);
+        Statement s = model.getProperty(res, p);
         if (s == null) {
-            m.add(res, p, l);
+            model.add(res, p, l);
         } else {
             s.changeObject(l);
         }
 
-        transferModel(TransferHelpers.ADMIN_PREFIX+"system", m);
+        transferModel(TransferHelpers.ADMIN_PREFIX+"system", model);
     }
 
     public static void setModelRevision(Model m, DocType type, String rev, String mainId) {
@@ -136,17 +136,22 @@ public class FusekiHelpers {
         System.err.println(head + sb.toString());
     }
     
-    static void transferModel(final String graphName, final Model m, boolean simple) {
+    static void transferModel(final String graphName, final Model model, boolean simple) {
         if (currentDataset == null)
             currentDataset = DatasetFactory.createGeneral();
-        currentDataset.addNamedModel(graphName, m);
-        triplesInDataset += m.size();
+        currentDataset.addNamedModel(graphName, model);
+        triplesInDataset += model.size();
         if (simple || triplesInDataset > initialLoadBulkSize) {
             loadDatasetSimple(currentDataset);
             currentDataset = null;
             triplesInDataset = 0;
             System.gc();
             printUsage("USAGE  ");
+        }
+
+        if (!simple) {
+            // also try to explicitly release the model contents since they're now in currentDataset
+            model.close();
         }
     }
 
@@ -164,9 +169,9 @@ public class FusekiHelpers {
 
     public static void closeConnections() {
         logger.info("closeConnections fuConn.commit, end, close");
-        FusekiHelpers.fuConn.commit();
-        FusekiHelpers.fuConn.end();
-        FusekiHelpers.fuConn.close();
+        fuConn.commit();
+        fuConn.end();
+        fuConn.close();
     }
 
     static void deleteModel(String graphName) {

@@ -250,12 +250,14 @@ public class TransferHelpers {
         final String mainId = mainIdFromPath(filePath, type);
         if (mainId == null)
             return;
-        Model m = modelFromPath(dirPath+filePath, type, mainId);
+        Model model = modelFromPath(dirPath+filePath, type, mainId);
         final String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
-        FusekiHelpers.setModelRevision(m, type, rev, mainId);
-        m = getInferredModel(m);
+        FusekiHelpers.setModelRevision(model, type, rev, mainId);
+        if (type != DocType.ETEXTCONTENT && type != DocType.ETEXT) {
+            model = getInferredModel(model);
+        }
         String graphName = BDG+mainId;
-        FusekiHelpers.transferModel(graphName, m);
+        FusekiHelpers.transferModel(graphName, model);
 	}
 
 	public static void logFileHandling(int i, String path, boolean fuseki) {
