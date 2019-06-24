@@ -34,7 +34,6 @@ public class EtextContents {
         String content = "";
         try {
             content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
-            Files.readAllLines( Paths.get(filePath), StandardCharsets.UTF_8 );
         } catch (IOException e) {
             e.printStackTrace();
         }
