@@ -4,7 +4,12 @@ import static io.bdrc.libraries.Models.getFacetNode;
 import static io.bdrc.libraries.Models.FacetType.ETEXT_CHUNK;
 import io.bdrc.gittodbs.TibetanStringChunker.BreaksInfo;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -14,29 +19,36 @@ import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EtextContents {
+    
+    public static Logger logger = LoggerFactory.getLogger(EtextContents.class);
 
     public static int meanChunkPointsAim = 1200;
     public static int maxChunkPointsAim = 2400;
     public static int minChunkNbSylls = 6;
     
-    public static class EtextStrInfo {
-        public String totalString;
-        public List<Integer> breakList;
-        public EtextStrInfo(String totalString, List<Integer> breakList) {
-            this.totalString = totalString;
-            this.breakList = breakList;
-        }
-    }
-    
+    private static ByteBuffer buf = ByteBuffer.allocate(32*1024*1024);
+
     public static Model getModel(final String filePath, final String etextId, Model etextM) {
         String content = "";
-        try {
-            content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
+        buf.clear();
+
+        try (RandomAccessFile etextFile = new RandomAccessFile(filePath, "r")) {        
+            //            content = new String ( Files.readAllBytes( Paths.get(filePath) ), StandardCharsets.UTF_8 );
+            FileChannel inChan = etextFile.getChannel();
+            int bytesRead = inChan.read(buf);
+            if (bytesRead > 0) {
+                content = new String( buf.array(), 0, bytesRead, StandardCharsets.UTF_8 );
+            } else {
+                logger.info("getModel got " + bytesRead + " for " + filePath);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        
         final BreaksInfo tmpBreaks = TibetanStringChunker.getAllBreakingCharsIndexes(content);
         final BreaksInfo breaks = TibetanStringChunker.selectBreakingCharsIndexes(tmpBreaks, meanChunkPointsAim, maxChunkPointsAim, minChunkNbSylls);
         return getModel(breaks, tmpBreaks.pointLen, content, etextId, etextM);

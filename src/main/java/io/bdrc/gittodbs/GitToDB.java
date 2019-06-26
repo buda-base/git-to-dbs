@@ -4,10 +4,14 @@ import java.util.StringTokenizer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GitToDB {
-	static String VERSION =  TransferHelpers.class.getPackage().getImplementationVersion();
+    
+    public static Logger logger = LoggerFactory.getLogger(GitToDB.class);
+
+    static String VERSION =  TransferHelpers.class.getPackage().getImplementationVersion();
 
 	static String fusekiHost = "localhost";
 	static String fusekiPort = "13180";
@@ -73,7 +77,7 @@ public class GitToDB {
 	            pool.shutdownNow(); // Cancel currently executing tasks
 	            // Wait a while for tasks to respond to being cancelled
 	            if (!pool.awaitTermination(60, TimeUnit.SECONDS))
-	                TransferHelpers.logger.warn("Pool did not terminate");
+	                logger.warn("Pool did not terminate");
 	        }
 	    } catch (InterruptedException ie) {
 	        // (Re-)Cancel if current thread also interrupted
@@ -126,18 +130,18 @@ public class GitToDB {
             } else if (arg.equals("-debug")) {
                 org.apache.log4j.Logger logger4j = org.apache.log4j.Logger.getRootLogger();
                 logger4j.setLevel(org.apache.log4j.Level.toLevel("DEBUG"));
-                TransferHelpers.logger = LoggerFactory.getLogger(GitToDB.class);
+                logger = LoggerFactory.getLogger(GitToDB.class);
             } else if (arg.equals("-trace")) {
                 org.apache.log4j.Logger logger4j = org.apache.log4j.Logger.getRootLogger();
                 logger4j.setLevel(org.apache.log4j.Level.toLevel("TRACE"));
-                TransferHelpers.logger = LoggerFactory.getLogger(GitToDB.class);
+                logger = LoggerFactory.getLogger(GitToDB.class);
 			} else if (arg.equals("-help")) {
 				printHelp();
 				System.exit(0);
 			} else if (arg.equals("-version")) {
 				System.err.println("FusekiTransfer version: " + VERSION);
 
-				if (TransferHelpers.logger.isDebugEnabled()) {
+				if (logger.isDebugEnabled()) {
 					System.err.println("Current java.library.path:");
 					String property = System.getProperty("java.library.path");
 					StringTokenizer parser = new StringTokenizer(property, ";");
@@ -153,12 +157,12 @@ public class GitToDB {
 		FusekiHelpers.printUsage("INITIAL USAGE  ");
 		
 		if (!transferCouch && !transferFuseki) {
-		    TransferHelpers.logger.error("nothing to do, quitting...");
+		    logger.error("nothing to do, quitting...");
             System.exit(1);
 		}
 
         if (gitDir == null || gitDir.isEmpty()) {
-            TransferHelpers.logger.error("please specify the git directory");
+            logger.error("please specify the git directory");
             System.exit(1);
         }
         
@@ -170,7 +174,7 @@ public class GitToDB {
 		try {
 			TransferHelpers.init();
 		} catch (Exception e) {
-			TransferHelpers.logger.error("error in initialization", e);
+			logger.error("error in initialization", e);
 			System.exit(1);
 		}
 
@@ -184,21 +188,21 @@ public class GitToDB {
                 TransferHelpers.syncType(docType, howMany);
                 TransferHelpers.closeConnections();
             } catch (Exception ex) {
-                TransferHelpers.logger.error("error transfering" + docType, ex);
+                logger.error("error transfering " + docType, ex);
                 System.exit(1);
             }
         } else {
             try {
                 TransferHelpers.sync(howMany);
             } catch (Exception ex) {
-                TransferHelpers.logger.error("error in complete transfer", ex);
+                logger.error("error in complete transfer", ex);
                 System.exit(1);
             }
         }
 
-		TransferHelpers.logger.info("FusekiTranser shutting down");
+		logger.info("FusekiTranser shutting down");
 		shutdownAndAwaitTermination(TransferHelpers.executor);
-        TransferHelpers.logger.info("FusekiTranser " + couchdbName + " done");
+        logger.info("FusekiTranser " + couchdbName + " done");
 		
 		// for an unknown reason, when execution reaches this point, if there is not
 		// an explicit exit the program simply hangs indefinitely?!

@@ -216,7 +216,7 @@ public class FusekiHelpers {
         try {
             openConnection();
             Model model = fuConn.fetch(graphName);
-            logger.info("getModel:" + graphName + "  got model: " + model);
+            logger.info("getModel:" + graphName + "  got model: " + model.size());
             return model; 
         } catch (Exception ex) {
             logger.info("getModel:" + graphName + "  FAILED ");
