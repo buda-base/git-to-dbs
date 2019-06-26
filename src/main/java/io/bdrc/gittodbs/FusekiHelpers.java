@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.bdrc.gittodbs.TransferHelpers.DocType;
+import static io.bdrc.gittodbs.GitToDB.connectPerTransfer;
 
 public class FusekiHelpers {
     
@@ -177,12 +178,16 @@ public class FusekiHelpers {
         currentDataset.addNamedModel(graphName, model);
         triplesInDataset += model.size();
         if (simple || triplesInDataset > initialLoadBulkSize) {
-            openConnection();
+            if (connectPerTransfer) {
+                openConnection();
+            }
             loadDatasetSimple(currentDataset);
             currentDataset = null;
             triplesInDataset = 0;
-            closeConnection();
-            System.gc();
+            if (connectPerTransfer) {
+                closeConnection();
+                System.gc();
+            }
             printUsage("USAGE  ");
         }
     }
@@ -191,13 +196,17 @@ public class FusekiHelpers {
         // if map is not empty, transfer the last one
         logger.info("finishDatasetTransfers addFileFuseki " + (currentDataset != null ? "not null" : "null"));
         if (currentDataset != null) {
-            openConnection();
+            if (connectPerTransfer) {
+                openConnection();
+            }
             loadDatasetSimple(currentDataset);
         }
         currentDataset = null;
         triplesInDataset = 0;
-        System.gc();
-        closeConnection();
+        if (connectPerTransfer) {
+            closeConnection();
+            System.gc();
+        }
         printUsage("FINISH USAGE  ");
     }
 

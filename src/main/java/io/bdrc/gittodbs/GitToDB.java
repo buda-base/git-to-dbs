@@ -27,6 +27,7 @@ public class GitToDB {
     static boolean transferAllDB = false;
     static boolean transferOnto = false;
     static boolean listenToChanges = true;
+    static boolean connectPerTransfer = false;
 	
 	static TransferHelpers.DocType docType = null;
 	
@@ -38,7 +39,8 @@ public class GitToDB {
 		        + "-fusekiHost <host>  - host fuseki is running on. Defaults to localhost\n"
 		        + "-fusekiPort <port>  - port fuseki is running on. Defaults to 13180\n"
                 + "-fusekiName <name>  - name of the fuseki endpoint. Defaults to 'bdrcrw'\n"
-		        + "-couchdb            - do transfer to CouchDB\n"
+                + "-connectPerTransfer - connect to Fuseki for each transfer. Default is connect once per execution\n"
+                + "-couchdb            - do transfer to CouchDB\n"
 		        + "-couchdbHost <host> - host couchdb is running on. Defaults to localhost\n"
 		        + "-couchdbPort <port> - port couchdb is running on. Defaults to 13598\n"
 		        + "-libFormat          - Transfer to CouchDB in the Lib App format\n"
@@ -101,6 +103,8 @@ public class GitToDB {
                 transferFuseki = true;
             } else if (arg.equals("-fuseki")) {
                 transferFuseki = true;
+            } else if (arg.equals("-connectPerTransfer")) {
+                connectPerTransfer = true;
             } else if (arg.equals("-couchdbHost")) {
 				couchdbHost = (++i < args.length ? args[i] : null);
 				transferCouch = true;
