@@ -2,8 +2,6 @@ package io.bdrc.gittodbs;
 
 import static io.bdrc.libraries.Models.getMd5;
 
-import static io.bdrc.gittodbs.FusekiHelpers.printUsage;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.HashMap;
