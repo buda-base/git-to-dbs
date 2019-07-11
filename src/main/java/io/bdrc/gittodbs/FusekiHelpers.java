@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import io.bdrc.gittodbs.TransferHelpers.DocType;
 import static io.bdrc.gittodbs.GitToDB.connectPerTransfer;
+import static io.bdrc.libraries.Models.ADM;
+import static io.bdrc.libraries.Models.BDA;
 
 public class FusekiHelpers {
     
@@ -32,6 +34,8 @@ public class FusekiHelpers {
     public static String baseUrl = null;
     public static int initialLoadBulkSize = 50000; // the number of triples above which a dataset load is triggered
     public static boolean addGitRevision = true;
+    
+    public static String SYSTEM_GRAPH = ADM+"system";
     
     static Dataset currentDataset = null;
     static int triplesInDataset = 0;
@@ -83,12 +87,12 @@ public class FusekiHelpers {
     }
     
     public static synchronized String getLastRevision(DocType type) {
-        Model m = getSyncModel();
+        Model model = getSyncModel();
         String typeStr = type.toString();
         typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
-        Resource res = m.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo"+typeStr);
-        Property p = m.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
-        Statement s = m.getProperty(res, p);
+        Resource res = model.getResource(ADM+"GitSyncInfo"+typeStr);
+        Property p = model.getProperty(ADM+"hasLastRevision");
+        Statement s = model.getProperty(res, p);
         if (s == null) return null;
         return s.getString();
     }
@@ -105,8 +109,8 @@ public class FusekiHelpers {
     
     public static synchronized final void initSyncModel() {
         syncModelInitialized = true;
-        logger.info("initSyncModel: " + TransferHelpers.ADMIN_PREFIX+"system");
-        Model distantSyncModel = getModel(TransferHelpers.ADMIN_PREFIX+"system");
+        logger.info("initSyncModel: " + SYSTEM_GRAPH);
+        Model distantSyncModel = getModel(SYSTEM_GRAPH);
         if (distantSyncModel != null) {
             syncModel.add(distantSyncModel);
         }
@@ -116,29 +120,33 @@ public class FusekiHelpers {
         final Model model = getSyncModel();
         String typeStr = type.toString();
         typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
-        Resource res = model.getResource(TransferHelpers.ADMIN_PREFIX+"GitSyncInfo"+typeStr);
-        Property p = model.getProperty(TransferHelpers.ADMIN_PREFIX+"hasLastRevision");
-        Literal l = model.createLiteral(revision);
-        Statement s = model.getProperty(res, p);
-        if (s == null) {
-            model.add(res, p, l);
+        Resource res = model.getResource(ADM+"GitSyncInfo"+typeStr);
+        Property prop = model.getProperty(ADM+"hasLastRevision");
+        Literal lit = model.createLiteral(revision);
+        Statement stmt = model.getProperty(res, prop);
+        if (stmt == null) {
+            model.add(res, prop, lit);
         } else {
-            s.changeObject(l);
+            stmt.changeObject(lit);
+            deleteModel(SYSTEM_GRAPH);
         }
-
-        transferModel(TransferHelpers.ADMIN_PREFIX+"system", model);
+        
+        // bypass the transferModel machinery. Don't tangle adm:system w/ currentDataset
+        Dataset sysDS = DatasetFactory.createGeneral();
+        sysDS.addNamedModel(SYSTEM_GRAPH, model);
+        loadDatasetSimple(sysDS);
     }
 
-    public static void setModelRevision(Model m, DocType type, String rev, String mainId) {
+    public static void setModelRevision(Model model, DocType type, String rev, String mainId) {
         if (!addGitRevision)
             return;
-        final Property p;
+        final Property prop;
         if (type == DocType.ETEXTCONTENT) 
-            p = m.getProperty(TransferHelpers.ADM, "contentsGitRevision");
+            prop = model.getProperty(ADM, "contentsGitRevision");
         else
-            p = m.getProperty(TransferHelpers.ADM, "gitRevision");
-        final Resource r = m.getResource(TransferHelpers.BDA+mainId);
-        r.addProperty(p, m.createLiteral(rev));
+            prop = model.getProperty(ADM, "gitRevision");
+        final Resource res = model.getResource(BDA+mainId);
+        res.addProperty(prop, model.createLiteral(rev));
     }
     
     public static void printUsage(String head) {
