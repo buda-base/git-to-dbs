@@ -281,20 +281,21 @@ public class TransferHelpers {
 	        }
 	        TransferHelpers.logger.info("sending changed " + type + " files changed since "+distRev+" to Fuseki");
 	        for (DiffEntry de : entries) {
-	            if (i+1 > nbLeft)
+	            i++;
+	            if (i > nbLeft)
 	                return nbLeft;
-	            i = i + 1;
-	            final String path = de.getNewPath();
-	            logFileHandling(i, path, true);
+	            final String newPath = de.getNewPath();
+	            logFileHandling(i, newPath, true);
 	            final String oldPath = de.getOldPath();
-	            if (path.equals("/dev/null") || !path.equals(oldPath)) {
+	                
+	            if (newPath.equals("/dev/null") || !newPath.equals(oldPath)) {
 	                final String mainId = mainIdFromPath(oldPath, type);
 	                if (mainId != null) {
-	                    FusekiHelpers.deleteModel(BDR+mainId);
+	                    FusekiHelpers.deleteModel(BDG+mainId);
 	                }
 	            }
-	            if (!path.equals("/dev/null"))
-	                addFileFuseki(type, dirpath, path);
+	            if (!newPath.equals("/dev/null"))
+	                addFileFuseki(type, dirpath, newPath);
 	        }
 	    }
 	    FusekiHelpers.setLastRevision(gitRev, type);
