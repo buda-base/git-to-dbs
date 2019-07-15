@@ -35,6 +35,8 @@ public class FusekiHelpers {
     public static int initialLoadBulkSize = 50000; // the number of triples above which a dataset load is triggered
     public static boolean addGitRevision = true;
     
+    public static boolean updatingFuseki = true;
+    
     public static String SYSTEM_GRAPH = ADM+"system";
     
     static Dataset currentDataset = null;
@@ -113,6 +115,8 @@ public class FusekiHelpers {
         Model distantSyncModel = getModel(SYSTEM_GRAPH);
         if (distantSyncModel != null) {
             syncModel.add(distantSyncModel);
+        } else {
+            updatingFuseki = false;
         }
     }
     
@@ -181,6 +185,11 @@ public class FusekiHelpers {
     }
     
     static void transferModel(final String graphName, final Model model, boolean simple) {
+        if (updatingFuseki) {
+            putModel(graphName, model);
+            return;
+        }
+
         if (currentDataset == null)
             currentDataset = DatasetFactory.createGeneral();
         currentDataset.addNamedModel(graphName, model);
@@ -219,7 +228,7 @@ public class FusekiHelpers {
     }
 
     static void deleteModel(String graphName) {
-        logger.info("deleteModel:" + graphName);
+        logger.info("DELETING:" + graphName);
         openConnection();
         if (!fuConn.isInTransaction()) {
             fuConn.begin(ReadWrite.WRITE);
@@ -239,5 +248,15 @@ public class FusekiHelpers {
             logger.info("getModel:" + graphName + "  FAILED ");
             return null;
         }
+    }
+
+    static void putModel(String graphName, Model model) {
+        logger.info("PUTTING:" + graphName);
+        openConnection();
+        if (!fuConn.isInTransaction()) {
+            fuConn.begin(ReadWrite.WRITE);
+        }
+        fuConn.put(graphName, model);
+        fuConn.commit();
     }
 }

@@ -20,7 +20,7 @@ public class EtextMergerTest {
 //        etext.write(new FileWriter("/Users/chris/BUDA/NEW_MIGRATION_TESTING/EtextMergerTest-GENERATED.ttl"), "TTL");
         
         Model correctMerge = TransferHelpers.modelFromPath("etextmerge/EtextTest-etext-merged.ttl", DocType.ETEXT, "UT1CZ2485_001_0000");
-        TransferHelpers.printModel(etext);
+//        TransferHelpers.printModel(etext);
         assertTrue(etext.isIsomorphicWith(correctMerge));
     }
 }

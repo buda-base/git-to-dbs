@@ -56,15 +56,10 @@ public class AppTest
 	private static Dataset ds;
 	private static ObjectMapper om;
 	
-//	public static RDFConnection openConnection() {
-//	    return RDFConnectionFactory.connect(ds);
-//	}
-	
 	@BeforeClass
 	public static void init() throws IOException {
 	    ds = DatasetFactory.createGeneral();
 	    FusekiHelpers.testDataset = ds;
-//        FusekiHelpers.fu = DatasetAccessorFactory.create(ds);
 	    FusekiHelpers.openConnection();
 	    // for some reason, using both DataAccessor and RDFConnection on the same dataset doesn't work
 //        FusekiHelpers.useRdfConnection = true;
@@ -108,7 +103,6 @@ public class AppTest
 	
 	public static Map<String, Object> objectFromJson(String path) throws JsonParseException, JsonMappingException, IOException {
 	    ClassLoader classLoader = TransferHelpers.class.getClassLoader();
-	    InputStream is = classLoader.getResourceAsStream(path);
 	    File file = new File(classLoader.getResource(path).getFile());
 	    return om.readValue(file, new TypeReference<Map<String, Object>>(){});
 	    //return om.readTree(file);
