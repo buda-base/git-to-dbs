@@ -54,7 +54,7 @@ public class FusekiHelpers {
 
     public static void openConnection() {
         if (fuConn != null) {
-            logger.info("openConnection already connected to fuseki via RDFConnection at "+FusekiUrl);
+            logger.debug("openConnection already connected to fuseki via RDFConnection at "+FusekiUrl);
             return;
         }
 
@@ -132,13 +132,10 @@ public class FusekiHelpers {
             model.add(res, prop, lit);
         } else {
             stmt.changeObject(lit);
-            deleteModel(SYSTEM_GRAPH);
         }
         
         // bypass the transferModel machinery. Don't tangle adm:system w/ currentDataset
-        Dataset sysDS = DatasetFactory.createGeneral();
-        sysDS.addNamedModel(SYSTEM_GRAPH, model);
-        loadDatasetSimple(sysDS);
+        putModel(SYSTEM_GRAPH, model);
     }
 
     public static void setModelRevision(Model model, DocType type, String rev, String mainId) {
