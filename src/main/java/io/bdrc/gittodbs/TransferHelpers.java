@@ -430,6 +430,6 @@ public class TransferHelpers {
 
 	public static void transferOntology() {
 	    logger.info("Transferring Ontology: " + CORE_PREFIX+"ontologySchema");
-	    FusekiHelpers.transferModel(CORE_PREFIX+"ontologySchema", ontModel, true);
+	    FusekiHelpers.transferModel(BDG+"ontologySchema", ontModel, true);
 	}
 }
