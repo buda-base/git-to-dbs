@@ -77,6 +77,7 @@ public class TransferHelpers {
         PRODUCT("product"), 
         TOPIC("topic"),
         WORK("work"),
+        OUTLINE("outline"),
         TEST("test");
 
         private String label;

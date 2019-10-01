@@ -4,9 +4,15 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-SELECT ?property ?type ?volNum ?imageCount ?legacyRID (group_concat(?etext;separator=";") as ?etexts)
+SELECT ?property ?type ?volNum ?v (group_concat(?etext;separator=";") as ?etexts) ?status ?ric ?access
 WHERE {
   {
+     ?a adm:adminAbout ?i ;
+        adm:status ?status ;
+        adm:restrictedInChina ?ric ;
+        adm:access ?access . 
+     BIND("status" as ?property)
+  } UNION {
      ?i :itemHasVolume ?v .
      ?i rdf:type ?type .
      ?v :volumeNumber ?volNum .

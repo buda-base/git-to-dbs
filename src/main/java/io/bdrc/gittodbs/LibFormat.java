@@ -29,6 +29,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.reasoner.Reasoner;
 import org.eclipse.jgit.treewalk.TreeWalk;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.tools.sjavac.Log;
 
@@ -101,11 +102,20 @@ public class LibFormat {
             return;
         node.put(prop, soln.getLiteral(prop).getString());
     }
-    
+
     public static final int BDRlen = TransferHelpers.BDR.length();
     public static String removeBdrPrefix(final String s) {
         return s.substring(BDRlen);
     }
+    
+    public static void addPrefixedId(final QuerySolution soln, final Map<String,Object> node, final String prop) {
+        if (!soln.contains(prop))
+            return;
+        String fullUri = soln.getResource(prop).getURI();
+        node.put(prop, "bdr:"+fullUri.substring(BDRlen));
+    }
+    
+
     
     public static Map<String, Object> modelToJsonObject(final String mainId, final Model m, final DocType type, Map<String,List<String>> index) {
         final Query query = getQuery(type);
@@ -120,7 +130,16 @@ public class LibFormat {
                     continue;
                 String property = soln.get("property").asLiteral().getString();
                 if (property.equals("status")) {
-                    if (!soln.get("value").asResource().getLocalName().equals("StatusReleased")) {
+                    if (soln.contains("value") && !soln.get("value").asResource().getLocalName().equals("StatusReleased")) {
+                        return null;
+                    }
+                    if (soln.contains("status") && !soln.get("status").asResource().getLocalName().equals("StatusReleased")) {
+                        return null;
+                    }
+                    if (soln.contains("ric") && soln.get("ric").asLiteral().getBoolean()) {
+                        return null;
+                    }
+                    if (soln.contains("access") && !soln.get("access").asResource().getLocalName().equals("AccessOpen")) {
                         return null;
                     }
                     continue;
@@ -129,8 +148,7 @@ public class LibFormat {
                     final Map<String, Map<String, Object>> nodes = (Map<String, Map<String, Object>>) res.computeIfAbsent("volumes", x -> new TreeMap<String,Map<String, Object>>());
                     final String nodeId = soln.getLiteral("volNum").getString();
                     final Map<String,Object> node = (Map<String, Object>) nodes.computeIfAbsent(nodeId, x -> new TreeMap<String,Object>());
-                    addInt(soln, node, "imageCount");
-                    addStr(soln, node, "legacyRID");
+                    addPrefixedId(soln, node, "v");
                     if (soln.contains("type"))
                         res.put("type", soln.getResource("type").getLocalName());
                     if (soln.contains("etexts")) {
@@ -219,7 +237,6 @@ public class LibFormat {
         File personsDir = new File(GitToDB.libOutputDir+"/persons/");
         personsDir.mkdir();
         try {
-            int i = 0;
             while (tw.next()) {
                 final String mainId = TransferHelpers.mainIdFromPath(tw.getPathString(), DocType.PERSON);
                 if (mainId == null)
@@ -230,9 +247,60 @@ public class LibFormat {
                 Map<String, Object> obj = modelToJsonObject(mainId, model, DocType.PERSON, indexes.get(PERSON));
                 if (obj != null)
                     om.writer().writeValue(new File(personsDir+"/"+mainId+".json"), obj);
-                i += 1;
-//                if (i > 3)
-//                    break;
+                break;
+            }
+        } catch (IOException e) {
+            TransferHelpers.logger.error("", e);
+        }
+        
+        Map<String,Map<String, Object>> works = new HashMap<>();
+        
+        tw = GitHelpers.listRepositoryContents(DocType.ITEM);
+        TransferHelpers.logger.info("getting all item files for app");
+        try {
+            while (tw.next()) {
+                final String mainId = TransferHelpers.mainIdFromPath(tw.getPathString(), DocType.ITEM);
+                if (mainId == null)
+                    return;
+                String fullPath = GitToDB.gitDir+"items/"+tw.getPathString();
+                TransferHelpers.logger.info("reading {}", fullPath);
+                Model model = TransferHelpers.modelFromPath(fullPath, DocType.ITEM, mainId);
+                Map<String, Object> obj = modelToJsonObject(mainId, model, DocType.ITEM, null);
+                if (obj != null)
+                    works.put(mainId, obj);
+            }
+        } catch (IOException e) {
+            TransferHelpers.logger.error("", e);
+        }
+
+        File worksDir = new File(GitToDB.libOutputDir+"/works/");
+        worksDir.mkdir();
+        File outlinesDir = new File(GitToDB.libOutputDir+"/outlines/");
+        outlinesDir.mkdir();
+        tw = GitHelpers.listRepositoryContents(DocType.WORK);
+        TransferHelpers.logger.info("getting all works files for app");
+        try {
+            int i = 0;
+            while (tw.next()) {
+                final String mainId = TransferHelpers.mainIdFromPath(tw.getPathString(), DocType.WORK);
+                if (mainId == null)
+                    return;
+                // we only want works with images:
+                if (!works.containsKey(mainId)) {
+                    continue;
+                }
+                String fullPath = GitToDB.gitDir+"items/"+tw.getPathString();
+                TransferHelpers.logger.info("reading {}", fullPath);
+                Model model = TransferHelpers.modelFromPath(fullPath, DocType.WORK, mainId);
+                Map<String, Object> obj = modelToJsonObject(mainId, model, DocType.WORK, indexes.get(WORK));
+                if (obj != null)
+                    om.writer().writeValue(new File(worksDir+"/"+mainId+".json"), obj);
+                obj = modelToJsonObject(mainId, model, DocType.OUTLINE, indexes.get(OUTLINE));
+                if (obj != null)
+                    om.writer().writeValue(new File(outlinesDir+"/"+mainId+".json"), obj);
+                if (i > 3) {
+                    break;
+                }
             }
         } catch (IOException e) {
             TransferHelpers.logger.error("", e);
