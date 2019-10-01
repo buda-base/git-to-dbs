@@ -1,5 +1,8 @@
 package io.bdrc.gittodbs;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -24,8 +27,10 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.reasoner.Reasoner;
+import org.eclipse.jgit.treewalk.TreeWalk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.tools.sjavac.Log;
 
 import io.bdrc.ewtsconverter.EwtsConverter;
 import io.bdrc.gittodbs.TransferHelpers.DocType;
@@ -34,6 +39,12 @@ public class LibFormat {
     public static final ObjectMapper om = new ObjectMapper();
     public static final EwtsConverter converter = new EwtsConverter(false, false, false, true);
     public static final Reasoner bdrcReasoner = TransferHelpers.bdrcReasoner;
+    
+    public static final String PERSON = "person";
+    public static final String WORK = "work";
+    public static final String OUTLINE = "outline";
+    
+    public static final int maxkeysPerIndex = 10000;
 
     public static final Map<DocType,Query> typeQuery = new EnumMap<>(DocType.class);
     
@@ -67,7 +78,7 @@ public class LibFormat {
         if (valueN == null)
             return null;
         Literal valueL = valueN.asLiteral();
-        if (valueL.getLanguage().equals("bo-x-ewts"))
+        if (valueL.getLanguage().endsWith("-x-ewts"))
             return toUnicode(valueL.getString());
         else
             return valueL.getString();
@@ -96,18 +107,24 @@ public class LibFormat {
         return s.substring(BDRlen);
     }
     
-    public static Map<String, Object> modelToJsonObject(final Model m, final DocType type) {
+    public static Map<String, Object> modelToJsonObject(final String mainId, final Model m, final DocType type, Map<String,List<String>> index) {
         final Query query = getQuery(type);
-        final InfModel im = TransferHelpers.getInferredModel(m);
+        //final InfModel im = TransferHelpers.getInferredModel(m);
         //TransferHelpers.printModel(im);
         final Map<String,Object> res = new HashMap<String,Object>();
-        try (QueryExecution qexec = QueryExecutionFactory.create(query, im)) {
+        try (QueryExecution qexec = QueryExecutionFactory.create(query, m)) {
             final ResultSet results = qexec.execSelect() ;
             while (results.hasNext()) {
                 final QuerySolution soln = results.nextSolution();
                 if (!soln.contains("property"))
                     continue;
                 String property = soln.get("property").asLiteral().getString();
+                if (property.equals("status")) {
+                    if (!soln.get("value").asResource().getLocalName().equals("StatusReleased")) {
+                        return null;
+                    }
+                    continue;
+                }
                 if (property.equals("volumes[]")) {
                     final Map<String, Map<String, Object>> nodes = (Map<String, Map<String, Object>>) res.computeIfAbsent("volumes", x -> new TreeMap<String,Map<String, Object>>());
                     final String nodeId = soln.getLiteral("volNum").getString();
@@ -163,12 +180,20 @@ public class LibFormat {
                     }
                 } else {
                     final String value = getUnicodeStrFromProp(soln, "value");
+                    if (property.startsWith("name")) {
+                        final List<String> idxList = (List<String>) index.computeIfAbsent(value, x -> new ArrayList<String>());
+                        if (!idxList.contains(mainId)) {
+                            idxList.add(mainId);                            
+                        }
+                        TransferHelpers.logger.debug("adding {} -> {} to index", value, mainId);
+                    }
                     if (value == null || value.isEmpty())
                         continue;
                     if (property.endsWith("[]")) {
                         property = property.substring(0, property.length()-2);
                         final List<String> valList = (List<String>) res.computeIfAbsent(property, x -> new ArrayList<String>());
-                        valList.add(value);
+                        if (!valList.contains(value))
+                            valList.add(value);
                     } else {
                         res.put(property, value);                    
                     }
@@ -179,4 +204,68 @@ public class LibFormat {
             return null;
         return res;
     }
+    
+    public static void exportAll() throws IOException {
+        File exportDir = new File(GitToDB.libOutputDir);
+        exportDir.mkdir();
+        
+        Map<String,Map<String,List<String>>> indexes = new HashMap<>();
+        indexes.put(PERSON, new HashMap<>());
+        indexes.put(OUTLINE, new HashMap<>());
+        indexes.put(WORK, new HashMap<>());
+        
+        TreeWalk tw = GitHelpers.listRepositoryContents(DocType.PERSON);
+        TransferHelpers.logger.info("exporting all person files to app");
+        File personsDir = new File(GitToDB.libOutputDir+"/persons/");
+        personsDir.mkdir();
+        try {
+            int i = 0;
+            while (tw.next()) {
+                final String mainId = TransferHelpers.mainIdFromPath(tw.getPathString(), DocType.PERSON);
+                if (mainId == null)
+                    return;
+                String fullPath = GitToDB.gitDir+"persons/"+tw.getPathString();
+                TransferHelpers.logger.info("reading {}", fullPath);
+                Model model = TransferHelpers.modelFromPath(fullPath, DocType.PERSON, mainId);
+                Map<String, Object> obj = modelToJsonObject(mainId, model, DocType.PERSON, indexes.get(PERSON));
+                if (obj != null)
+                    om.writer().writeValue(new File(personsDir+"/"+mainId+".json"), obj);
+                i += 1;
+//                if (i > 3)
+//                    break;
+            }
+        } catch (IOException e) {
+            TransferHelpers.logger.error("", e);
+        }
+        
+        for (Map.Entry<String,Map<String,List<String>>> e : indexes.entrySet()) {
+            int fileCnt = 0;
+            String prefix = e.getKey();
+            FileWriter outfile = new FileWriter(GitToDB.libOutputDir+"/"+prefix+"-"+fileCnt+".json");
+            int keyCnt = 0;
+            for (Map.Entry<String,List<String>> kv : e.getValue().entrySet()) {
+                if (keyCnt == 0) {
+                    outfile.write('{');
+                } else {
+                    outfile.write(',');
+                }
+                outfile.write(om.writeValueAsString(kv.getKey())+":"+om.writeValueAsString(kv.getValue()));
+                keyCnt += 1;
+                if (keyCnt > maxkeysPerIndex) {
+                    fileCnt += 1;
+                    outfile.write('}');
+                    outfile.flush();
+                    outfile.close();
+                    outfile = new FileWriter(GitToDB.libOutputDir+"/"+prefix+"-"+fileCnt+".json");
+                    keyCnt = 0;
+                }
+            }
+            if (keyCnt != 0) {
+                outfile.write('}');
+            }
+            outfile.flush();
+            outfile.close();
+        }
+    }
+    
 }

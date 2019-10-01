@@ -128,9 +128,6 @@ public class TransferHelpers {
 	    if (GitToDB.transferFuseki) {
 	        FusekiHelpers.init(GitToDB.fusekiHost, GitToDB.fusekiPort, GitToDB.fusekiName);	        
 	    }
-	    if (GitToDB.transferCouch) {
-	        CouchHelpers.init(GitToDB.couchdbHost, GitToDB.couchdbPort, GitToDB.libFormat);
-	    }
 		
 	    ontModel = getOntologyModel();
 		bdrcReasoner = BDRCReasoner.getReasoner(ontModel);
@@ -142,10 +139,6 @@ public class TransferHelpers {
 	    nbLeft = nbLeft - syncType(DocType.ITEM, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.WORK, nbLeft);
 //	    nbLeft = nbLeft - syncType(DocType.ETEXT, nbLeft);
-	    if (GitToDB.libFormat) {
-	        closeConnections();
-	        return;
-	    }
 	    nbLeft = nbLeft - syncType(DocType.CORPORATION, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.PLACE, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.TOPIC, nbLeft);
@@ -166,7 +159,7 @@ public class TransferHelpers {
 	    // random result for uncoherent couch and fuseki
 	    if (GitToDB.transferFuseki)
 	        i = syncTypeFuseki(type, nbLeft);
-	    if (GitToDB.transferCouch && type != DocType.ETEXTCONTENT)
+	    if (GitToDB.exportLib && type != DocType.ETEXTCONTENT)
 	        i = syncTypeCouch(type, nbLeft);
 	    return i;
 	}
@@ -310,10 +303,7 @@ public class TransferHelpers {
         final long modelSize = m.size();
         final String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
         final Map<String,Object> jsonObject;
-        if (GitToDB.libFormat)
-            jsonObject = LibFormat.modelToJsonObject(m, type);
-        else
-            jsonObject = JSONLDFormatter.modelToJsonObject(m, type, mainId);
+        jsonObject = JSONLDFormatter.modelToJsonObject(m, type, mainId);
         if (jsonObject == null)
             return;
         CouchHelpers.jsonObjectToCouch(jsonObject, mainId, type, rev, modelSize);
