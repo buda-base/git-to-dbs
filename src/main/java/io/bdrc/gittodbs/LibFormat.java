@@ -30,7 +30,6 @@ import org.apache.jena.reasoner.Reasoner;
 import org.eclipse.jgit.treewalk.TreeWalk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.tools.sjavac.Log;
 
 import io.bdrc.ewtsconverter.EwtsConverter;
 import io.bdrc.gittodbs.TransferHelpers.DocType;
