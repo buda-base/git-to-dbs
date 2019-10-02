@@ -5,42 +5,42 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX adm:   <http://purl.bdrc.io/ontology/admin/>
+
 SELECT ?property ?value ?name ?title ?endsAt ?beginsAt ?endsAtVolume ?beginsAtVolume ?nodeRID ?prefLabel
 WHERE {
   {
-     ?w :workCreator ?value .
+     ?w :isRoot true .
+     ?w :creator/:agent ?value .
      BIND ("creator[URI]" AS ?property)
   } UNION {
      ?w :workPublisherName ?value .
+     ?w :isRoot true .
      BIND ("publisherName" AS ?property)
+     FILTER (STR(?value) != "[s.n.]")
   } UNION {
      ?w :workPublisherDate ?value .
+     ?w :isRoot true .
      BIND ("publisherDate" AS ?property)
+     FILTER (STR(?value) != "[s.d.]")
   } UNION {
      ?w :workPublisherLocation ?value .
+     ?w :isRoot true .
      BIND ("publisherLocation" AS ?property)
+     FILTER (STR(?value) != "[s.l.]")
   } UNION {
-     ?w :workPrintType ?value .
-     BIND ("printTypeURI" AS ?property)
+     ?w :printMethod ?value .
+     ?w :isRoot true .
+     BIND ("printMethodURI" AS ?property)
   } UNION {
-     ?w :workHasItem ?value .
-     BIND ("item[URI]" AS ?property)
-  } UNION {
-     ?w adm:workLegacyNode ?nodeRID .
-     ?w rdf:type :Work .
-     OPTIONAL { ?w :workPartLabel ?name } .
-     OPTIONAL { ?w :workTitle/rdfs:label ?title } .
-     OPTIONAL { ?w :workLocation/:workLocationEndVolume ?endsAtVolume } .
-     OPTIONAL { ?w :workLocation/:workLocationPage ?beginsAt } .
-     OPTIONAL { ?w :workLocation/:workLocationEndPage ?endsAt } .
-     OPTIONAL { ?w :workLocation/:workLocationVolume ?beginsAtVolume } .
-     BIND ("node[]" AS ?property)
-     FILTER ((!bound(?name) || lang(?name) = "bo" || lang(?name) = "bo-x-ewts")
-             && (!bound(?title) || lang(?title) = "bo" || lang(?title) = "bo-x-ewts"))
+     ?w :isRoot true .
+     ?w skos:prefLabel ?value .
+     BIND ("title[]" AS ?property)
+     FILTER (lang(?value) = "bo" || lang(?value) = "bo-x-ewts" || lang(?value) = "sa-x-ewts")
   } UNION {
      ?w :workTitle/rdfs:label ?value .
+     ?w :isRoot true .
      BIND ("title[]" AS ?property)
-     FILTER NOT EXISTS {?w adm:workLegacyNode ?nodeRID } .
      FILTER (NOT EXISTS {} && (lang(?value) = "bo" || lang(?value) = "bo-x-ewts"))
   }
 }

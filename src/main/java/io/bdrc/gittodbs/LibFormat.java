@@ -45,7 +45,7 @@ public class LibFormat {
     public static final String WORK = "work";
     public static final String OUTLINE = "outline";
     
-    public static final int maxkeysPerIndex = 10000;
+    public static final int maxkeysPerIndex = 20000;
 
     public static final Map<DocType,Query> typeQuery = new EnumMap<>(DocType.class);
     
@@ -79,9 +79,10 @@ public class LibFormat {
         if (valueN == null)
             return null;
         Literal valueL = valueN.asLiteral();
-        if (valueL.getLanguage().endsWith("-x-ewts"))
-            return toUnicode(valueL.getString());
-        else
+        if (valueL.getLanguage().endsWith("-x-ewts")) {
+            String uniStr = toUnicode(valueL.getString());
+            return uniStr;
+        }else
             return valueL.getString();
     }
     
@@ -151,6 +152,9 @@ public class LibFormat {
                     addPrefixedId(soln, node, "v");
                     if (soln.contains("type"))
                         res.put("type", soln.getResource("type").getLocalName());
+                    if (soln.contains("forWorkURI")) {
+                        addPrefixedId(soln, res, "forWorkURI");
+                    }
                     if (soln.contains("etexts")) {
                         String etextsStr = soln.getLiteral("etexts").getString();
                         String[] etextsA = etextsStr.split(";");
@@ -164,21 +168,29 @@ public class LibFormat {
                     }
                 } 
                 if (property.equals("node[]")) {
-                    final String nodeId = soln.getLiteral("nodeRID").getString();
+                    String nodeId = "bdr:"+soln.getResource("wRID").getURI().substring(BDRlen);
                     final Map<String, Map<String, Object>> nodes = (Map<String, Map<String, Object>>) res.computeIfAbsent("nodes", x -> new TreeMap<String,Map<String, Object>>());
                     final Map<String,Object> node = (Map<String, Object>) nodes.computeIfAbsent(nodeId, x -> new TreeMap<String,Object>());
                     if (soln.contains("title")) {
                         final List<String> valList = (List<String>) node.computeIfAbsent("title", x -> new ArrayList<String>());
-                        final String title = soln.getLiteral("title").getString();
+                        final String title = getUnicodeStrFromProp(soln, "name");
                         if (!valList.contains(title))
                             valList.add(title);
+                        final List<String> idxList = (List<String>) index.computeIfAbsent(title, x -> new ArrayList<String>());
+                        if (!idxList.contains(nodeId)) {
+                            idxList.add(nodeId);                            
+                        }
                     }
                     if (soln.contains("name")) {
                         // both name and title go to title property of the final doc
                         final List<String> valList = (List<String>) node.computeIfAbsent("title", x -> new ArrayList<String>());
-                        final String name = soln.getLiteral("name").getString();
+                        final String name = getUnicodeStrFromProp(soln, "name");
                         if (!valList.contains(name))
                             valList.add(name);
+                        final List<String> idxList = (List<String>) index.computeIfAbsent(name, x -> new ArrayList<String>());
+                        if (!idxList.contains(nodeId)) {
+                            idxList.add(nodeId);                            
+                        }
                     }
                     addInt(soln, node, "beginsAt");
                     addInt(soln, node, "endsAt");
@@ -187,7 +199,7 @@ public class LibFormat {
                 } 
                 else if (property.contains("URI")) {
                     final Resource valueURI = soln.get("value").asResource();
-                    final String value = valueURI.getLocalName();
+                    final String value = "bdr:"+valueURI.getLocalName();
                     if (property.endsWith("[URI]")) {
                         property = property.substring(0, property.length()-5);
                         final List<String> valList = (List<String>) res.computeIfAbsent(property, x -> new ArrayList<String>());
@@ -198,15 +210,15 @@ public class LibFormat {
                     }
                 } else {
                     final String value = getUnicodeStrFromProp(soln, "value");
-                    if (property.startsWith("name")) {
+                    if (value == null || value.isEmpty())
+                        continue;
+                    if (property.startsWith("name") || property.startsWith("title")) {
                         final List<String> idxList = (List<String>) index.computeIfAbsent(value, x -> new ArrayList<String>());
-                        if (!idxList.contains(mainId)) {
-                            idxList.add(mainId);                            
+                        if (!idxList.contains("bdr:"+mainId)) {
+                            idxList.add("bdr:"+mainId);                            
                         }
                         TransferHelpers.logger.debug("adding {} -> {} to index", value, mainId);
                     }
-                    if (value == null || value.isEmpty())
-                        continue;
                     if (property.endsWith("[]")) {
                         property = property.substring(0, property.length()-2);
                         final List<String> valList = (List<String>) res.computeIfAbsent(property, x -> new ArrayList<String>());
@@ -218,8 +230,10 @@ public class LibFormat {
                 }
             }
         }
-        if (res.isEmpty())
+        if (res.isEmpty()) {
+            //System.out.println("res for "+mainId+" is empty!");
             return null;
+        }
         return res;
     }
     
@@ -242,12 +256,12 @@ public class LibFormat {
                 if (mainId == null)
                     return;
                 String fullPath = GitToDB.gitDir+"persons/"+tw.getPathString();
-                TransferHelpers.logger.info("reading {}", fullPath);
+                //TransferHelpers.logger.info("reading {}", fullPath);
                 Model model = TransferHelpers.modelFromPath(fullPath, DocType.PERSON, mainId);
                 Map<String, Object> obj = modelToJsonObject(mainId, model, DocType.PERSON, indexes.get(PERSON));
                 if (obj != null)
-                    om.writer().writeValue(new File(personsDir+"/"+mainId+".json"), obj);
-                break;
+                    om.writer().writeValue(new File(personsDir+"/bdr:"+mainId+".json"), obj);
+                //break;
             }
         } catch (IOException e) {
             TransferHelpers.logger.error("", e);
@@ -263,11 +277,18 @@ public class LibFormat {
                 if (mainId == null)
                     return;
                 String fullPath = GitToDB.gitDir+"items/"+tw.getPathString();
-                TransferHelpers.logger.info("reading {}", fullPath);
+                //TransferHelpers.logger.info("reading {}", fullPath);
                 Model model = TransferHelpers.modelFromPath(fullPath, DocType.ITEM, mainId);
                 Map<String, Object> obj = modelToJsonObject(mainId, model, DocType.ITEM, null);
-                if (obj != null)
-                    works.put(mainId, obj);
+                if (obj != null) {
+                    String forWorkURI = (String) obj.get("forWorkURI");
+                    if (forWorkURI != null) {
+                        obj.remove("forWorkURI");
+                        works.put(forWorkURI, obj);                        
+                    } else {
+                        TransferHelpers.logger.error("item id {} did not return forWork value", mainId);
+                    }
+                }
             }
         } catch (IOException e) {
             TransferHelpers.logger.error("", e);
@@ -286,29 +307,36 @@ public class LibFormat {
                 if (mainId == null)
                     return;
                 // we only want works with images:
-                if (!works.containsKey(mainId)) {
+                if (!works.containsKey("bdr:"+mainId)) {
                     continue;
                 }
-                String fullPath = GitToDB.gitDir+"items/"+tw.getPathString();
-                TransferHelpers.logger.info("reading {}", fullPath);
+                String fullPath = GitToDB.gitDir+"works/"+tw.getPathString();
+                //TransferHelpers.logger.info("reading {}", fullPath);
                 Model model = TransferHelpers.modelFromPath(fullPath, DocType.WORK, mainId);
                 Map<String, Object> obj = modelToJsonObject(mainId, model, DocType.WORK, indexes.get(WORK));
-                if (obj != null)
-                    om.writer().writeValue(new File(worksDir+"/"+mainId+".json"), obj);
-                obj = modelToJsonObject(mainId, model, DocType.OUTLINE, indexes.get(OUTLINE));
-                if (obj != null)
-                    om.writer().writeValue(new File(outlinesDir+"/"+mainId+".json"), obj);
-                if (i > 3) {
-                    break;
+                if (obj == null)
+                    continue;
+                //obj.putAll(works.get("bdr:"+mainId));
+                Map<String, Object> outlineObj = modelToJsonObject(mainId, model, DocType.OUTLINE, indexes.get(OUTLINE));
+                if (outlineObj != null) {
+                    om.writer().writeValue(new File(outlinesDir+"/bdr:"+mainId+".json"), outlineObj);
+                    obj.put("hasOutline", true);
                 }
+                om.writer().writeValue(new File(worksDir+"/bdr:"+mainId+".json"), obj);
+                works.remove("bdr:"+mainId);
+//                i += 1;
+//                if (i > 3) {
+//                    break;
+//                }
             }
         } catch (IOException e) {
             TransferHelpers.logger.error("", e);
         }
-        
+        TransferHelpers.logger.info("writing indexes");
         for (Map.Entry<String,Map<String,List<String>>> e : indexes.entrySet()) {
             int fileCnt = 0;
             String prefix = e.getKey();
+            TransferHelpers.logger.info("writing indexes of {}", prefix);
             FileWriter outfile = new FileWriter(GitToDB.libOutputDir+"/"+prefix+"-"+fileCnt+".json");
             int keyCnt = 0;
             for (Map.Entry<String,List<String>> kv : e.getValue().entrySet()) {
