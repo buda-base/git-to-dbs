@@ -43,7 +43,7 @@ public class LibFormat {
     
     public static final String PERSON = "person";
     public static final String WORK = "work";
-    public static final String OUTLINE = "outline";
+    public static final String WORKPARTS = "workparts";
     
     public static final int maxkeysPerIndex = 20000;
 
@@ -54,7 +54,12 @@ public class LibFormat {
             return typeQuery.get(type);
         // the following nonsense just reads a freaking file
         ClassLoader classLoader = TransferHelpers.class.getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("sparql/" + type + ".sparql");
+        String filePath = "sparql/" + type + ".sparql";
+        if (type == DocType.OUTLINE) {
+            filePath = "sparql/" + WORKPARTS + ".sparql";
+        }
+        System.out.println("open "+filePath);
+        InputStream inputStream = classLoader.getResourceAsStream(filePath);
         Scanner s = new Scanner(inputStream);
         s.useDelimiter("\\A");
         String result = s.hasNext() ? s.next() : "";
@@ -243,13 +248,14 @@ public class LibFormat {
         
         Map<String,Map<String,List<String>>> indexes = new HashMap<>();
         indexes.put(PERSON, new HashMap<>());
-        indexes.put(OUTLINE, new HashMap<>());
+        indexes.put(WORKPARTS, new HashMap<>());
         indexes.put(WORK, new HashMap<>());
         
         TreeWalk tw = GitHelpers.listRepositoryContents(DocType.PERSON);
         TransferHelpers.logger.info("exporting all person files to app");
         File personsDir = new File(GitToDB.libOutputDir+"/persons/");
         personsDir.mkdir();
+        new File(GitToDB.libOutputDir+"/persons/bdr/").mkdir();
         try {
             while (tw.next()) {
                 final String mainId = TransferHelpers.mainIdFromPath(tw.getPathString(), DocType.PERSON);
@@ -260,7 +266,7 @@ public class LibFormat {
                 Model model = TransferHelpers.modelFromPath(fullPath, DocType.PERSON, mainId);
                 Map<String, Object> obj = modelToJsonObject(mainId, model, DocType.PERSON, indexes.get(PERSON));
                 if (obj != null)
-                    om.writer().writeValue(new File(personsDir+"/bdr:"+mainId+".json"), obj);
+                    om.writer().writeValue(new File(personsDir+"/bdr/"+mainId+".json"), obj);
                 //break;
             }
         } catch (IOException e) {
@@ -295,9 +301,11 @@ public class LibFormat {
         }
 
         File worksDir = new File(GitToDB.libOutputDir+"/works/");
+        new File(GitToDB.libOutputDir+"/works/bdr/").mkdir();
         worksDir.mkdir();
-        File outlinesDir = new File(GitToDB.libOutputDir+"/outlines/");
+        File outlinesDir = new File(GitToDB.libOutputDir+"/workparts/");
         outlinesDir.mkdir();
+        new File(GitToDB.libOutputDir+"/workparts/bdr/").mkdir();
         tw = GitHelpers.listRepositoryContents(DocType.WORK);
         TransferHelpers.logger.info("getting all works files for app");
         try {
@@ -317,12 +325,12 @@ public class LibFormat {
                 if (obj == null)
                     continue;
                 //obj.putAll(works.get("bdr:"+mainId));
-                Map<String, Object> outlineObj = modelToJsonObject(mainId, model, DocType.OUTLINE, indexes.get(OUTLINE));
+                Map<String, Object> outlineObj = modelToJsonObject(mainId, model, DocType.OUTLINE, indexes.get(WORKPARTS));
                 if (outlineObj != null) {
-                    om.writer().writeValue(new File(outlinesDir+"/bdr:"+mainId+".json"), outlineObj);
-                    obj.put("hasOutline", true);
+                    om.writer().writeValue(new File(outlinesDir+"/bdr/"+mainId+".json"), outlineObj);
+                    obj.put("hasParts", true);
                 }
-                om.writer().writeValue(new File(worksDir+"/bdr:"+mainId+".json"), obj);
+                om.writer().writeValue(new File(worksDir+"/bdr/"+mainId+".json"), obj);
                 works.remove("bdr:"+mainId);
 //                i += 1;
 //                if (i > 3) {

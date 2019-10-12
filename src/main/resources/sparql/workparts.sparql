@@ -6,17 +6,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-SELECT ?property ?value ?name ?title ?endsAt ?beginsAt ?endsAtVolume ?beginsAtVolume ?wRID ?prefLabel
+SELECT ?property ?value ?name ?title ?wRID ?prefLabel
 WHERE {
      ?wRID rdf:type :Work .
      ?wRID :workPartOf ?parent .
      OPTIONAL { ?wRID :creator/:agent ?value } .
      OPTIONAL { ?wRID skos:prefLabel ?name } .
      OPTIONAL { ?wRID :workTitle/rdfs:label ?title } .
-#     OPTIONAL { ?wRID :workLocation/:workLocationEndVolume ?endsAtVolume } .
-#     OPTIONAL { ?wRID :workLocation/:workLocationPage ?beginsAt } .
-#     OPTIONAL { ?wRID :workLocation/:workLocationEndPage ?endsAt } .
-#     OPTIONAL { ?wRID :workLocation/:workLocationVolume ?beginsAtVolume } .
      BIND ("node[]" AS ?property)
      FILTER ((!bound(?name) || lang(?name) = "bo" || lang(?name) = "bo-x-ewts")
              && (!bound(?title) || lang(?title) = "bo" || lang(?title) = "bo-x-ewts"))
