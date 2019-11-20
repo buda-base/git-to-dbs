@@ -26,7 +26,7 @@ import static io.bdrc.libraries.Models.BDA;
 
 public class FusekiHelpers {
     
-    public static String FusekiUrl = "http://localhost:13180/fuseki/bdrcrw/data";
+    public static String FusekiUrl = "http://localhost:13180/fuseki/corerw/data";
     public static String FusekiSparqlEndpoint = null;
     public static RDFConnection fuConn = null;
     public static Dataset testDataset = null;;

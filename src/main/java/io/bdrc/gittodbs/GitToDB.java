@@ -16,7 +16,7 @@ public class GitToDB {
 
 	static String fusekiHost = "localhost";
 	static String fusekiPort = "13180";
-	static String fusekiName = "bdrcrw";
+	static String fusekiName = "corerw";
 	static String gitDir = null;
 	static String libOutputDir = null;
 	static boolean transferFuseki = false;
@@ -36,7 +36,7 @@ public class GitToDB {
 		        + "-fuseki             - do transfer to Fuseki\n"
 		        + "-fusekiHost <host>  - host fuseki is running on. Defaults to localhost\n"
 		        + "-fusekiPort <port>  - port fuseki is running on. Defaults to 13180\n"
-                + "-fusekiName <name>  - name of the fuseki endpoint. Defaults to 'bdrcrw'\n"
+                + "-fusekiName <name>  - name of the fuseki endpoint. Defaults to 'corerw'\n"
                 + "-connectPerTransfer - connect to Fuseki for each transfer. Default is connect once per execution\n"
 		        + "-libOutputDir       - Output directory of the lib format files\n"
                 + "-type <typeName>    - name of the type to transfer: person, item, place, work, topic, lineage, office, product, etext, corporation, etextcontent\n"
