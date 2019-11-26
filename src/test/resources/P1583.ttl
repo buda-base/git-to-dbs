@@ -1,78 +1,128 @@
 @prefix :      <http://purl.bdrc.io/ontology/core/> .
-@prefix adm:   <http://purl.bdrc.io/ontology/admin/> .
-@prefix bdd:   <http://purl.bdrc.io/data/> .
 @prefix bdr:   <http://purl.bdrc.io/resource/> .
-@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix bdg:   <http://purl.bdrc.io/graph/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-@prefix tbr:   <http://purl.bdrc.io/ontology/toberemoved/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix adm:   <http://purl.bdrc.io/ontology/admin/> .
+@prefix rkts:  <http://purl.rkts.eu/resource/> .
+@prefix bda:   <http://purl.bdrc.io/admindata/> .
 
-bdr:P1583  a            :Person ;
-    rdfs:seeAlso        bdr:O1GS392481GS39291 , "https://www.treasuryoflives.org/biographies/abc"^^xsd:anyURI ;
-    skos:prefLabel      "dri med 'od zer/"@bo-x-ewts , "Drime Oser"@en ;
-    :hasUnknownKinship  bdr:P1584 ;
-    :incarnationGeneral  bdr:P561654 ;
-    :incarnationMind    bdr:P561654 ;
-    :note               [ :noteLocationStatement  "251" ;
-                          :noteText           "biodata\n\nSubsequent main lineage holders include lha btsun chen po/ gter chen 'gyur med rdo rje/ 'bri gung rin chen phun tshogs/ rig 'dzin 'jigs med gling pa/ mi 'gyur nam mkha'i rdo rje/ 'jam dbyangs mkhyen brtse'i dbang po\n\nAmong them, 'jigs med gling pa received the nye brgyud via direct vision of klong chen pa.  'jigs med gling pa passed his lineage to rdo grub phrin las 'od zer, who passed it to mi 'gyur nam mkha' rdo rje, who in turn had a vision of klong chen pa and received the yang tig from him."@en ;
-                          :noteWork           bdr:W27401
-                        ] ,
-            [ :noteLocationStatement  "v. 2, pp.104-112" ;
-              :noteText           "biography\ndates: 1308-1363"@en ;
-              :noteWork           bdr:W25268
-            ] ,
-            [ :noteText       "L. v.d. Kuijp has verified that the date of death of the subject was January, 1364. Also the unrecorded teacher Ston tshul may have been Btsun pa Ston tshul, Sa-skya scholar and author of at least two works on Tshad ma."@en ] ,
-            [ :noteText       "Teachers (not recorded):\nSlob-dpon Dbang-ye, Ston-tshul, Khro-phu-ba, Rin-po-che Za-lung-pa (Zhang Tshal-pa'i Gdams ngag and Rgod-tshang-pa's teachings)\n1319. Takes rab-byung vows from the abbot of Bsam-yas Bsam-grub-rin-chen.\n1326. Enrolls in Gsang-phu Ne'u-thog for formal studies with Mkhan-rabs 15 Slob-dpon Btsan-rgod-pa and Mkhan-rabs 16 Bla-brang Chos-dpal-rgyal-mtshan.\n1338. Comes to Snye-phu Shug-gseb and teaches Snying thig."@en ] ,
-            [ :noteLocationStatement  "p. 77" ;
-              :noteWork           bdr:W19801
-            ] ,
-            [ :noteLocationStatement  "p. 6" ;
-              :noteWork           bdr:W19822
-            ] ;
-    :personEvent        [ a                   :PersonEventAssumesOffice ;
-                          :onOrAbout          "1734/1735" ;
-                          :personEventPlace   bdr:G20 ;
-                          :personEventRole    bdr:R10MS14280
-                        ] ,
-            [ a                   :PersonEventBirth ;
-              :onOrAbout          "1308" ;
-              :personEventPlace   bdr:G967 ;
-              :personEventRole    bdr:R123
-            ] ,
-            [ a                   :PersonEventNotSpecified ;
-              :onOrAbout          "1364"
-            ] ,
-            [ a                   :PersonEventOccupiesSeat ;
-              :personEventPlace   bdr:G521
-            ] ;
-    :personGender       bdr:GenderMale ;
-    :personName         [ a                   :PersonChineseName ;
-                          rdfs:label          "隆钦热降巴·赤墨俄色"@zh
-                        ] ,
-            [ a                   :PersonCommonName ;
-              rdfs:label          "klong chen pa/"@bo-x-ewts
-            ] ,
-            [ a                   :PersonPersonalName ;
-              rdfs:label          "tshul khrims blo gros/"@bo-x-ewts
-            ] ,
-            [ a                   :PersonPrimaryName ;
-              rdfs:label          "dri med 'od zer/"@bo-x-ewts , "dri med 'od zer/ 2"@bo-x-ewts , "Drime Oser"@en
-            ] ,
-            [ a                   :PersonPrimaryTitle ;
-              rdfs:label          "klong chen rab 'byams pa dri med 'od zer/"@bo-x-ewts
-            ] ,
-            [ a                   :PersonSecretInitiatoryName ;
-              rdfs:label          "རྒྱལ་སྲས་ཐུགས་མཆོག་རྩལ།"@bo
-            ] ,
-            [ a                   :PersonTitle ;
-              rdfs:label          "bsam yas lung mang ba/"@bo-x-ewts , "klong chen rab 'byams/"@bo-x-ewts
-            ] ;
-    :personOfSect       bdr:T1234 ;
-    :personStudentOf    bdr:P123 ;
-    :status             bdr:StatusReleased ;
-    adm:logEntry        [ adm:logDate         "2008-06-30T17:01:56.496Z"^^xsd:dateTime ;
-                          adm:logMessage      "added records"@en ;
-                          adm:logWho          bdr:U15
-                        ] .
+bdr:NME2F236C649A1  a  :PersonTitle ;
+        rdfs:label  "bsam yas lung mang ba/"@bo-x-ewts .
+
+bdr:NM6E5B539FC14B  a  :PersonPersonalName ;
+        rdfs:label  "tshul khrims blo gros/"@bo-x-ewts .
+
+bdr:EVDAA95D67ECFA  a  :PersonEventNotSpecified ;
+        :onYear  "1364"^^xsd:gYear .
+
+bdr:NMF942A81B0A73  a  :PersonTitle ;
+        rdfs:label  "klong chen rab 'byams/"@bo-x-ewts .
+
+bdr:EVF24F5C4DD814  a  :PersonInResidence ;
+        :eventWhere  bdr:G20 ;
+        :notAfter    "1735"^^xsd:gYear ;
+        :notBefore   "1734"^^xsd:gYear .
+
+bda:P1583  a               adm:AdminData ;
+        rdfs:seeAlso       bdr:O1GS392481GS39291 ;
+        adm:adminAbout     bdr:P1583 ;
+        adm:facetIndex     25 ;
+        adm:gitPath        "fa/P1583.trig" ;
+        adm:gitRepo        bda:GR0006 ;
+        adm:graphId        bdg:P1583 ;
+        adm:logEntry       bda:LG650F49A48542 ;
+        adm:metadataLegal  bda:LD_BDRC_CC0 ;
+        adm:seeOtherToL    "https://www.treasuryoflives.org/biographies/abc"^^xsd:anyURI ;
+        adm:status         bda:StatusReleased ;
+        :isRoot            true .
+
+bdr:NM27A9E6B52AE2  a  :PersonPrimaryName ;
+        rdfs:label  "Drime Oser"@en .
+
+bdr:NM00B857229AAA  a  :PersonOtherName ;
+        rdfs:label  "隆钦热降巴·赤墨俄色"@zh-hans .
+
+bdr:NM81A442B676BC  a  :PersonOtherName ;
+        rdfs:label  "shantideva"@sa-x-rma .
+
+bdr:NT5A51821BAE24  a           :Note ;
+        :noteLocationStatement  "p. 6" ;
+        :noteWork               bdr:W19822 .
+
+bdr:NMDD9AB2BD104D  a  :PersonSecretInitiatoryName ;
+        rdfs:label  "rgyal sras thugs mchog rtsal/"@bo-x-ewts .
+
+bdr:EVABB307C08F28  a  :PersonOccupiesSeat ;
+        :eventWhere  bdr:G521 .
+
+bdr:NMBC6B2B658373  a  :PersonCommonName ;
+        rdfs:label  "klong chen pa/"@bo-x-ewts .
+
+bdr:NT0648F5705843  a  :Note ;
+        :noteText  "L. v.d. Kuijp has verified that the date of death of the subject was January, 1364. Also the unrecorded teacher Ston tshul may have been Btsun pa Ston tshul, Sa-skya scholar and author of at least two works on Tshad ma."@en .
+
+bda:LG650F49A48542  a   adm:LogEntry ;
+        adm:logDate     "2008-06-30T17:01:56.496Z"^^xsd:dateTime ;
+        adm:logMessage  "added records"@en ;
+        adm:logWho      bdr:U00015 .
+
+bdr:NT6B646336F5EE  a           :Note ;
+        :noteLocationStatement  "p. 77" ;
+        :noteWork               bdr:W19801 .
+
+bdr:NMED06EB68CC7F  a  :PersonPrimaryName ;
+        rdfs:label  "dri med 'od zer/"@bo-x-ewts .
+
+bdr:EV93D338F6A346  a  :PersonBirth ;
+        :notAfter   "0999"^^xsd:gYear ;
+        :notBefore  "0900"^^xsd:gYear .
+
+bdr:NM9C8DEB6FF7CE  a  :PersonPrimaryName ;
+        rdfs:label  "dri med 'od zer/ 2"@bo-x-ewts .
+
+bdr:NMFB54273C9888  a  :PersonPrimaryTitle ;
+        rdfs:label  "klong chen rab 'byams pa dri med 'od zer/"@bo-x-ewts .
+
+bdr:P1583  a                 :Person ;
+        :hasUnknownKinship   bdr:P1584 ;
+        :incarnationGeneral  bdr:P561654 ;
+        :incarnationMind     bdr:P561654 ;
+        :isRoot              true ;
+        :note                bdr:NT0648F5705843 , bdr:NTE1683F39A3E5 , bdr:NTAF7D0940EAE3 , bdr:NT6B646336F5EE , bdr:NT757F77D8BA18 , bdr:NT5A51821BAE24 ;
+        :personEvent         bdr:EVDAA95D67ECFA , bdr:EVABB307C08F28 , bdr:EVB25CDA7F0516 , bdr:EVF24F5C4DD814 , bdr:EV93D338F6A346 , bdr:EVE1C8F77F6AFC ;
+        :personGender        bdr:GenderMale ;
+        :personName          bdr:NME2F236C649A1 , bdr:NMDD9AB2BD104D , bdr:NM9C8DEB6FF7CE , bdr:NM6E5B539FC14B , bdr:NMF942A81B0A73 , bdr:NM27A9E6B52AE2 , bdr:NM00B857229AAA , bdr:NM81A442B676BC , bdr:NMED06EB68CC7F , bdr:NMBC6B2B658373 , bdr:NMFB54273C9888 ;
+        :personOfSect        bdr:T1234 ;
+        :personStudentOf     bdr:P123 ;
+        skos:prefLabel       "Drime Oser"@en , "dri med 'od zer/"@bo-x-ewts .
+
+bdr:EVE1C8F77F6AFC  a     :PersonBirth ;
+        :eventWhere       bdr:G967 ;
+        :onYear           "1308"^^xsd:gYear ;
+        :personEventRole  bdr:R123 .
+
+bdr:EVE1C8F77F6AFD  a     :PersonDeath ;
+        :eventWhere       bdr:G967 ;
+        :onYear           "1364"^^xsd:gYear .
+
+bdr:NT757F77D8BA18  a  :Note ;
+        :noteText  "Teachers (not recorded):\nSlob-dpon Dbang-ye, Ston-tshul, Khro-phu-ba, Rin-po-che Za-lung-pa (Zhang Tshal-pa'i Gdams ngag and Rgod-tshang-pa's teachings)\n1319. Takes rab-byung vows from the abbot of Bsam-yas Bsam-grub-rin-chen.\n1326. Enrolls in Gsang-phu Ne'u-thog for formal studies with Mkhan-rabs 15 Slob-dpon Btsan-rgod-pa and Mkhan-rabs 16 Bla-brang Chos-dpal-rgyal-mtshan.\n1338. Comes to Snye-phu Shug-gseb and teaches Snying thig."@en .
+
+bdr:NTAF7D0940EAE3  a           :Note ;
+        :noteLocationStatement  "v. 2, pp.104-112" ;
+        :noteText               "biography\ndates: 1308-1363"@en ;
+        :noteWork               bdr:W25268 .
+
+bdr:EVB25CDA7F0516  a  :PersonAssumesOffice ;
+        :eventWhere  bdr:G20 ;
+        :notAfter    "1735"^^xsd:gYear ;
+        :notBefore   "1734"^^xsd:gYear .
+
+bdr:NTE1683F39A3E5  a           :Note ;
+        :noteLocationStatement  "251" ;
+        :noteText               "biodata\n\nSubsequent main lineage holders include lha btsun chen po/ gter chen 'gyur med rdo rje/ 'bri gung rin chen phun tshogs/ rig 'dzin 'jigs med gling pa/ mi 'gyur nam mkha'i rdo rje/ 'jam dbyangs mkhyen brtse'i dbang po\n\nAmong them, 'jigs med gling pa received the nye brgyud via direct vision of klong chen pa.  'jigs med gling pa passed his lineage to rdo grub phrin las 'od zer, who passed it to mi 'gyur nam mkha' rdo rje, who in turn had a vision of klong chen pa and received the yang tig from him."@en ;
+        :noteWork               bdr:W27401 .

@@ -19,19 +19,19 @@ WHERE {
      BIND ("publisherName" AS ?property)
      FILTER (STR(?value) != "[s.n.]")
   } UNION {
-     ?w :workPublisherDate ?value .
-     ?w :isRoot true .
+     ?w :workEvent ?e .
+     ?e a :PublishedEvent ;
+        :onYear ?value .
      BIND ("publisherDate" AS ?property)
-     FILTER (STR(?value) != "[s.d.]")
-  } UNION {
-     ?w :workPublisherLocation ?value .
-     ?w :isRoot true .
-     BIND ("publisherLocation" AS ?property)
-     FILTER (STR(?value) != "[s.l.]")
-  } UNION {
-     ?w :printMethod ?value .
-     ?w :isRoot true .
-     BIND ("printMethodURI" AS ?property)
+#  } UNION {
+#     ?w :workPublisherLocation ?value .
+#     ?w :isRoot true .
+#     BIND ("publisherLocation" AS ?property)
+#     FILTER (STR(?value) != "[s.l.]")
+#  } UNION {
+#     ?w :printMethod ?value .
+#     ?w :isRoot true .
+#     BIND ("printMethodURI" AS ?property)
   } UNION {
      ?w :isRoot true .
      ?w skos:prefLabel ?value .
@@ -41,6 +41,6 @@ WHERE {
      ?w :workTitle/rdfs:label ?value .
      ?w :isRoot true .
      BIND ("title[]" AS ?property)
-     FILTER (NOT EXISTS {} && (lang(?value) = "bo" || lang(?value) = "bo-x-ewts"))
+     FILTER (lang(?value) = "bo" || lang(?value) = "bo-x-ewts")
   }
 }

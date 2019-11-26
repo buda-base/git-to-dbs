@@ -1,12 +1,10 @@
 package io.bdrc.gittodbs;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -21,17 +19,18 @@ import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
-import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.reasoner.Reasoner;
+import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.SKOS;
 import org.eclipse.jgit.treewalk.TreeWalk;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.tools.sjavac.Log;
 
 import io.bdrc.ewtsconverter.EwtsConverter;
 import io.bdrc.gittodbs.TransferHelpers.DocType;
@@ -88,7 +87,7 @@ public class LibFormat {
             String uniStr = toUnicode(valueL.getString());
             return uniStr;
         }else
-            return valueL.getString();
+            return valueL.getLexicalForm();
     }
     
     public static void addInt(final QuerySolution soln, final Map<String,Object> node, final String prop) {
@@ -121,7 +120,98 @@ public class LibFormat {
         node.put(prop, "bdr:"+fullUri.substring(BDRlen));
     }
     
-
+    public static List<String> getTitles(final Resource r, final Model m, Map<String,List<String>> index) {
+        List<String> res = new ArrayList<>();
+        Statement prefLabelS = r.getProperty(SKOS.prefLabel, "bo-x-ewts");
+        if (prefLabelS == null) {
+            return null;
+        }
+        String preflabel = prefLabelS.getString();
+        final String idName = "bdr:"+r.getLocalName();
+        List<String> idxList = (List<String>) index.computeIfAbsent(preflabel, x -> new ArrayList<String>());
+        if (!idxList.contains(idName)) {
+            idxList.add(idName);
+        }
+        res.add(preflabel);
+        final StmtIterator titleItr = r.listProperties(m.getProperty(TransferHelpers.BDO, "workTitle"));
+        while (titleItr.hasNext()) {
+            final Statement t = titleItr.next();
+            Statement titleS = t.getObject().asResource().getProperty(RDFS.label, "bo-x-ewts");
+            if (titleS != null) {
+                String titlelabel = titleS.getString();
+                if (!titlelabel.equals(preflabel)) {
+                    idxList = (List<String>) index.computeIfAbsent(titlelabel, x -> new ArrayList<String>());
+                    if (!idxList.contains(idName)) {
+                        idxList.add(idName);
+                    }
+                    res.add(titlelabel);
+                }
+                    
+            }
+        }
+        if (res.isEmpty())
+            return null;
+        return res;
+        
+        
+        
+    }
+    
+    public static List<String> getCreators(final Resource r, final Model m) {
+        final StmtIterator eventsItr = r.listProperties(m.getProperty(TransferHelpers.BDO, "creator"));
+        List<String> res = new ArrayList<>();
+        while (eventsItr.hasNext()) {
+            final Statement es = eventsItr.next();
+            final Resource aac = es.getObject().asResource();
+            final StmtIterator agentItr = aac.listProperties(m.getProperty(TransferHelpers.BDO, "agent"));
+            while (agentItr.hasNext()) {
+                final Statement as = eventsItr.next();
+                final Resource c = as.getObject().asResource();
+                res.add("bdr:"+c.getLocalName());
+            }
+        }
+        if (res.isEmpty())
+            return null;
+        return res;
+    }
+    
+    public static void recOutlineChildren(Map<String,Object> curNode, final Resource curNodeRes, final Model m, Map<String,List<String>> index) {
+        final StmtIterator partsItr = curNodeRes.listProperties(m.getProperty(TransferHelpers.BDO, "workHasPart"));
+        if (partsItr.hasNext()) {
+            List<Map<String,Object>> nodes = new ArrayList<>();
+            curNode.put("nodes", nodes);
+            while (partsItr.hasNext()) {
+                final Statement s = partsItr.next();
+                final Resource part = s.getObject().asResource();
+                Map<String,Object> node = new HashMap<>();
+                node.put("id", "bdr:"+part.getLocalName());
+                List<String> titles = getTitles(part, m, index);
+                if (titles != null) {
+                    node.put("titles", titles);
+                }
+                List<String> creators = getCreators(part, m);
+                if (creators != null) {
+                    node.put("creators", creators);
+                }
+                recOutlineChildren(node, part, m, index);
+            }
+        }
+    }
+    
+    public static Map<String, Object> modelToOutline(final String mainId, final Model m, Map<String,List<String>> index) {
+        Resource root = m.createResource(TransferHelpers.BDR+mainId);
+        if (!root.hasProperty(m.getProperty(TransferHelpers.BDO, "workHasPart"))) {
+            return null;
+        }
+        Map<String,Object> res = new HashMap<>();
+        List<String> titles = getTitles(root, m, index);
+        if (titles != null) {
+            res.put("workTitle", titles);            
+        }
+        // get nodes!
+        recOutlineChildren(res, root, m, index);
+        return res;
+    }
     
     public static Map<String, Object> modelToJsonObject(final String mainId, final Model m, final DocType type, Map<String,List<String>> index) {
         final Query query = getQuery(type);
@@ -135,18 +225,25 @@ public class LibFormat {
                 if (!soln.contains("property"))
                     continue;
                 String property = soln.get("property").asLiteral().getString();
+                System.out.println("property "+property);
                 if (property.equals("status")) {
                     if (soln.contains("value") && !soln.get("value").asResource().getLocalName().equals("StatusReleased")) {
-                        return null;
-                    }
-                    if (soln.contains("status") && !soln.get("status").asResource().getLocalName().equals("StatusReleased")) {
                         return null;
                     }
                     if (soln.contains("ric") && soln.get("ric").asLiteral().getBoolean()) {
                         return null;
                     }
-                    if (soln.contains("access") && !soln.get("access").asResource().getLocalName().equals("AccessOpen")) {
-                        return null;
+                    if (soln.contains("access")) {
+                        if (soln.get("access").asResource().getLocalName().startsWith("AccessRestricted")) {
+                            return null;
+                        }
+                        res.put(property, soln.get("access").asResource().getLocalName().substring(6).toLowerCase());
+                    }
+                    if (soln.contains("status")) {
+                        if (soln.get("status").asResource().getLocalName().equals("StatusWithdrawn")) {
+                            return null;
+                        }
+                        res.put(property, soln.get("status").asResource().getLocalName().substring(6).toLowerCase());
                     }
                     continue;
                 }
@@ -171,36 +268,6 @@ public class LibFormat {
                         Collections.sort(etexts);
                         node.put("etexts", etexts);
                     }
-                } 
-                if (property.equals("node[]")) {
-                    String nodeId = "bdr:"+soln.getResource("wRID").getURI().substring(BDRlen);
-                    final Map<String, Map<String, Object>> nodes = (Map<String, Map<String, Object>>) res.computeIfAbsent("nodes", x -> new TreeMap<String,Map<String, Object>>());
-                    final Map<String,Object> node = (Map<String, Object>) nodes.computeIfAbsent(nodeId, x -> new TreeMap<String,Object>());
-                    if (soln.contains("title")) {
-                        final List<String> valList = (List<String>) node.computeIfAbsent("title", x -> new ArrayList<String>());
-                        final String title = getUnicodeStrFromProp(soln, "name");
-                        if (!valList.contains(title))
-                            valList.add(title);
-                        final List<String> idxList = (List<String>) index.computeIfAbsent(title, x -> new ArrayList<String>());
-                        if (!idxList.contains(nodeId)) {
-                            idxList.add(nodeId);                            
-                        }
-                    }
-                    if (soln.contains("name")) {
-                        // both name and title go to title property of the final doc
-                        final List<String> valList = (List<String>) node.computeIfAbsent("title", x -> new ArrayList<String>());
-                        final String name = getUnicodeStrFromProp(soln, "name");
-                        if (!valList.contains(name))
-                            valList.add(name);
-                        final List<String> idxList = (List<String>) index.computeIfAbsent(name, x -> new ArrayList<String>());
-                        if (!idxList.contains(nodeId)) {
-                            idxList.add(nodeId);                            
-                        }
-                    }
-                    addInt(soln, node, "beginsAt");
-                    addInt(soln, node, "endsAt");
-                    addInt(soln, node, "beginsAtVolume");
-                    addInt(soln, node, "endsAtVolume");
                 } 
                 else if (property.contains("URI")) {
                     final Resource valueURI = soln.get("value").asResource();
@@ -230,7 +297,7 @@ public class LibFormat {
                         if (!valList.contains(value))
                             valList.add(value);
                     } else {
-                        res.put(property, value);                    
+                        res.put(property, value);
                     }
                 }
             }
@@ -325,7 +392,7 @@ public class LibFormat {
                 if (obj == null)
                     continue;
                 //obj.putAll(works.get("bdr:"+mainId));
-                Map<String, Object> outlineObj = modelToJsonObject(mainId, model, DocType.OUTLINE, indexes.get(WORKPARTS));
+                Map<String, Object> outlineObj = modelToOutline(mainId, model, indexes.get(WORKPARTS));
                 if (outlineObj != null) {
                     om.writer().writeValue(new File(outlinesDir+"/bdr/"+mainId+".json"), outlineObj);
                     obj.put("hasParts", true);

@@ -13,11 +13,11 @@ WHERE {
      ?a adm:status ?value .
      BIND ("status" AS ?property)
   } UNION {
-     ?b rdf:type :PersonEventBirth .
+     ?b rdf:type :PersonBirth .
      ?b :onYear ?value .
      BIND ("birth" AS ?property)
   } UNION {
-     ?b rdf:type :PersonEventDeath .
+     ?b rdf:type :PersonDeath .
      ?b :onYear ?value .
      BIND ("death" AS ?property)
   } UNION {

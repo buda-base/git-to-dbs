@@ -6,11 +6,12 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-SELECT ?property ?value ?name ?title ?wRID ?prefLabel
+SELECT ?property ?value ?name ?title ?wRID ?prefLabel ?parent 
 WHERE {
      ?wRID rdf:type :Work .
      ?wRID :workPartOf ?parent .
      OPTIONAL { ?wRID :creator/:agent ?value } .
+     #OPTIONAL { ?wRID :workEvent/:eventWho/:agent ?value } .
      OPTIONAL { ?wRID skos:prefLabel ?name } .
      OPTIONAL { ?wRID :workTitle/rdfs:label ?title } .
      BIND ("node[]" AS ?property)
