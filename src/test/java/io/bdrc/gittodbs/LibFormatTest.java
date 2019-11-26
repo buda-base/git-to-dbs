@@ -28,6 +28,10 @@ public class LibFormatTest {
         model = TransferHelpers.modelFromPath("src/test/resources/WorkTestFPL.ttl", DocType.WORK, "W12837FPL");
         Map<String,List<String>> workidx = new HashMap<>();
         jsonres = LibFormat.modelToJsonObject("W12837FPL", model, DocType.WORK, workidx);
+        //om.writerWithDefaultPrettyPrinter().writeValue(System.out, jsonres);
+        model = TransferHelpers.modelFromPath("src/test/resources/OutlineTest.ttl", DocType.WORK, "W30020");
+        Map<String,List<String>> workoutlineidx = new HashMap<>();
+        jsonres = LibFormat.modelToOutline("W30020", model, workoutlineidx);
         om.writerWithDefaultPrettyPrinter().writeValue(System.out, jsonres);
     }
     

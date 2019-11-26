@@ -126,11 +126,13 @@ public class LibFormat {
         if (prefLabelS == null) {
             return null;
         }
-        String preflabel = prefLabelS.getString();
+        String preflabel = toUnicode(prefLabelS.getString());
         final String idName = "bdr:"+r.getLocalName();
-        List<String> idxList = (List<String>) index.computeIfAbsent(preflabel, x -> new ArrayList<String>());
-        if (!idxList.contains(idName)) {
-            idxList.add(idName);
+        if (index != null) {
+            List<String> idxList = (List<String>) index.computeIfAbsent(preflabel, x -> new ArrayList<String>());
+            if (!idxList.contains(idName)) {
+                idxList.add(idName);
+            }
         }
         res.add(preflabel);
         final StmtIterator titleItr = r.listProperties(m.getProperty(TransferHelpers.BDO, "workTitle"));
@@ -138,11 +140,13 @@ public class LibFormat {
             final Statement t = titleItr.next();
             Statement titleS = t.getObject().asResource().getProperty(RDFS.label, "bo-x-ewts");
             if (titleS != null) {
-                String titlelabel = titleS.getString();
+                String titlelabel = toUnicode(titleS.getString());
                 if (!titlelabel.equals(preflabel)) {
-                    idxList = (List<String>) index.computeIfAbsent(titlelabel, x -> new ArrayList<String>());
-                    if (!idxList.contains(idName)) {
-                        idxList.add(idName);
+                    if (index != null) {
+                        List<String> idxList = (List<String>) index.computeIfAbsent(titlelabel, x -> new ArrayList<String>());
+                        if (!idxList.contains(idName)) {
+                            idxList.add(idName);
+                        }
                     }
                     res.add(titlelabel);
                 }
@@ -165,7 +169,7 @@ public class LibFormat {
             final Resource aac = es.getObject().asResource();
             final StmtIterator agentItr = aac.listProperties(m.getProperty(TransferHelpers.BDO, "agent"));
             while (agentItr.hasNext()) {
-                final Statement as = eventsItr.next();
+                final Statement as = agentItr.next();
                 final Resource c = as.getObject().asResource();
                 res.add("bdr:"+c.getLocalName());
             }
@@ -179,11 +183,18 @@ public class LibFormat {
         final StmtIterator partsItr = curNodeRes.listProperties(m.getProperty(TransferHelpers.BDO, "workHasPart"));
         if (partsItr.hasNext()) {
             List<Map<String,Object>> nodes = new ArrayList<>();
+            Map<Integer, Map<String,Object>> nodesOrdered = new TreeMap<>();
             curNode.put("nodes", nodes);
             while (partsItr.hasNext()) {
                 final Statement s = partsItr.next();
                 final Resource part = s.getObject().asResource();
                 Map<String,Object> node = new HashMap<>();
+                Statement partIdxS = part.getProperty(m.getProperty(TransferHelpers.BDO, "workPartIndex"));
+                if (partIdxS == null) {
+                    System.out.println("oops!");
+                    return;
+                }
+                int partIdx = partIdxS.getInt();
                 node.put("id", "bdr:"+part.getLocalName());
                 List<String> titles = getTitles(part, m, index);
                 if (titles != null) {
@@ -193,7 +204,11 @@ public class LibFormat {
                 if (creators != null) {
                     node.put("creators", creators);
                 }
+                nodesOrdered.put(partIdx, node);
                 recOutlineChildren(node, part, m, index);
+            }
+            for (Map<String,Object> node : nodesOrdered.values()) {
+                nodes.add(node);
             }
         }
     }
@@ -201,6 +216,7 @@ public class LibFormat {
     public static Map<String, Object> modelToOutline(final String mainId, final Model m, Map<String,List<String>> index) {
         Resource root = m.createResource(TransferHelpers.BDR+mainId);
         if (!root.hasProperty(m.getProperty(TransferHelpers.BDO, "workHasPart"))) {
+            System.out.println("notgood");
             return null;
         }
         Map<String,Object> res = new HashMap<>();
