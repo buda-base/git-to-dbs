@@ -19,6 +19,10 @@ WHERE {
      BIND ("publisherName" AS ?property)
      FILTER (STR(?value) != "[s.n.]")
   } UNION {
+     ?w :printMethod ?value .
+     ?w :isRoot true .
+     BIND ("printMethodURI" AS ?property)
+  } UNION {
      ?w :workEvent ?e .
      ?e a :PublishedEvent ;
         :onYear ?value .

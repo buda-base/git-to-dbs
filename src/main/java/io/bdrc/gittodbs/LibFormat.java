@@ -201,7 +201,6 @@ public class LibFormat {
                 Map<String,Object> node = new HashMap<>();
                 Statement partIdxS = part.getProperty(m.getProperty(TransferHelpers.BDO, "workPartIndex"));
                 if (partIdxS == null) {
-                    System.out.println("oops!");
                     return;
                 }
                 int partIdx = partIdxS.getInt();
@@ -243,6 +242,9 @@ public class LibFormat {
         //final InfModel im = TransferHelpers.getInferredModel(m);
         //TransferHelpers.printModel(im);
         final Map<String,Object> res = new HashMap<String,Object>();
+        if (type == DocType.PERSON && personCreations.containsKey(mainId)) {
+            res.put("creatorOf", personCreations.get(mainId));
+        }
         try (QueryExecution qexec = QueryExecutionFactory.create(query, m)) {
             final ResultSet results = qexec.execSelect() ;
             while (results.hasNext()) {
@@ -250,7 +252,7 @@ public class LibFormat {
                 if (!soln.contains("property"))
                     continue;
                 String property = soln.get("property").asLiteral().getString();
-                System.out.println("property "+property);
+                //System.out.println(property);
                 if (property.equals("status")) {
                     if (soln.contains("value") && !soln.get("value").asResource().getLocalName().equals("StatusReleased")) {
                         return null;
@@ -259,9 +261,6 @@ public class LibFormat {
                         return null;
                     }
                     if (soln.contains("access")) {
-                        if (soln.get("access").asResource().getLocalName().startsWith("AccessRestricted")) {
-                            return null;
-                        }
                         res.put(property, soln.get("access").asResource().getLocalName().substring(6).toLowerCase());
                     }
                     if (soln.contains("status")) {
@@ -297,7 +296,13 @@ public class LibFormat {
                 else if (property.contains("URI")) {
                     final Resource valueURI = soln.get("value").asResource();
                     final String value = "bdr:"+valueURI.getLocalName();
-                    if (property.equals("creator[URI]")) {
+                    if (property.equals("printMethodURI")) {
+                        String printvalue = valueURI.getLocalName().substring(12).toLowerCase();
+                        if (printvalue.startsWith("relief_")) {
+                            printvalue = printvalue.substring(7);
+                        }
+                        res.put("printType", printvalue);
+                    } else if (property.equals("creator[URI]")) {
                         final List<Map<String,String>> valList = (List<Map<String,String>>) res.computeIfAbsent("creator", x -> new ArrayList<Map<String,String>>());
                         Map<String,String> personRef = new HashMap<>();
                         personRef.put("id", value);
@@ -305,6 +310,7 @@ public class LibFormat {
                         if (personLabels.containsKey(prid)) {
                             personRef.put("name", personLabels.get(prid));
                         }
+                        valList.add(personRef);
                         final List<String> creations = (List<String>) personCreations.computeIfAbsent(prid, x -> new ArrayList<String>());
                         if (!creations.contains("bdr:"+mainId)) {
                             creations.add("bdr:"+mainId);
@@ -322,14 +328,13 @@ public class LibFormat {
                     if (value == null || value.isEmpty())
                         continue;
                     if (property.startsWith("name") || property.startsWith("title")) {
-                        System.out.println("XXXXXXXXXXXXXXXXXXXXXx");
                         final List<String> idxList = (List<String>) index.computeIfAbsent(value, x -> new ArrayList<String>());
                         if (!idxList.contains("bdr:"+mainId)) {
                             idxList.add("bdr:"+mainId);                            
                         }
-                        if (type == DocType.PERSON && !personLabels.containsKey("bdr:"+mainId)) {
-                            personLabels.put("bdr:"+mainId, value);
-                            TransferHelpers.logger.debug("adding bdr:{} -> {} to personLabels", mainId, value);
+                        if (type == DocType.PERSON && !personLabels.containsKey(mainId)) {
+                            personLabels.put(mainId, value);
+                            TransferHelpers.logger.debug("adding {} -> {} to personLabels", mainId, value);
                         }
                         TransferHelpers.logger.debug("adding {} -> {} to index", value, mainId);
                     }
@@ -413,8 +418,8 @@ public class LibFormat {
         }
 
         File worksDir = new File(GitToDB.libOutputDir+"/works/");
-        new File(GitToDB.libOutputDir+"/works/bdr/").mkdir();
         worksDir.mkdir();
+        new File(GitToDB.libOutputDir+"/works/bdr/").mkdir();
         File outlinesDir = new File(GitToDB.libOutputDir+"/workparts/");
         outlinesDir.mkdir();
         new File(GitToDB.libOutputDir+"/workparts/bdr/").mkdir();
@@ -482,6 +487,29 @@ public class LibFormat {
             outfile.flush();
             outfile.close();
         }
+        
+        tw = GitHelpers.listRepositoryContents(DocType.PERSON);
+        TransferHelpers.logger.info("exporting all person files to app");
+        personsDir = new File(GitToDB.libOutputDir+"/persons/");
+        personsDir.mkdir();
+        new File(GitToDB.libOutputDir+"/persons/bdr/").mkdir();
+        try {
+            while (tw.next()) {
+                final String mainId = TransferHelpers.mainIdFromPath(tw.getPathString(), DocType.PERSON);
+                if (mainId == null)
+                    return;
+                String fullPath = GitToDB.gitDir+"persons/"+tw.getPathString();
+                //TransferHelpers.logger.info("reading {}", fullPath);
+                Model model = TransferHelpers.modelFromPath(fullPath, DocType.PERSON, mainId);
+                Map<String, Object> obj = modelToJsonObject(mainId, model, DocType.PERSON, indexes.get(PERSON), personLabels, personCreations);
+                if (obj != null)
+                    om.writer().writeValue(new File(personsDir+"/bdr/"+mainId+".json"), obj);
+                //break;
+            }
+        } catch (IOException e) {
+            TransferHelpers.logger.error("", e);
+        }
+
     }
     
 }

@@ -72,6 +72,7 @@ bdr:CR85899D26B7D3  a  :AgentAsCreator ;
 bdr:W12837FPL  a              :PublishedWork , :Work ;
         rdfs:comment          "description with no type" ;
         :creator              bdr:CR85899D26B7D3 ;
+        :printMethod          bdr:PrintMethod_Relief_WoodBlock ;
         :isRoot               true ;
         :note                 bdr:NTA756609A3D60 , bdr:NT3F0F87B07E32 ;
         :workCatalogInfo      "Survey of the practices associated with the Sarvadurgatiparisodhana Tantra. Work by one of the most important students of Tsongkhapa."@en ;

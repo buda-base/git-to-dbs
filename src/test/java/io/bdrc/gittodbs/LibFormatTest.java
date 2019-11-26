@@ -22,6 +22,7 @@ public class LibFormatTest {
     public void allTest() throws JsonGenerationException, JsonMappingException, IOException {
         
         Map<String,String> personLabels = new HashMap<>();
+        personLabels.put("P1591", "test name");
         Map<String,List<String>> personCreations = new HashMap<>();
         
         Model model = TransferHelpers.modelFromPath("src/test/resources/P1583.ttl", DocType.PERSON, "P1583");
@@ -32,7 +33,7 @@ public class LibFormatTest {
         model = TransferHelpers.modelFromPath("src/test/resources/WorkTestFPL.ttl", DocType.WORK, "W12837FPL");
         Map<String,List<String>> workidx = new HashMap<>();
         jsonres = LibFormat.modelToJsonObject("W12837FPL", model, DocType.WORK, workidx, personLabels, personCreations);
-        //om.writerWithDefaultPrettyPrinter().writeValue(System.out, jsonres);
+        om.writerWithDefaultPrettyPrinter().writeValue(System.out, jsonres);
         model = TransferHelpers.modelFromPath("src/test/resources/OutlineTest.ttl", DocType.WORK, "W30020");
         Map<String,List<String>> workoutlineidx = new HashMap<>();
         jsonres = LibFormat.modelToOutline("W30020", model, workoutlineidx, personLabels, personCreations);
