@@ -161,7 +161,7 @@ public class LibFormat {
         
     }
     
-    public static List<String> getCreators(final Resource r, final Model m) {
+    public static List<String> getCreators(final Resource r, final Model m, Map<String,String> personLabels, Map<String,List<String>> personCreations) {
         final StmtIterator eventsItr = r.listProperties(m.getProperty(TransferHelpers.BDO, "creator"));
         List<String> res = new ArrayList<>();
         while (eventsItr.hasNext()) {
@@ -171,7 +171,17 @@ public class LibFormat {
             while (agentItr.hasNext()) {
                 final Statement as = agentItr.next();
                 final Resource c = as.getObject().asResource();
-                res.add("bdr:"+c.getLocalName());
+                final Map<String,String> personRef = new HashMap<>();
+                final String prid = c.getLocalName();
+                personRef.put("id", "bdr:"+prid);
+                if (personLabels.containsKey(prid)) {
+                    personRef.put("name", personLabels.get(prid));
+                }
+                final List<String> creations = (List<String>) personCreations.computeIfAbsent(prid, x -> new ArrayList<String>());
+                final String wrid = "bdr:"+r.getLocalName();
+                if (!creations.contains(wrid)) {
+                    creations.add(wrid);
+                }
             }
         }
         if (res.isEmpty())
@@ -179,7 +189,7 @@ public class LibFormat {
         return res;
     }
     
-    public static void recOutlineChildren(Map<String,Object> curNode, final Resource curNodeRes, final Model m, Map<String,List<String>> index) {
+    public static void recOutlineChildren(Map<String,Object> curNode, final Resource curNodeRes, final Model m, Map<String,List<String>> index, Map<String,String> personLabels, Map<String,List<String>> personCreations) {
         final StmtIterator partsItr = curNodeRes.listProperties(m.getProperty(TransferHelpers.BDO, "workHasPart"));
         if (partsItr.hasNext()) {
             List<Map<String,Object>> nodes = new ArrayList<>();
@@ -200,12 +210,12 @@ public class LibFormat {
                 if (titles != null) {
                     node.put("titles", titles);
                 }
-                List<String> creators = getCreators(part, m);
+                List<String> creators = getCreators(part, m, personLabels, personCreations);
                 if (creators != null) {
                     node.put("creators", creators);
                 }
                 nodesOrdered.put(partIdx, node);
-                recOutlineChildren(node, part, m, index);
+                recOutlineChildren(node, part, m, index, personLabels, personCreations);
             }
             for (Map<String,Object> node : nodesOrdered.values()) {
                 nodes.add(node);
@@ -213,10 +223,9 @@ public class LibFormat {
         }
     }
     
-    public static Map<String, Object> modelToOutline(final String mainId, final Model m, Map<String,List<String>> index) {
+    public static Map<String, Object> modelToOutline(final String mainId, final Model m, Map<String,List<String>> index, Map<String,String> personLabels, Map<String,List<String>> personCreations) {
         Resource root = m.createResource(TransferHelpers.BDR+mainId);
         if (!root.hasProperty(m.getProperty(TransferHelpers.BDO, "workHasPart"))) {
-            System.out.println("notgood");
             return null;
         }
         Map<String,Object> res = new HashMap<>();
@@ -225,11 +234,11 @@ public class LibFormat {
             res.put("workTitle", titles);            
         }
         // get nodes!
-        recOutlineChildren(res, root, m, index);
+        recOutlineChildren(res, root, m, index, personLabels, personCreations);
         return res;
     }
     
-    public static Map<String, Object> modelToJsonObject(final String mainId, final Model m, final DocType type, Map<String,List<String>> index) {
+    public static Map<String, Object> modelToJsonObject(final String mainId, final Model m, final DocType type, Map<String,List<String>> index, Map<String,String> personLabels, Map<String,List<String>> personCreations) {
         final Query query = getQuery(type);
         //final InfModel im = TransferHelpers.getInferredModel(m);
         //TransferHelpers.printModel(im);
@@ -288,7 +297,19 @@ public class LibFormat {
                 else if (property.contains("URI")) {
                     final Resource valueURI = soln.get("value").asResource();
                     final String value = "bdr:"+valueURI.getLocalName();
-                    if (property.endsWith("[URI]")) {
+                    if (property.equals("creator[URI]")) {
+                        final List<Map<String,String>> valList = (List<Map<String,String>>) res.computeIfAbsent("creator", x -> new ArrayList<Map<String,String>>());
+                        Map<String,String> personRef = new HashMap<>();
+                        personRef.put("id", value);
+                        final String prid = valueURI.getLocalName();
+                        if (personLabels.containsKey(prid)) {
+                            personRef.put("name", personLabels.get(prid));
+                        }
+                        final List<String> creations = (List<String>) personCreations.computeIfAbsent(prid, x -> new ArrayList<String>());
+                        if (!creations.contains("bdr:"+mainId)) {
+                            creations.add("bdr:"+mainId);
+                        }
+                    } else if (property.endsWith("[URI]")) {
                         property = property.substring(0, property.length()-5);
                         final List<String> valList = (List<String>) res.computeIfAbsent(property, x -> new ArrayList<String>());
                         valList.add(value);
@@ -301,9 +322,14 @@ public class LibFormat {
                     if (value == null || value.isEmpty())
                         continue;
                     if (property.startsWith("name") || property.startsWith("title")) {
+                        System.out.println("XXXXXXXXXXXXXXXXXXXXXx");
                         final List<String> idxList = (List<String>) index.computeIfAbsent(value, x -> new ArrayList<String>());
                         if (!idxList.contains("bdr:"+mainId)) {
                             idxList.add("bdr:"+mainId);                            
+                        }
+                        if (type == DocType.PERSON && !personLabels.containsKey("bdr:"+mainId)) {
+                            personLabels.put("bdr:"+mainId, value);
+                            TransferHelpers.logger.debug("adding bdr:{} -> {} to personLabels", mainId, value);
                         }
                         TransferHelpers.logger.debug("adding {} -> {} to index", value, mainId);
                     }
@@ -334,6 +360,9 @@ public class LibFormat {
         indexes.put(WORKPARTS, new HashMap<>());
         indexes.put(WORK, new HashMap<>());
         
+        Map<String,String> personLabels = new HashMap<>();
+        Map<String,List<String>> personCreations = new HashMap<>();
+        
         TreeWalk tw = GitHelpers.listRepositoryContents(DocType.PERSON);
         TransferHelpers.logger.info("exporting all person files to app");
         File personsDir = new File(GitToDB.libOutputDir+"/persons/");
@@ -347,7 +376,7 @@ public class LibFormat {
                 String fullPath = GitToDB.gitDir+"persons/"+tw.getPathString();
                 //TransferHelpers.logger.info("reading {}", fullPath);
                 Model model = TransferHelpers.modelFromPath(fullPath, DocType.PERSON, mainId);
-                Map<String, Object> obj = modelToJsonObject(mainId, model, DocType.PERSON, indexes.get(PERSON));
+                Map<String, Object> obj = modelToJsonObject(mainId, model, DocType.PERSON, indexes.get(PERSON), personLabels, personCreations);
                 if (obj != null)
                     om.writer().writeValue(new File(personsDir+"/bdr/"+mainId+".json"), obj);
                 //break;
@@ -368,7 +397,7 @@ public class LibFormat {
                 String fullPath = GitToDB.gitDir+"items/"+tw.getPathString();
                 //TransferHelpers.logger.info("reading {}", fullPath);
                 Model model = TransferHelpers.modelFromPath(fullPath, DocType.ITEM, mainId);
-                Map<String, Object> obj = modelToJsonObject(mainId, model, DocType.ITEM, null);
+                Map<String, Object> obj = modelToJsonObject(mainId, model, DocType.ITEM, null, personLabels, personCreations);
                 if (obj != null) {
                     String forWorkURI = (String) obj.get("forWorkURI");
                     if (forWorkURI != null) {
@@ -404,11 +433,11 @@ public class LibFormat {
                 String fullPath = GitToDB.gitDir+"works/"+tw.getPathString();
                 //TransferHelpers.logger.info("reading {}", fullPath);
                 Model model = TransferHelpers.modelFromPath(fullPath, DocType.WORK, mainId);
-                Map<String, Object> obj = modelToJsonObject(mainId, model, DocType.WORK, indexes.get(WORK));
+                Map<String, Object> obj = modelToJsonObject(mainId, model, DocType.WORK, indexes.get(WORK), personLabels, personCreations);
                 if (obj == null)
                     continue;
                 //obj.putAll(works.get("bdr:"+mainId));
-                Map<String, Object> outlineObj = modelToOutline(mainId, model, indexes.get(WORKPARTS));
+                Map<String, Object> outlineObj = modelToOutline(mainId, model, indexes.get(WORKPARTS), personLabels, personCreations);
                 if (outlineObj != null) {
                     om.writer().writeValue(new File(outlinesDir+"/bdr/"+mainId+".json"), outlineObj);
                     obj.put("hasParts", true);
