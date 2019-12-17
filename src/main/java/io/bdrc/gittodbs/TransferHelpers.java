@@ -67,8 +67,11 @@ public class TransferHelpers {
     public enum DocType {
 
         CORPORATION("corporation"), 
+        EINSTANCE("einstance"), 
         ETEXT("etext"), 
         ETEXTCONTENT("etextcontent"),
+        IINSTANCE("iinstance"),
+        INSTANCE("instance"), 
         ITEM("item"), 
         LINEAGE("lineage"), 
         OFFICE("office"), 
@@ -137,7 +140,9 @@ public class TransferHelpers {
 	    int nbLeft = howMany;
 	    nbLeft = nbLeft - syncType(DocType.PERSON, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.ITEM, nbLeft);
-	    nbLeft = nbLeft - syncType(DocType.WORK, nbLeft);
+        nbLeft = nbLeft - syncType(DocType.WORK, nbLeft);
+        nbLeft = nbLeft - syncType(DocType.IINSTANCE, nbLeft);
+        nbLeft = nbLeft - syncType(DocType.INSTANCE, nbLeft);
 //	    nbLeft = nbLeft - syncType(DocType.ETEXT, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.CORPORATION, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.PLACE, nbLeft);
@@ -145,6 +150,7 @@ public class TransferHelpers {
 	    nbLeft = nbLeft - syncType(DocType.LINEAGE, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.PRODUCT, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.OFFICE, nbLeft);
+        nbLeft = nbLeft - syncType(DocType.EINSTANCE, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.ETEXTCONTENT, nbLeft);
 	    closeConnections();
 	}

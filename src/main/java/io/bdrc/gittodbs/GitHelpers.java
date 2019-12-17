@@ -38,6 +38,9 @@ public class GitHelpers {
         ensureGitRepo(DocType.TOPIC);
         ensureGitRepo(DocType.ITEM);
         ensureGitRepo(DocType.WORK);
+        ensureGitRepo(DocType.EINSTANCE);
+        ensureGitRepo(DocType.IINSTANCE);
+        ensureGitRepo(DocType.INSTANCE);
         ensureGitRepo(DocType.ETEXT);
         ensureGitRepo(DocType.ETEXTCONTENT);
         ensureGitRepo(DocType.PRODUCT);

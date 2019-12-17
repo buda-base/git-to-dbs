@@ -44,6 +44,9 @@ public class JSONLDFormatter {
     static {
         typeToRootShortUri.put(DocType.PERSON, "Person");
         typeToRootShortUri.put(DocType.WORK, "Work");
+        typeToRootShortUri.put(DocType.INSTANCE, "Instance");
+        typeToRootShortUri.put(DocType.EINSTANCE, "EInstance");
+        typeToRootShortUri.put(DocType.IINSTANCE, "IInstance");
         typeToRootShortUri.put(DocType.PLACE, "Place");
         typeToRootShortUri.put(DocType.TOPIC, "Topic");
         typeToRootShortUri.put(DocType.LINEAGE, "Lineage");
