@@ -43,7 +43,7 @@ public class EtextContents {
             if (bytesRead > 0) {
                 content = new String( buf.array(), 0, bytesRead, StandardCharsets.UTF_8 );
             } else {
-                logger.info("getModel got " + bytesRead + " for " + filePath);
+                logger.error("getModel got " + bytesRead + " for " + filePath);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -54,7 +54,7 @@ public class EtextContents {
             final BreaksInfo breaks = TibetanStringChunker.selectBreakingCharsIndexes(tmpBreaks, meanChunkPointsAim, maxChunkPointsAim, minChunkNbSylls);
             return getModel(breaks, tmpBreaks.pointLen, content, etextId, etextM);
         } else {
-            logger.info("getModel etextM: " + etextM + " with content.isEmpty(): " + content.isEmpty() + " for " + filePath);
+            logger.error("getModel etextM == null: " + (etextM == null) + " with content.isEmpty(): " + content.isEmpty() + " for " + filePath);
             return null;
         }
     }

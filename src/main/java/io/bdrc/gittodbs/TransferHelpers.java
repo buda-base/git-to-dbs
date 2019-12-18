@@ -229,7 +229,7 @@ public class TransferHelpers {
             return;
         Model model = modelFromPath(dirPath+filePath, type, mainId);
         if (model == null) { // nothing fetched from path, nothing to transfer
-            logger.info("modelFromPath failed to fetch anything from: " + dirPath+filePath + " with type: " + type + " and mainId: " + mainId);
+            logger.error("modelFromPath failed to fetch anything from: " + dirPath+filePath + " with type: " + type + " and mainId: " + mainId);
             return;
         }
         final String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
