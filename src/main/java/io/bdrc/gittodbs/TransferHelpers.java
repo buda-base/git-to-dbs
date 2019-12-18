@@ -228,6 +228,10 @@ public class TransferHelpers {
         if (mainId == null)
             return;
         Model model = modelFromPath(dirPath+filePath, type, mainId);
+        if (model == null) { // nothing fetched from path, nothing to transfer
+            logger.info("modelFromPath failed to fetch anything from: " + dirPath+filePath + " with type: " + type + " and mainId: " + mainId);
+            return;
+        }
         final String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
         FusekiHelpers.setModelRevision(model, type, rev, mainId);
         if (type != DocType.ETEXTCONTENT && type != DocType.ETEXT) {

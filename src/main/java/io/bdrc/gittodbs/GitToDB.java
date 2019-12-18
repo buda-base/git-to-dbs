@@ -186,7 +186,7 @@ public class GitToDB {
                 try {
                     TransferHelpers.sync(howMany);
                 } catch (Exception ex) {
-                    logger.error("error in complete transfer", ex);
+                    logger.error("error incomplete transfer", ex);
                     System.exit(1);
                 }
             }

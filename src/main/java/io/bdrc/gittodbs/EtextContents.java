@@ -48,10 +48,15 @@ public class EtextContents {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
-        final BreaksInfo tmpBreaks = TibetanStringChunker.getAllBreakingCharsIndexes(content);
-        final BreaksInfo breaks = TibetanStringChunker.selectBreakingCharsIndexes(tmpBreaks, meanChunkPointsAim, maxChunkPointsAim, minChunkNbSylls);
-        return getModel(breaks, tmpBreaks.pointLen, content, etextId, etextM);
+
+        if (etextM != null && !content.isEmpty()) {
+            final BreaksInfo tmpBreaks = TibetanStringChunker.getAllBreakingCharsIndexes(content);
+            final BreaksInfo breaks = TibetanStringChunker.selectBreakingCharsIndexes(tmpBreaks, meanChunkPointsAim, maxChunkPointsAim, minChunkNbSylls);
+            return getModel(breaks, tmpBreaks.pointLen, content, etextId, etextM);
+        } else {
+            logger.info("getModel etextM: " + etextM + " with content.isEmpty(): " + content.isEmpty() + " for " + filePath);
+            return null;
+        }
     }
 
     private static Model getModel(final BreaksInfo breaks, final int totalStringPointNum, final String totalString, final String etextId,  Model etextM) {
