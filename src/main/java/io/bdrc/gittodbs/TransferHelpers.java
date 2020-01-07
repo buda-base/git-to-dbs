@@ -247,6 +247,26 @@ public class TransferHelpers {
 	        logger.info(path + ":" + i);
 	}
 	
+	public static int syncAllHead(DocType type, int nbLeft, String dirpath) {
+	    TreeWalk tw = GitHelpers.listRepositoryContents(type);
+        TransferHelpers.logger.info("sending all " + type + " files to Fuseki");
+        int i = 0;
+        try {
+            while (tw.next()) {
+                if (i+1 > nbLeft)
+                    return nbLeft;
+                i = i + 1;
+                logFileHandling(i, tw.getPathString(), true);
+                addFileFuseki(type, dirpath, tw.getPathString());
+            }
+            FusekiHelpers.finishDatasetTransfers();
+        } catch (IOException e) {
+            TransferHelpers.logger.error("syncFuseki", e);
+            return 0;
+        }
+        return i;
+	}
+	
 	public static int syncTypeFuseki(DocType type, int nbLeft) {
 	    if (nbLeft == 0)
 	        return 0;
@@ -259,47 +279,36 @@ public class TransferHelpers {
 	    String distRev = FusekiHelpers.getLastRevision(type);
 	    int i = 0;
 	    if (distRev == null || distRev.isEmpty()) {
-	        TreeWalk tw = GitHelpers.listRepositoryContents(type);
-	        TransferHelpers.logger.info("sending all " + type + " files to Fuseki");
-	        try {
-                while (tw.next()) {
-                    if (i+1 > nbLeft)
-                        return nbLeft;
-                    i = i + 1;
-                    logFileHandling(i, tw.getPathString(), true);
-                    addFileFuseki(type, dirpath, tw.getPathString());
-                }
-                FusekiHelpers.finishDatasetTransfers();
-            } catch (IOException e) {
-                TransferHelpers.logger.error("", e);
-                return 0;
-            }
+	        i = syncAllHead(type, nbLeft, dirpath);
+	    } else if (GitHelpers.hasRev(type, distRev)) {
+	        TransferHelpers.logger.error("distant fuseki revision "+distRev+" is not found in the git repo, sending all files.");
+            i = syncAllHead(type, nbLeft, dirpath);
 	    } else {
-	        final List<DiffEntry> entries;
+	        List<DiffEntry> entries = null;
 	        try {
 	            entries = GitHelpers.getChanges(type, distRev);
-	        } catch (InvalidObjectIdException | MissingObjectException e) {
-	            TransferHelpers.logger.error("distant fuseki revision "+distRev+" is invalid, please fix it");
-	            return 0;
-	        }
-	        TransferHelpers.logger.info("sending changed " + type + " files changed since "+distRev+" to Fuseki");
-	        for (DiffEntry de : entries) {
-	            i++;
-	            if (i > nbLeft)
-	                return nbLeft;
-	            final String newPath = de.getNewPath();
-	            logFileHandling(i, newPath, true);
-	            final String oldPath = de.getOldPath();
-	                
-	            if (newPath.equals("/dev/null") || !newPath.equals(oldPath)) {
-	                final String mainId = mainIdFromPath(oldPath, type);
-	                if (mainId != null) {
-	                    FusekiHelpers.deleteModel(BDG+mainId);
+	            TransferHelpers.logger.info("sending changed " + type + " files changed since "+distRev+" to Fuseki");
+	            for (DiffEntry de : entries) {
+	                i++;
+	                if (i > nbLeft)
+	                    return nbLeft;
+	                final String newPath = de.getNewPath();
+	                logFileHandling(i, newPath, true);
+	                final String oldPath = de.getOldPath();
+	                    
+	                if (newPath.equals("/dev/null") || !newPath.equals(oldPath)) {
+	                    final String mainId = mainIdFromPath(oldPath, type);
+	                    if (mainId != null) {
+	                        FusekiHelpers.deleteModel(BDG+mainId);
+	                    }
 	                }
+	                if (!newPath.equals("/dev/null"))
+	                    addFileFuseki(type, dirpath, newPath);
 	            }
-	            if (!newPath.equals("/dev/null"))
-	                addFileFuseki(type, dirpath, newPath);
-	        }
+            } catch (InvalidObjectIdException | MissingObjectException e) {
+                TransferHelpers.logger.error("Git unknown error, this shouldn't happen.", e);
+                i = 0;
+            }
 	    }
 	    FusekiHelpers.setLastRevision(gitRev, type);
 	    return i;

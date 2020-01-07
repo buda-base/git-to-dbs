@@ -99,11 +99,23 @@ public class GitHelpers {
             return null;
         }
         RevCommit rc = commits.next();
-        if (rc == null)
-            TransferHelpers.logger.error(path+" does not seem to have any associated commit");
-        String res = rc.getName();
+        String res = null;
+        if (rc != null)
+            res = rc.getName();
         git.close();
         return res;
+    }
+    
+    public static boolean hasRev(DocType type, String rev) {
+        Repository r = typeRepo.get(type); 
+        if (r == null)
+            return false;
+        try {
+            Ref ref = r.findRef(rev);
+            return (ref != null);
+        } catch (IOException e) {
+            return false;
+        }
     }
     
     public static String getHeadRev(DocType type) {
