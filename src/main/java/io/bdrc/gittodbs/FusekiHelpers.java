@@ -23,6 +23,7 @@ import io.bdrc.gittodbs.TransferHelpers.DocType;
 import static io.bdrc.gittodbs.GitToDB.connectPerTransfer;
 import static io.bdrc.libraries.Models.ADM;
 import static io.bdrc.libraries.Models.BDA;
+import static io.bdrc.libraries.Models.BDG;
 
 public class FusekiHelpers {
     
@@ -37,7 +38,7 @@ public class FusekiHelpers {
     
     public static boolean updatingFuseki = true;
     
-    public static String SYSTEM_GRAPH = ADM+"system";
+    public static String SYSTEM_GRAPH = BDG+"SystemGitSync";
     
     static Dataset currentDataset = null;
     static int triplesInDataset = 0;
