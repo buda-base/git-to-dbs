@@ -6,11 +6,11 @@
   <packaging>jar</packaging>
   <version>0.8.0</version>
   <name>git to dbs</name>
-  <url>https://github.com/BuddhistDigitalResourceCenter/git-to-dbs</url>
+  <url>https://github.com/buda-base/git-to-dbs</url>
   <scm>
-    <connection>scm:git:https://github.com/BuddhistDigitalResourceCenter/git-to-dbs.git</connection>
-    <url>https://github.com/BuddhistDigitalResourceCenter/git-to-dbs</url>
-    <developerConnection>scm:git:git@github.com:BuddhistDigitalResourceCenter/git-to-dbs.git</developerConnection>
+    <connection>scm:git:https://github.com/buda-base/git-to-dbs.git</connection>
+    <url>https://github.com/buda-base/git-to-dbs</url>
+    <developerConnection>scm:git:git@github.com:buda-base/git-to-dbs.git</developerConnection>
   </scm>
   <build>
     <plugins>
@@ -99,7 +99,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <jena.version>3.10.0</jena.version>
+    <jena.version>3.13.0</jena.version>
     <jackson.version>2.8.0</jackson.version>
   </properties>
   <dependencies>
@@ -185,7 +185,7 @@
     <dependency>
       <groupId>io.bdrc.libraries</groupId>
       <artifactId>bdrc-libraries</artifactId>
-      <version>0.4.2</version>
+      <version>0.8.0</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
