@@ -74,7 +74,7 @@ public class TransferHelpers {
         INSTANCE("instance"), 
         ITEM("item"), 
         LINEAGE("lineage"), 
-        OFFICE("office"), 
+        OFFICE("role"), 
         PERSON("person"),
         PLACE("place"), 
         PRODUCT("product"), 
