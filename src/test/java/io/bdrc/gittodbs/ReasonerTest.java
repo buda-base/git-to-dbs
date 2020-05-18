@@ -36,9 +36,9 @@ public class ReasonerTest {
     public void testInferSubtreeClass()  {
         Model m = ModelFactory.createDefaultModel();
         Resource r1 = m.createResource(BDR+"r1");
-        m.add(r1, RDF.type, m.createProperty(BDO+"ItemImageAsset"));
+        m.add(r1, RDF.type, m.createResource(BDO+"ImageInstance"));
         InfModel im = ModelFactory.createInfModel(reasoner, m);
-        assertTrue(im.contains(r1, RDF.type, m.createProperty(BDO+"Item")));
+        assertTrue(im.contains(r1, RDF.type, m.createResource(BDO+"Instance")));
     }
     
     @Test
