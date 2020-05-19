@@ -26,6 +26,7 @@ public class GitToDB {
     static boolean transferOnto = false;
     static boolean listenToChanges = true;
     static boolean connectPerTransfer = false;
+    static boolean force = false;
 	
 	static TransferHelpers.DocType docType = null;
 	
@@ -116,6 +117,8 @@ public class GitToDB {
 				TransferHelpers.TRANSFER_TO = (++i < args.length ? Integer.parseInt(args[i]) : null);
             } else if (arg.equals("-transferOnto")) {
                 transferOnto = true;
+            } else if (arg.equals("-force")) {
+                force = true;
             } else if (arg.equals("-progress")) {
                 TransferHelpers.progress = true;
             } else if (arg.equals("-debug")) {

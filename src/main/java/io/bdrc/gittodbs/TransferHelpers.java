@@ -278,7 +278,7 @@ public class TransferHelpers {
 	    }
 	    String distRev = FusekiHelpers.getLastRevision(type);
 	    int i = 0;
-	    if (distRev == null || distRev.isEmpty()) {
+	    if (distRev == null || distRev.isEmpty() || GitToDB.force) {
 	        i = syncAllHead(type, nbLeft, dirpath);
 	    } else if (GitHelpers.hasRev(type, distRev)) {
 	        TransferHelpers.logger.error("distant fuseki revision "+distRev+" is not found in the git repo, sending all files.");
