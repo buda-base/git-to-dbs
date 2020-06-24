@@ -424,7 +424,8 @@ public class TransferHelpers {
 	}
 
 	public static OntModel getOntologyModel() {
-	    OntDocumentManager ontManager = new OntDocumentManager("owl-schema/ont-policy.rdf;https://raw.githubusercontent.com/buda-base/owl-schema/master/ont-policy.rdf");
+//        OntDocumentManager ontManager = new OntDocumentManager("owl-schema/ont-policy.rdf;https://raw.githubusercontent.com/buda-base/owl-schema/master/ont-policy.rdf");
+        OntDocumentManager ontManager = new OntDocumentManager(GitToDB.ontRoot+"ont-policy.rdf");
         ontManager.setProcessImports(true); // not really needed since ont-policy sets it, but what if someone changes the policy
 	    
 	    OntModelSpec ontSpec = new OntModelSpec( OntModelSpec.OWL_DL_MEM );

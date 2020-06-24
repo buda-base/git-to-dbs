@@ -17,7 +17,8 @@ public class GitToDB {
 	static String fusekiHost = "localhost";
 	static String fusekiPort = "13180";
 	static String fusekiName = "corerw";
-	static String gitDir = null;
+    static String gitDir = null;
+    static String ontRoot = "https://raw.githubusercontent.com/buda-base/owl-schema/master/";
 	static String libOutputDir = null;
 	static boolean transferFuseki = false;
 	static boolean exportLib = false;
@@ -42,7 +43,8 @@ public class GitToDB {
 		        + "-libOutputDir       - Output directory of the lib format files\n"
                 + "-type <typeName>    - name of the type to transfer: person, item, place, work, topic, lineage, office, product, etext, corporation, etextcontent\n"
 		        + "-force              - Transfer all documents if git and distant revisions don't match\n"
-		        + "-gitDir <path>      - path to the git directory\n"
+                + "-gitDir <path>      - path to the git directory\n"
+                + "-ontRoot <path>     - path to the ontology dir. Defaults to GH:buda-base/owl-schema/master/\n"
 		        + "-transferOnto       - transfer the core ontology in Fuseki\n"
                 + "-timeout <int>      - specify how seconds to wait for a doc transfer to complete. Defaults to 15 seconds\n"
                 + "-n <int>            - specify how many resources to transfer; for testing. Default MaxInt\n"
@@ -109,6 +111,8 @@ public class GitToDB {
                 exportLib = true;
             } else if (arg.equals("-gitDir")) {
                 gitDir = (++i < args.length ? args[i] : null);
+            } else if (arg.equals("-ontRoot")) {
+                ontRoot = (++i < args.length ? args[i] : null);
             } else if (arg.equals("-n")) {
                 howMany = (++i < args.length ? Integer.parseInt(args[i]) : null);
             } else if (arg.equals("-bulkSz")) {
@@ -162,6 +166,9 @@ public class GitToDB {
         
         if (!gitDir.endsWith("/"))
             gitDir+='/';
+        
+        if (!ontRoot.endsWith("/"))
+            ontRoot+='/';
 		
         GitHelpers.init();
         

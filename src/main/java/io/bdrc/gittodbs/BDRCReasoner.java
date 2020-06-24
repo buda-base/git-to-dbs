@@ -1,8 +1,11 @@
 package io.bdrc.gittodbs;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -198,16 +201,19 @@ public class BDRCReasoner {
 	}
 	
 	public static void addRulesFromFile(String fileName, List<Rule> rules) {
-		ClassLoader classLoader = BDRCReasoner.class.getClassLoader();
-        InputStream rulesFile = classLoader.getResourceAsStream(fileName);
+	    InputStream rulesFile = null;
         try {
+            rulesFile = new URL(fileName).openStream();
 		    BufferedReader in = new BufferedReader(new InputStreamReader(rulesFile));
             Parser p = Rule.rulesParserFromReader(in);
             rules.addAll(Rule.parseRules(p));
-		} catch(ParserException e) {
-			System.err.println("error parsing "+rulesFile.toString());
-			e.printStackTrace(System.err);
-		}
+		} catch(IOException e) {
+            System.err.println("error fetching "+fileName);
+            e.printStackTrace(System.err);
+        } catch(ParserException e) {
+            System.err.println("error parsing "+rulesFile.toString());
+            e.printStackTrace(System.err);
+        }
 	}
 	
 	public static Reasoner INSTANCE = null;
@@ -217,7 +223,7 @@ public class BDRCReasoner {
 	        return INSTANCE;
 		List<Rule> rules = new ArrayList<Rule>();
 		if (inferSymetry) {
-			addRulesFromFile("owl-schema/reasoning/kinship.rules", rules);
+			addRulesFromFile(GitToDB.ontRoot+"reasoning/kinship.rules", rules);
 		}
 		rules.addAll(getRulesFromModel(m));
 		rules.addAll(getTaxonomyRules(m));
