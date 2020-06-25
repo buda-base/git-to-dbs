@@ -183,6 +183,10 @@ public class FusekiHelpers {
     }
     
     static void transferModel(final String graphName, final Model model, boolean simple) {
+        if (GitToDB.ric && TransferHelpers.isRic(model)) {
+            deleteModel(graphName);
+            return;
+        }
         if (updatingFuseki) {
             putModel(graphName, model);
             return;

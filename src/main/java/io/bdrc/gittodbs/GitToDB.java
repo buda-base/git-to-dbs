@@ -28,6 +28,7 @@ public class GitToDB {
     static boolean listenToChanges = true;
     static boolean connectPerTransfer = false;
     static boolean force = false;
+    static boolean ric = false;
 	
 	static TransferHelpers.DocType docType = null;
 	
@@ -39,6 +40,7 @@ public class GitToDB {
 		        + "-fusekiHost <host>  - host fuseki is running on. Defaults to localhost\n"
 		        + "-fusekiPort <port>  - port fuseki is running on. Defaults to 13180\n"
                 + "-fusekiName <name>  - name of the fuseki endpoint. Defaults to 'corerw'\n"
+                + "-ric                - makes sure data that is restricted in China doesn't reach the Fuseki\n"
                 + "-connectPerTransfer - connect to Fuseki for each transfer. Default is connect once per execution\n"
 		        + "-libOutputDir       - Output directory of the lib format files\n"
                 + "-type <typeName>    - name of the type to transfer: person, item, place, work, topic, lineage, office, product, etext, corporation, etextcontent\n"
@@ -121,6 +123,8 @@ public class GitToDB {
 				TransferHelpers.TRANSFER_TO = (++i < args.length ? Integer.parseInt(args[i]) : null);
             } else if (arg.equals("-transferOnto")) {
                 transferOnto = true;
+            } else if (arg.equals("-ric")) {
+                ric = true;
             } else if (arg.equals("-force")) {
                 force = true;
             } else if (arg.equals("-progress")) {

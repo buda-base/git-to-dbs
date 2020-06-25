@@ -21,7 +21,9 @@ import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.riot.RDFDataMgr;
@@ -394,33 +396,15 @@ public class TransferHelpers {
 	public static InfModel getInferredModel(Model m) {
 		return ModelFactory.createInfModel(bdrcReasoner, m);
 	}
+
+	static final Property ricP = ResourceFactory.createProperty( ADMIN_PREFIX, "isRestrictedInChina" );
+    public static boolean isRic(Model m) {
+        return m.listResourcesWithProperty(ricP, true).hasNext();
+    }
 	
 	// for debugging purposes only
 	public static void printModel(Model m) {
 		RDFDataMgr.write(System.out, m, RDFFormat.TURTLE_PRETTY);
-	}
-
-	// change Range Datatypes from rdf:PlainLitteral to rdf:langString
-	public static void rdf10tordf11(OntModel o) {
-		Resource RDFPL = o.getResource("http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral");
-		Resource RDFLS = o.getResource("http://www.w3.org/1999/02/22-rdf-syntax-ns#langString");
-		ExtendedIterator<DatatypeProperty> it = o.listDatatypeProperties();
-	    while(it.hasNext()) {
-			DatatypeProperty p = it.next();
-			if (p.hasRange(RDFPL)) {
-			    p.removeRange(RDFPL);
-			    p.addRange(RDFLS);
-			}
-	    }
-	    ExtendedIterator<Restriction> it2 = o.listRestrictions();
-	    while(it2.hasNext()) {
-            Restriction r = it2.next();
-            Statement s = r.getProperty(OWL2.onDataRange); // is that code obvious? no
-            if (s != null && s.getObject().asResource().equals(RDFPL)) {
-                s.changeObject(RDFLS);
-
-            }
-        }
 	}
 
 	public static OntModel getOntologyModel() {
@@ -433,7 +417,6 @@ public class TransferHelpers {
 	    
 	    OntModel ontModel = ontManager.getOntology( adminNS, ontSpec );
 
-	    rdf10tordf11(ontModel);
 	    logger.info("getOntologyModel ontModel.size() = " + ontModel.size());
 	    return ontModel;
 	}
