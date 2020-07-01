@@ -9,7 +9,6 @@ import org.apache.jena.query.ReadWrite;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
@@ -24,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.bdrc.gittodbs.TransferHelpers.DocType;
-import jdk.internal.jline.internal.Log;
 
 import static io.bdrc.gittodbs.GitToDB.connectPerTransfer;
 import static io.bdrc.libraries.Models.ADM;
