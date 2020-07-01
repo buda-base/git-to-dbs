@@ -21,7 +21,9 @@ import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
@@ -145,7 +147,6 @@ public class TransferHelpers {
         nbLeft = nbLeft - syncType(DocType.WORK, nbLeft);
         nbLeft = nbLeft - syncType(DocType.IINSTANCE, nbLeft);
         nbLeft = nbLeft - syncType(DocType.INSTANCE, nbLeft);
-//	    nbLeft = nbLeft - syncType(DocType.ETEXT, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.CORPORATION, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.PLACE, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.TOPIC, nbLeft);
@@ -240,7 +241,7 @@ public class TransferHelpers {
             model = getInferredModel(model);
         }
         String graphName = BDG+mainId;
-        FusekiHelpers.transferModel(graphName, model);
+        FusekiHelpers.transferModel(type, graphName, model);
 	}
 
 	public static void logFileHandling(int i, String path, boolean fuseki) {
@@ -401,7 +402,22 @@ public class TransferHelpers {
     public static boolean isRic(Model m) {
         return m.listResourcesWithProperty(ricP, true).hasNext();
     }
-	
+
+    public static Map<String,Boolean> lnameRic = new HashMap<>(); 
+    
+    public static void tagAsRic(final String einstLname) {
+        lnameRic.put(einstLname, true);
+    }
+    
+    static final Property eiEI = ResourceFactory.createProperty( ADMIN_PREFIX, "eTextInInstance" );
+    public static boolean isInRicEInstance(Model m) {
+        NodeIterator ri = m.listObjectsOfProperty(eiEI);
+        if (!ri.hasNext())
+            return false;
+        Resource einstance = ri.next().asResource();
+        return lnameRic.containsKey(einstance.getLocalName());
+    }
+    
 	// for debugging purposes only
 	public static void printModel(Model m) {
 		RDFDataMgr.write(System.out, m, RDFFormat.TURTLE_PRETTY);
@@ -423,6 +439,6 @@ public class TransferHelpers {
 
 	public static void transferOntology() {
 	    logger.info("Transferring Ontology: " + CORE_PREFIX+"ontologySchema");
-	    FusekiHelpers.transferModel(BDG+"ontologySchema", ontModel, true);
+	    FusekiHelpers.transferModel(null, BDG+"ontologySchema", ontModel, true);
 	}
 }

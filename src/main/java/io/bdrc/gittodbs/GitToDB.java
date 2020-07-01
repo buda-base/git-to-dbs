@@ -8,6 +8,8 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.bdrc.gittodbs.TransferHelpers.DocType;
+
 public class GitToDB {
     
     public static Logger logger = LoggerFactory.getLogger(GitToDB.class);
@@ -190,7 +192,15 @@ public class GitToDB {
         if (transferFuseki) {
             if (docType != null) {
                 try {
-                    TransferHelpers.syncType(docType, howMany);
+                    if (ric &&(docType == DocType.EINSTANCE || docType == DocType.ETEXTCONTENT)) {
+                        // we always transfer einstances + etextcontent for security reason when
+                        // we're in ric mode
+                        int nbLeft = howMany;
+                        nbLeft = nbLeft - TransferHelpers.syncType(DocType.EINSTANCE, nbLeft);
+                        nbLeft = nbLeft - TransferHelpers.syncType(DocType.ETEXTCONTENT, nbLeft);
+                    } else {
+                        TransferHelpers.syncType(docType, howMany);
+                    }
                     TransferHelpers.closeConnections();
                 } catch (Exception ex) {
                     logger.error("error transfering " + docType, ex);

@@ -9,17 +9,23 @@ import org.apache.jena.query.ReadWrite;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.rdfconnection.RDFConnectionFuseki;
 import org.apache.jena.rdfconnection.RDFConnectionRemoteBuilder;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.bdrc.gittodbs.TransferHelpers.DocType;
+import jdk.internal.jline.internal.Log;
+
 import static io.bdrc.gittodbs.GitToDB.connectPerTransfer;
 import static io.bdrc.libraries.Models.ADM;
 import static io.bdrc.libraries.Models.BDA;
@@ -30,7 +36,7 @@ public class FusekiHelpers {
     public static String FusekiUrl = "http://localhost:13180/fuseki/corerw/data";
     public static String FusekiSparqlEndpoint = null;
     public static RDFConnection fuConn = null;
-    public static Dataset testDataset = null;;
+    public static Dataset testDataset = null;
     private static RDFConnectionRemoteBuilder fuConnBuilder = null;
     public static String baseUrl = null;
     public static int initialLoadBulkSize = 50000; // the number of triples above which a dataset load is triggered
@@ -178,15 +184,30 @@ public class FusekiHelpers {
         fuConn.commit();
     }
     
-    static void transferModel(final String graphName, final Model m) {
-        transferModel(graphName, m, false);
+    static void transferModel(final DocType docType, final String graphName, final Model m) {
+        transferModel(docType, graphName, m, false);
     }
     
-    static void transferModel(final String graphName, final Model model, boolean simple) {
+    static final Resource EtextInstance = ResourceFactory.createResource( TransferHelpers.CORE_PREFIX+"EtextInstance" );
+    static void transferModel(final DocType docType, final String graphName, final Model model, boolean simple) {
         if (GitToDB.ric && TransferHelpers.isRic(model)) {
+            deleteModel(graphName);
+            if (docType == DocType.EINSTANCE) {
+                ResIterator ri = model.listResourcesWithProperty(RDF.type, EtextInstance);
+                if (!ri.hasNext()) {
+                    logger.error("couldn't find etext instance in {}", graphName);
+                } else {
+                    Resource eInstance = ri.next();
+                    TransferHelpers.tagAsRic(eInstance.getLocalName());
+                }
+            }
+            return;
+        }
+        if (GitToDB.ric && (docType == DocType.ETEXT || docType == DocType.ETEXTCONTENT) && TransferHelpers.isInRicEInstance(model)) {
             deleteModel(graphName);
             return;
         }
+        
         if (updatingFuseki) {
             putModel(graphName, model);
             return;
