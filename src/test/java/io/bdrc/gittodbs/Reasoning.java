@@ -2,6 +2,9 @@ package io.bdrc.gittodbs;
 
 import static org.junit.Assert.assertTrue;
 
+import org.apache.jena.ontology.OntDocumentManager;
+import org.apache.jena.ontology.OntModel;
+import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -16,7 +19,7 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class ReasonerTest {
+public class Reasoning {
 
     public static Model ontModel;
     public static Reasoner reasoner;
@@ -24,12 +27,24 @@ public class ReasonerTest {
     private static final String BDR = TransferHelpers.BDR;
     private static final String BDO = TransferHelpers.BDO;
     
+    // unfortunately this test requires the ontology files to be run, see the init() function class
+    // so it is not run automatically
+    
+    
     @BeforeClass
     public static void init() {
-//        ontModel = TransferHelpers.getOntologyBaseModel();
+        // change this to be able to test
+        String owlSchemaBase = "/home/eroux/BUDA/softs/owl-schema/";
+        OntDocumentManager ontManager = new OntDocumentManager(owlSchemaBase+"ont-policy.rdf");
+        ontManager.setProcessImports(true); // not really needed since ont-policy sets it, but what if someone changes the policy
+        
+        OntModelSpec ontSpec = new OntModelSpec( OntModelSpec.OWL_DL_MEM );
+        ontSpec.setDocumentManager( ontManager );           
+        
+        OntModel ontModel = ontManager.getOntology( "http://purl.bdrc.io/ontology/admin/", ontSpec );
+
         ontModel = TransferHelpers.getOntologyModel();
-        BDRCReasoner.inferSymetry = true;
-        reasoner = BDRCReasoner.getReasoner(ontModel);
+        reasoner = BDRCReasoner.getReasoner(ontModel, owlSchemaBase+"reasoning/kinship.rules", true);
     }
     
     @Test

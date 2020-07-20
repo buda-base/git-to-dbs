@@ -70,9 +70,6 @@ public class AppTest
         GitToDB.gitDir = tempDir.getAbsolutePath()+'/';
         GitHelpers.createGitRepo(DocType.TEST);
         GitHelpers.ensureGitRepo(DocType.TEST);
-        BDRCReasoner.inferSymetry = true;
-        Model ontModel = TransferHelpers.getOntologyModel();
-        TransferHelpers.bdrcReasoner = BDRCReasoner.getReasoner(ontModel);
         om = new ObjectMapper();
 	}
 	

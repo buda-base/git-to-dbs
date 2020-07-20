@@ -137,7 +137,7 @@ public class TransferHelpers {
 	    }
 		
 	    ontModel = getOntologyModel();
-		bdrcReasoner = BDRCReasoner.getReasoner(ontModel);
+		bdrcReasoner = BDRCReasoner.getReasoner(ontModel, GitToDB.ontRoot+"reasoning/kinship.rules", true);
 	}
 	
 	public static void sync(int howMany) {
@@ -394,7 +394,9 @@ public class TransferHelpers {
 		return RESOURCE_PREFIX+docId.substring(colonIndex+1);
 	}
 
-	public static InfModel getInferredModel(Model m) {
+	public static Model getInferredModel(Model m) {
+	    if (bdrcReasoner == null)
+	        return m;
 		return ModelFactory.createInfModel(bdrcReasoner, m);
 	}
 
