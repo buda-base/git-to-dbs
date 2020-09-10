@@ -400,7 +400,7 @@ public class TransferHelpers {
 		return ModelFactory.createInfModel(bdrcReasoner, m);
 	}
 
-	static final Property ricP = ResourceFactory.createProperty( ADMIN_PREFIX, "isRestrictedInChina" );
+	static final Property ricP = ResourceFactory.createProperty( ADMIN_PREFIX, "restrictedInChina" );
     public static boolean isRic(Model m) {
         return m.listResourcesWithProperty(ricP, true).hasNext();
     }
