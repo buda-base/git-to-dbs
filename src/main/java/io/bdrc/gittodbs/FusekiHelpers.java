@@ -3,6 +3,7 @@ package io.bdrc.gittodbs;
 import java.net.MalformedURLException;
 import java.text.NumberFormat;
 
+import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.ReadWrite;
@@ -254,8 +255,12 @@ public class FusekiHelpers {
         if (!fuConn.isInTransaction()) {
             fuConn.begin(ReadWrite.WRITE);
         }
-        fuConn.delete(graphName);
-        fuConn.commit();
+        try {
+            fuConn.delete(graphName);
+            fuConn.commit();
+        } catch (HttpException e) {
+            logger.warn("didn't delete graph: ", e);
+        }
     }
 
     static Model getModel(String graphName) {
