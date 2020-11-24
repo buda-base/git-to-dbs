@@ -209,7 +209,6 @@ public class TransferHelpers {
                 return null;
             }
         }
-        
         setPrefixes(model, type);
         return model;
 	}
@@ -226,6 +225,12 @@ public class TransferHelpers {
         return path.substring(0, path.length() - (path.endsWith(".trig") ? 5 : 4));
 	}
     
+	public static Property status = ResourceFactory.createProperty(ADM+"status");
+	public static Property statusReleased = ResourceFactory.createProperty(BDA+"StatusReleased");
+	public static boolean isReleased(Model m) {
+	    return m.contains(null,status, statusReleased);
+	}
+	
 	public static void addFileFuseki(DocType type, String dirPath, String filePath) {
         final String mainId = mainIdFromPath(filePath, type);
         if (mainId == null)
@@ -237,7 +242,8 @@ public class TransferHelpers {
         }
         final String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
         FusekiHelpers.setModelRevision(model, type, rev, mainId);
-        if (type != DocType.ETEXTCONTENT && type != DocType.ETEXT) {
+        // apply reasoner only to released models
+        if (type != DocType.ETEXTCONTENT && type != DocType.ETEXT && isReleased(model)) {
             model = getInferredModel(model);
         }
         String graphName = BDG+mainId;
