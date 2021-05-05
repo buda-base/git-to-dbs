@@ -43,7 +43,8 @@ public class GitHelpers {
         ensureGitRepo(DocType.INSTANCE);
         ensureGitRepo(DocType.ETEXT);
         ensureGitRepo(DocType.ETEXTCONTENT);
-        ensureGitRepo(DocType.PRODUCT);
+        ensureGitRepo(DocType.COLLECTION);
+        ensureGitRepo(DocType.SUBSCRIBER);
     }
     
     // for tests only

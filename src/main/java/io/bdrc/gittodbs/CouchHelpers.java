@@ -100,7 +100,7 @@ public class CouchHelpers {
             putDB(DocType.LINEAGE);
             putDB(DocType.OFFICE);
             putDB(DocType.PLACE);
-            putDB(DocType.PRODUCT);
+            putDB(DocType.COLLECTION);
             putDB(DocType.TOPIC);
         }
     }

@@ -51,7 +51,7 @@ public class JSONLDFormatter {
         typeToRootShortUri.put(DocType.TOPIC, "Topic");
         typeToRootShortUri.put(DocType.LINEAGE, "Lineage");
         typeToRootShortUri.put(DocType.CORPORATION, "Corporation");
-        typeToRootShortUri.put(DocType.PRODUCT, "adm:Product");
+        typeToRootShortUri.put(DocType.COLLECTION, "Collection");
         typeToRootShortUri.put(DocType.ITEM, Arrays.asList("Item", "ItemImageAsset", "ItemInputEtext", "ItemOCREtext", "ItemPhysicalAsset"));
         typeToRootShortUri.put(DocType.OFFICE, "Role");
         typeToRootShortUri.put(DocType.PERSON, "Person");

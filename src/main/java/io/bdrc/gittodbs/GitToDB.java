@@ -19,6 +19,7 @@ public class GitToDB {
 	static String fusekiHost = "localhost";
 	static String fusekiPort = "13180";
 	static String fusekiName = "corerw";
+	static String fusekiAuthName = "authrw";
     static String gitDir = null;
     static String ontRoot = "https://raw.githubusercontent.com/buda-base/owl-schema/master/";
 	static String libOutputDir = null;
@@ -42,6 +43,7 @@ public class GitToDB {
 		        + "-fusekiHost <host>  - host fuseki is running on. Defaults to localhost\n"
 		        + "-fusekiPort <port>  - port fuseki is running on. Defaults to 13180\n"
                 + "-fusekiName <name>  - name of the fuseki endpoint. Defaults to 'corerw'\n"
+                + "-fusekiAuthName <name>  - name of the auth fuseki endpoint. Defaults to 'authrw'\n"
                 + "-ric                - makes sure data that is restricted in China doesn't reach the Fuseki\n"
                 + "-connectPerTransfer - connect to Fuseki for each transfer. Default is connect once per execution\n"
 		        + "-libOutputDir       - Output directory of the lib format files\n"
@@ -102,6 +104,9 @@ public class GitToDB {
 				transferFuseki = true;
 			} else if (arg.equals("-fusekiName")) {
                 fusekiName = (++i < args.length ? args[i] : null);
+                transferFuseki = true;
+            } else if (arg.equals("-fusekiAuthName")) {
+                fusekiAuthName = (++i < args.length ? args[i] : null);
                 transferFuseki = true;
             } else if (arg.equals("-fuseki")) {
                 transferFuseki = true;

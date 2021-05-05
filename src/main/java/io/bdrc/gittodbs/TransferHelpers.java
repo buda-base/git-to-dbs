@@ -81,7 +81,8 @@ public class TransferHelpers {
         OFFICE("role"), 
         PERSON("person"),
         PLACE("place"), 
-        PRODUCT("product"), 
+        COLLECTION("collection"), 
+        SUBSCRIBER("subscriber"),
         TOPIC("topic"),
         WORK("work"),
         TEST("test");
@@ -133,7 +134,7 @@ public class TransferHelpers {
 	public static void init() throws MalformedURLException {
 
 	    if (GitToDB.transferFuseki) {
-	        FusekiHelpers.init(GitToDB.fusekiHost, GitToDB.fusekiPort, GitToDB.fusekiName);	        
+	        FusekiHelpers.init(GitToDB.fusekiHost, GitToDB.fusekiPort, GitToDB.fusekiName, GitToDB.fusekiAuthName);	        
 	    }
 		
 	    ontModel = getOntologyModel();
@@ -151,16 +152,18 @@ public class TransferHelpers {
 	    nbLeft = nbLeft - syncType(DocType.PLACE, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.TOPIC, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.LINEAGE, nbLeft);
-	    nbLeft = nbLeft - syncType(DocType.PRODUCT, nbLeft);
+	    nbLeft = nbLeft - syncType(DocType.COLLECTION, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.OFFICE, nbLeft);
         nbLeft = nbLeft - syncType(DocType.EINSTANCE, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.ETEXTCONTENT, nbLeft);
-	    closeConnections();
+	    FusekiHelpers.closeConnection(FusekiHelpers.CORE);
+	    syncType(DocType.SUBSCRIBER, 0);
+	    FusekiHelpers.closeConnection(FusekiHelpers.AUTH);
 	}
 	
 	public static void closeConnections() {
 	    if (GitToDB.transferFuseki)
-	        FusekiHelpers.closeConnection();
+	        FusekiHelpers.closeConnections();
 	}
 	
 	public static int syncType(DocType type, int nbLeft) {
@@ -268,7 +271,7 @@ public class TransferHelpers {
                 logFileHandling(i, tw.getPathString(), true);
                 addFileFuseki(type, dirpath, tw.getPathString());
             }
-            FusekiHelpers.finishDatasetTransfers();
+            FusekiHelpers.finishDatasetTransfers(FusekiHelpers.distantDB(type));
         } catch (IOException e) {
             TransferHelpers.logger.error("syncFuseki", e);
             return 0;
@@ -290,6 +293,7 @@ public class TransferHelpers {
 	    if (distRev == null || distRev.isEmpty() || GitToDB.force) {
 	        i = syncAllHead(type, nbLeft, dirpath);
 	    } else if (GitHelpers.hasRev(type, distRev)) {
+	        // TODO: what ??? why is the previous condition not negated??
 	        TransferHelpers.logger.error("distant fuseki revision "+distRev+" is not found in the git repo, sending all files.");
             i = syncAllHead(type, nbLeft, dirpath);
 	    } else {
@@ -308,7 +312,7 @@ public class TransferHelpers {
 	                if (newPath.equals("/dev/null") || !newPath.equals(oldPath)) {
 	                    final String mainId = mainIdFromPath(oldPath, type);
 	                    if (mainId != null) {
-	                        FusekiHelpers.deleteModel(BDG+mainId);
+	                        FusekiHelpers.deleteModel(BDG+mainId, FusekiHelpers.distantDB(type));
 	                    }
 	                }
 	                if (!newPath.equals("/dev/null"))
