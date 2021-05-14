@@ -5,7 +5,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -16,8 +15,6 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFWriter;
@@ -60,7 +57,7 @@ public class AppTest
 	public static void init() throws IOException {
 	    ds = DatasetFactory.createGeneral();
 	    FusekiHelpers.testDataset = ds;
-	    FusekiHelpers.openConnection();
+	    FusekiHelpers.openConnection(FusekiHelpers.CORE);
 	    // for some reason, using both DataAccessor and RDFConnection on the same dataset doesn't work
 //        FusekiHelpers.useRdfConnection = true;
 //        FusekiHelpers.useRdfConnection = false;
@@ -124,7 +121,7 @@ public class AppTest
 	    assertTrue(GitHelpers.getLastRefOfFile(DocType.TEST, "r1.ttl").equals(rev));
 	    logger.info("Test1 SENDING r1 to fuseki");
 	    TransferHelpers.syncTypeFuseki(DocType.TEST, 1000);
-	    Model fusekiM = FusekiHelpers.getModel(BDG+"r1");
+	    Model fusekiM = FusekiHelpers.getModel(BDG+"r1", FusekiHelpers.CORE);
 	    logger.info("Test1 FETCHED graph r1: " + fusekiM);
 	    // adding the revision to m so that it corresponds to what's in Fuseki
 	    FusekiHelpers.setModelRevision(m, DocType.TEST, rev, "r1");
@@ -137,7 +134,7 @@ public class AppTest
 	    assertTrue(GitHelpers.getHeadRev(DocType.TEST).equals(newRev));
         assertTrue(GitHelpers.getLastRefOfFile(DocType.TEST, "r1.ttl").equals(rev));
         TransferHelpers.syncTypeFuseki(DocType.TEST, 1000);
-        fusekiM = FusekiHelpers.getModel(BDR+"r2");
+        fusekiM = FusekiHelpers.getModel(BDR+"r2", FusekiHelpers.CORE);
         FusekiHelpers.setModelRevision(m, DocType.TEST, newRev, "r2");
         // WHY DOES THIS NOW FAIL??
 //        assertTrue(fusekiM.isIsomorphicWith(m));
