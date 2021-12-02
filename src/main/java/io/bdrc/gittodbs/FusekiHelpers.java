@@ -286,7 +286,7 @@ public class FusekiHelpers {
     static final Resource EtextInstance = ResourceFactory.createResource( TransferHelpers.CORE_PREFIX+"EtextInstance" );
     static void transferModel(final DocType docType, final String graphName, final Model model, boolean simple) {
         final int distantDB = distantDB(docType);
-        if (GitToDB.ric && TransferHelpers.isRic(model)) {
+        if (GitToDB.ric && (TransferHelpers.isRic(model) || !TransferHelpers.isReleased(model))) {
             deleteModel(graphName, distantDB);
             if (docType == DocType.EINSTANCE) {
                 ResIterator ri = model.listResourcesWithProperty(RDF.type, EtextInstance);
