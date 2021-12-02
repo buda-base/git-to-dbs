@@ -157,8 +157,10 @@ public class TransferHelpers {
         nbLeft = nbLeft - syncType(DocType.EINSTANCE, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.ETEXTCONTENT, nbLeft);
 	    FusekiHelpers.closeConnection(FusekiHelpers.CORE);
-	    syncType(DocType.SUBSCRIBER, 0);
-	    FusekiHelpers.closeConnection(FusekiHelpers.AUTH);
+	    if (!GitToDB.ric) {
+	        syncType(DocType.SUBSCRIBER, 0);
+	        FusekiHelpers.closeConnection(FusekiHelpers.AUTH);
+	    }
 	}
 	
 	public static void closeConnections() {
