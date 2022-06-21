@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.Query;
@@ -17,6 +18,11 @@ import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
 import org.apache.jena.reasoner.rulesys.Rule;
@@ -118,6 +124,57 @@ public class BDRCReasoner {
         Query query = QueryFactory.create(queryString);
         QueryExecution qexec = QueryExecutionFactory.create(query, union);
         return qexec.execConstruct();
+    }
+    
+    public static final Property eventWhen = ResourceFactory.createProperty(BDO+"eventWhen");
+    public static final Property onYear = ResourceFactory.createProperty(BDO+"onYear");
+    public static final Property notBefore = ResourceFactory.createProperty(BDO+"notBefore");
+    public static final Property notAfter = ResourceFactory.createProperty(BDO+"notAfter");
+    
+    public static void addFromEDTF(final Model model) {
+        final StmtIterator it = model.listStatements(null, eventWhen, (RDFNode) null);
+        while (it.hasNext()) {
+            final Statement st = it.next();
+            final String dateStr = st.getObject().asLiteral().getLexicalForm();
+                try {
+                // case of 0123, 0123~, 012X, 012X?
+                if (dateStr.length() < 6 && !dateStr.contains("/")) {
+                    if (dateStr.contains("X")) {
+                        model.add(st.getSubject(), notBefore, model.createTypedLiteral(dateStr.substring(0, 4).replace('X', '0'), XSDDatatype.XSDgYear));
+                        model.add(st.getSubject(), notAfter, model.createTypedLiteral(dateStr.substring(0, 4).replace('X', '9'), XSDDatatype.XSDgYear));
+                    } else {
+                        model.add(st.getSubject(), onYear, model.createTypedLiteral(dateStr.substring(0, 4), XSDDatatype.XSDgYear));
+                    }
+                    continue;
+                }
+                // case of "/0123"
+                if (dateStr.startsWith("/")) {
+                    model.add(st.getSubject(), notAfter, model.createTypedLiteral(dateStr.substring(1, 5).replace('X', '9'), XSDDatatype.XSDgYear));
+                    continue;
+                }
+                // case of "0123/"
+                if (dateStr.endsWith("/")) {
+                    model.add(st.getSubject(), notBefore, model.createTypedLiteral(dateStr.substring(0, 4).replace('X', '0'), XSDDatatype.XSDgYear));
+                    continue;
+                }
+                // case of "0123/0124"
+                if (dateStr.contains("/")) {
+                    final String[] dates = dateStr.split("/");
+                    model.add(st.getSubject(), notBefore, model.createTypedLiteral(dates[0].substring(0, 4).replace('X', '0'), XSDDatatype.XSDgYear));
+                    model.add(st.getSubject(), notAfter, model.createTypedLiteral(dates[1].substring(0, 4).replace('X', '9'), XSDDatatype.XSDgYear));
+                    continue;
+                }
+                // case of [1258,158X]
+                if (dateStr.startsWith("{") || dateStr.startsWith("[")) {
+                    final String[] dates = dateStr.substring(1, dateStr.length()-1).split(",");
+                    model.add(st.getSubject(), notBefore, model.createTypedLiteral(dates[0].strip().substring(0, 4).replace('X', '0'), XSDDatatype.XSDgYear));
+                    model.add(st.getSubject(), notAfter, model.createTypedLiteral(dates[dates.length-1].strip().substring(0, 4).replace('X', '9'), XSDDatatype.XSDgYear));
+                    continue;
+                }
+            } catch (Exception e) {
+                
+            }
+        }
     }
 
 }
