@@ -48,7 +48,8 @@ public class Reasoning {
         OntModel ontModel = ontManager.getOntology( "http://purl.bdrc.io/ontology/admin/", ontSpec );
 
         ontModel = TransferHelpers.getOntologyModel();
-        reasoner = BDRCReasoner.getReasoner(ontModel, owlSchemaBase+"reasoning/kinship.rules", true);
+        GitToDB.ontRoot = owlSchemaBase;
+        reasoner = BDRCReasoner.getReasoner(ontModel, true);
     }
     
     @Test
@@ -68,12 +69,8 @@ public class Reasoning {
         Property incarnationActivities = m.createProperty(BDO, "incarnationActivities");
         Property isIncarnation = m.createProperty(BDO, "isIncarnation");
         m.add(r1, incarnationActivities, r2);
-        // with annotations
-        Property sameAsrKTs = m.createProperty(ADM, "sameAsrKTs");
-        m.add(r1, sameAsrKTs, r2);
         InfModel im = ModelFactory.createInfModel(reasoner, m);
         assertTrue(im.contains(r1, isIncarnation, r2));
-        assertTrue(im.contains(r1, OWL.sameAs, r2));
     }
     
     @Test
@@ -115,6 +112,20 @@ public class Reasoning {
         m.add(r1, kinWith, r2);
         InfModel im = ModelFactory.createInfModel(reasoner, m);
         assertTrue(im.contains(r2, kinWith, r1));
+    }
+    
+    @Test
+    public void testInstance()  {
+        Model m = ModelFactory.createDefaultModel();
+        Resource i = m.createResource(BDR+"i");
+        Resource s = m.createResource(BDR+"s");
+        Resource w = m.createResource(BDR+"w");
+        Property repof = m.createProperty(BDO, "instanceReproductionOf");
+        Property instanceOf = m.createProperty(BDO, "instanceOf");
+        m.add(s, repof, i);
+        m.add(i, instanceOf, w);
+        InfModel im = ModelFactory.createInfModel(reasoner, m);
+        assertTrue(im.contains(s, instanceOf, w));
     }
     
     public static final class EDTFStr {

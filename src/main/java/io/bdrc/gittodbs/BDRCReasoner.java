@@ -100,10 +100,11 @@ public class BDRCReasoner {
         }
     }
 
-    public static Reasoner getReasoner(final Model ontModel, final String rulesPath, final boolean symmetry) {
+    public static Reasoner getReasoner(final Model ontModel, final boolean symmetry) {
         List<Rule> rules = new ArrayList<Rule>();
         rules.addAll(getRulesFromModel(ontModel, symmetry));
-        addRulesFromSource(rulesPath, rules);
+        addRulesFromSource(GitToDB.ontRoot+"reasoning/kinship.rules", rules);
+        rules.add(Rule.parseRule("[sio: (?i <http://purl.bdrc.io/ontology/core/instanceHasReproduction> ?s), (?i <http://purl.bdrc.io/ontology/core/instanceOf> ?w) -> (?s <http://purl.bdrc.io/ontology/core/instanceOf> ?w) , (?w <http://purl.bdrc.io/ontology/core/workHasInstance> ?s)]"));
         Reasoner reasoner = new GenericRuleReasoner(rules);
         reasoner.setParameter(ReasonerVocabulary.PROPruleMode, "forward");
         return reasoner;

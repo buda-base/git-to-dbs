@@ -23,6 +23,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -138,7 +139,7 @@ public class TransferHelpers {
 	    }
 		
 	    ontModel = getOntologyModel();
-		bdrcReasoner = BDRCReasoner.getReasoner(ontModel, GitToDB.ontRoot+"reasoning/kinship.rules", true);
+		bdrcReasoner = BDRCReasoner.getReasoner(ontModel, true);
 	}
 	
 	public static void sync(int howMany) {
@@ -228,12 +229,6 @@ public class TransferHelpers {
         if (path.charAt(2) == '/')
             return path.substring(3, path.length()-(path.endsWith(".trig") ? 5 : 4));
         return path.substring(0, path.length() - (path.endsWith(".trig") ? 5 : 4));
-	}
-    
-	public static Property status = ResourceFactory.createProperty(ADM+"status");
-	public static Property statusReleased = ResourceFactory.createProperty(BDA+"StatusReleased");
-	public static boolean isReleased(Model m) {
-	    return m.contains(null,status, statusReleased);
 	}
 	
 	public static void addFileFuseki(DocType type, String dirPath, String filePath) {
@@ -412,9 +407,28 @@ public class TransferHelpers {
 		return ModelFactory.createInfModel(bdrcReasoner, m);
 	}
 
-	static final Property ricP = ResourceFactory.createProperty( ADMIN_PREFIX, "restrictedInChina" );
+	static final Property ricP = ResourceFactory.createProperty( ADM, "restrictedInChina" );
+	static final Property access = ResourceFactory.createProperty( ADM , "access" );
+	static final Resource accessOpen = ResourceFactory.createProperty( BDA , "AccessOpen" );
+	static final Property copyrightStatus = ResourceFactory.createProperty( BDO , "copyrightStatus" );
+	static final Resource inCopyright = ResourceFactory.createProperty( BDR , "CopyrightInCopyright" );
+	static final Resource copyrightClaimed = ResourceFactory.createProperty( BDR , "CopyrightClaimed" );
+	static final public Property status = ResourceFactory.createProperty(ADM+"status");
+	static public final Resource statusReleased = ResourceFactory.createProperty(BDA+"StatusReleased");
+	static final public Property digitalLendingPossible = ResourceFactory.createProperty(BDO+"digitalLendingPossible");
+	
     public static boolean isRic(Model m) {
+        if (!m.contains(null, status, statusReleased))
+            return true;
+        if (m.contains(null, access, (RDFNode) null) && !m.contains(null, access, accessOpen))
+            return true;
+        if (m.listResourcesWithProperty(digitalLendingPossible, false).hasNext())
+            return true;
         return m.listResourcesWithProperty(ricP, true).hasNext();
+    }
+    
+    public static boolean isReleased(Model m) {
+        return m.contains(null, status, statusReleased);
     }
 
     public static Map<String,Boolean> lnameRic = new HashMap<>(); 
