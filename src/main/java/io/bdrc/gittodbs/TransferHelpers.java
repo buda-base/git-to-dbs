@@ -85,6 +85,7 @@ public class TransferHelpers {
         SUBSCRIBER("subscriber"),
         TOPIC("topic"),
         WORK("work"),
+        OUTLINE("outline"),
         TEST("test");
 
         private String label;
@@ -148,6 +149,7 @@ public class TransferHelpers {
         nbLeft = nbLeft - syncType(DocType.WORK, nbLeft);
         nbLeft = nbLeft - syncType(DocType.IINSTANCE, nbLeft);
         nbLeft = nbLeft - syncType(DocType.INSTANCE, nbLeft);
+        nbLeft = nbLeft - syncType(DocType.OUTLINE, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.CORPORATION, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.PLACE, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.TOPIC, nbLeft);
