@@ -15,7 +15,6 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.reasoner.Reasoner;
-import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -27,7 +26,6 @@ public class Reasoning {
 
     public static Model ontModel;
     public static Reasoner reasoner;
-    private static final String ADM = TransferHelpers.ADM;
     private static final String BDR = TransferHelpers.BDR;
     private static final String BDO = TransferHelpers.BDO;
     
