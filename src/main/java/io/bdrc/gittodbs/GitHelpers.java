@@ -44,6 +44,7 @@ public class GitHelpers {
         ensureGitRepo(DocType.ETEXT);
         ensureGitRepo(DocType.ETEXTCONTENT);
         ensureGitRepo(DocType.COLLECTION);
+        ensureGitRepo(DocType.OUTLINE);
         if (!GitToDB.ric)
             ensureGitRepo(DocType.SUBSCRIBER);
     }
