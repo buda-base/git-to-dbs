@@ -304,7 +304,7 @@ public class TransferHelpers {
 	        List<DiffEntry> entries = null;
 	        try {
 	            entries = GitHelpers.getChanges(type, distRev);
-	            TransferHelpers.logger.info("sending changed " + type + " files changed since "+distRev+" to Fuseki");
+	            TransferHelpers.logger.info("sending "+entries.size()+" changed " + type + " files since "+distRev+" to Fuseki");
 	            for (DiffEntry de : entries) {
 	                i++;
 	                if (i > nbLeft)
