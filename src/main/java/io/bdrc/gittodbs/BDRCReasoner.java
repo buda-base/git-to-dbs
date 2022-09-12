@@ -168,8 +168,8 @@ public class BDRCReasoner {
                 // case of [1258,158X]
                 if (dateStr.startsWith("{") || dateStr.startsWith("[")) {
                     final String[] dates = dateStr.substring(1, dateStr.length()-1).split(",");
-                    model.add(st.getSubject(), notBefore, model.createTypedLiteral(dates[0].strip().substring(0, 4).replace('X', '0'), XSDDatatype.XSDgYear));
-                    model.add(st.getSubject(), notAfter, model.createTypedLiteral(dates[dates.length-1].strip().substring(0, 4).replace('X', '9'), XSDDatatype.XSDgYear));
+                    model.add(st.getSubject(), notBefore, model.createTypedLiteral(dates[0].trim().substring(0, 4).replace('X', '0'), XSDDatatype.XSDgYear));
+                    model.add(st.getSubject(), notAfter, model.createTypedLiteral(dates[dates.length-1].trim().substring(0, 4).replace('X', '9'), XSDDatatype.XSDgYear));
                     continue;
                 }
             } catch (Exception e) {
