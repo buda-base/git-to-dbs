@@ -303,6 +303,10 @@ public class FusekiHelpers {
             deleteModel(graphName, distantDB);
             return;
         }
+        // we don't transfer withdrawn works created from outlines:
+        if (graphName.contains("/WA0XL") && TransferHelpers.isWithdrawn(model)) {
+            return;
+        }
         
         if (updatingFuseki) {
             putModel(graphName, model, distantDB);

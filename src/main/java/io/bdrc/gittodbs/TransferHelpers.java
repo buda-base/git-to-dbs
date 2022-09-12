@@ -417,6 +417,7 @@ public class TransferHelpers {
 	static final Resource copyrightClaimed = ResourceFactory.createProperty( BDR , "CopyrightClaimed" );
 	static final public Property status = ResourceFactory.createProperty(ADM+"status");
 	static public final Resource statusReleased = ResourceFactory.createProperty(BDA+"StatusReleased");
+	static public final Resource statusWithdrawn = ResourceFactory.createProperty(BDA+"StatusWithdrawn");
 	static final public Property digitalLendingPossible = ResourceFactory.createProperty(BDO+"digitalLendingPossible");
 	
     public static boolean isRic(Model m) {
@@ -431,6 +432,10 @@ public class TransferHelpers {
     
     public static boolean isReleased(Model m) {
         return m.contains(null, status, statusReleased);
+    }
+    
+    public static boolean isWithdrawn(Model m) {
+        return m.contains(null, status, statusWithdrawn);
     }
 
     public static Map<String,Boolean> lnameRic = new HashMap<>(); 

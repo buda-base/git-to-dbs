@@ -4,7 +4,7 @@
   <groupId>io.bdrc</groupId>
   <artifactId>gittodbs</artifactId>
   <packaging>jar</packaging>
-  <version>0.8.0</version>
+  <version>0.9.0</version>
   <name>git to dbs</name>
   <url>https://github.com/buda-base/git-to-dbs</url>
   <scm>
