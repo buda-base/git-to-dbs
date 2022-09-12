@@ -62,7 +62,6 @@ public class AppTest
 //        FusekiHelpers.useRdfConnection = true;
 //        FusekiHelpers.useRdfConnection = false;
         tempDir = Files.createTempDir();
-        JSONLDFormatter.typeToRootShortUri.put(DocType.TEST, "Test");
         logger.info("create temporary directory for git testing in "+tempDir.getAbsolutePath());
         GitToDB.gitDir = tempDir.getAbsolutePath()+'/';
         GitHelpers.createGitRepo(DocType.TEST);

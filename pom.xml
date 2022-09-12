@@ -64,7 +64,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.0.0</version>
+        <version>3.3.0</version>
         <configuration>
           <shadedArtifactAttached>false</shadedArtifactAttached>
           <transformers>
@@ -107,7 +107,7 @@
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit</artifactId>
-      <version>4.11.0.201803080745-r</version>
+      <version>6.3.0.202209071007-r</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -156,12 +156,6 @@
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-arq</artifactId>
       <version>${jena.version}</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>jsonld-java</artifactId>
-          <groupId>com.github.jsonld-java</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
@@ -169,29 +163,14 @@
       <version>1.14</version>
     </dependency>
     <dependency>
-      <groupId>com.github.jsonld-java</groupId>
-      <artifactId>jsonld-java</artifactId>
-      <version>0.12.1</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>jackson-core</artifactId>
-          <groupId>com.fasterxml.jackson.core</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jackson-databind</artifactId>
-          <groupId>com.fasterxml.jackson.core</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>io.bdrc.ewtsconverter</groupId>
       <artifactId>ewts-converter</artifactId>
-      <version>1.4.1</version>
+      <version>1.5.1</version>
     </dependency>
     <dependency>
       <groupId>io.bdrc.libraries</groupId>
       <artifactId>bdrc-libraries</artifactId>
-      <version>0.17.1</version>
+      <version>0.18.0</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -208,49 +187,6 @@
       <groupId>javax.activation</groupId>
       <artifactId>activation</artifactId>
       <version>1.1.1</version>
-    </dependency>
-    <dependency>
-      <groupId>io.bdrc</groupId>
-      <artifactId>mcouch-ektorp</artifactId>
-      <version>1.1.0</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>jackson-core</artifactId>
-          <groupId>com.fasterxml.jackson.core</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jackson-databind</artifactId>
-          <groupId>com.fasterxml.jackson.core</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jackson-annotations</artifactId>
-          <groupId>com.fasterxml.jackson.core</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>org.ektorp</artifactId>
-          <groupId>org.ektorp</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>org.slf4j</artifactId>
-          <groupId>slf4j-simple</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.ektorp</groupId>
-      <artifactId>org.ektorp</artifactId>
-      <version>1.4.4</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>jackson-core</artifactId>
-          <groupId>com.fasterxml.jackson.core</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jackson-databind</artifactId>
-          <groupId>com.fasterxml.jackson.core</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
   </dependencies>
 </project>

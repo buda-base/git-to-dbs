@@ -176,8 +176,6 @@ public class TransferHelpers {
 	    // random result for uncoherent couch and fuseki
 	    if (GitToDB.transferFuseki)
 	        i = syncTypeFuseki(type, nbLeft);
-	    if (GitToDB.exportLib && type != DocType.ETEXTCONTENT)
-	        i = syncTypeCouch(type, nbLeft);
 	    return i;
 	}
 	
@@ -325,77 +323,7 @@ public class TransferHelpers {
 	    FusekiHelpers.setLastRevision(gitRev, type);
 	    return i;
 	}
-	
-	public static void addFileCouch(final DocType type, final String dirPath, final String filePath) {
-        final String mainId = mainIdFromPath(filePath, type);
-        if (mainId == null)
-            return;
-        final Model m = modelFromPath(dirPath+filePath, type, mainId);
-        final long modelSize = m.size();
-        final String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
-        final Map<String,Object> jsonObject;
-        jsonObject = JSONLDFormatter.modelToJsonObject(m, type, mainId);
-        if (jsonObject == null)
-            return;
-        CouchHelpers.jsonObjectToCouch(jsonObject, mainId, type, rev, modelSize);
-    }
-	
-	public static int syncTypeCouch(DocType type, int nbLeft) {
-       if (nbLeft == 0)
-            return 0;
-        final String gitRev = GitHelpers.getHeadRev(type);
-        final String dirpath = GitToDB.gitDir + type + "s/";
-        if (gitRev == null) {
-            TransferHelpers.logger.error("cannot extract latest revision from the git repo at "+dirpath);
-            return 0;
-        }
-        final String distRev = CouchHelpers.getLastRevision(type);
-        int i = 0;
-        if (distRev == null || distRev.isEmpty()) {
-            TransferHelpers.logger.info("sending all " + type + " files to Couch");
-            TreeWalk tw = GitHelpers.listRepositoryContents(type);
-            try {
-                while (tw.next()) {
-                    if (i+1 > nbLeft)
-                        return nbLeft;
-                    i = i + 1;
-                    logFileHandling(i, tw.getPathString(), true);
-                    addFileCouch(type, dirpath, tw.getPathString());
-                }
-            } catch (IOException e) {
-                TransferHelpers.logger.error("", e);
-                return 0;
-            }
-            CouchHelpers.finishBulkTransfers();
-        } else {
-            final List<DiffEntry> entries;
-            try {
-                entries = GitHelpers.getChanges(type, distRev);
-            } catch (InvalidObjectIdException | MissingObjectException e1) {
-                TransferHelpers.logger.error("distant couch revision "+distRev+" is invalid, please fix it");
-                return 0;
-            }
-            TransferHelpers.logger.info("sending "+entries.size()+" " + type + " files changed since "+distRev+" to Couch");
-            for (DiffEntry de : entries) {
-                if (i+1 > nbLeft)
-                    return nbLeft;
-                i = i + 1;
-                final String path = de.getNewPath();
-                logFileHandling(i, path, false);
-                final String oldPath = de.getOldPath();
-                if (path.equals("/dev/null") || !path.equals(oldPath)) {
-                    final String mainId = mainIdFromPath(oldPath, type);
-                    if (mainId != null) {
-                        CouchHelpers.couchDelete(mainId, type);
-                    }
-                }
-                if (!path.equals("/dev/null"))
-                    addFileCouch(type, dirpath, path);
-            }
-        }
-        CouchHelpers.setLastRevision(gitRev, type);
-        return i;
-    }
+
 	
 	public static String getFullUrlFromDocId(String docId) {
 		int colonIndex = docId.indexOf(":");
