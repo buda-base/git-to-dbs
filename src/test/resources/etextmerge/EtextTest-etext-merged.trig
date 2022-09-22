@@ -11,6 +11,8 @@
 @prefix rkts:  <http://purl.rkts.eu/resource/> .
 @prefix bda:   <http://purl.bdrc.io/admindata/> .
 
+bdg:UT1CZ2485_001_0000 {
+
 bdr:ELF4A316C12B64  a    :EtextLine ;
         :seqNum          4 ;
         :sliceEndChar    2560 ;
@@ -130,3 +132,4 @@ bdr:EPC69E5706B90F  a    :EtextPage ;
         :seqNum          5 ;
         :sliceEndChar    1694 ;
         :sliceStartChar  521 .
+}

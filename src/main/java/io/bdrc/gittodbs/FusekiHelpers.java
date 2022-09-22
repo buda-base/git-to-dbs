@@ -59,7 +59,7 @@ public class FusekiHelpers {
     public static final int AUTH = 1;
     
     public static int distantDB(DocType type) {
-        if (type == DocType.SUBSCRIBER)
+        if (type == DocType.SUBSCRIBER || type == DocType.USER_PRIVATE)
             return AUTH;
         return CORE;
     }
@@ -216,6 +216,8 @@ public class FusekiHelpers {
     public static synchronized void setLastRevision(String revision, DocType type) {
         final Model model = getSyncModel(distantDB(type));
         String typeStr = type.toString();
+        if (type == DocType.USER_PRIVATE)
+            typeStr = "user";
         typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
         Resource res = model.getResource(ADM+"GitSyncInfo"+typeStr);
         Property prop = model.getProperty(ADM+"hasLastRevision");

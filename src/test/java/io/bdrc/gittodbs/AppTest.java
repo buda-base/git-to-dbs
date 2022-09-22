@@ -83,8 +83,10 @@ public class AppTest
 	    deleteRec(tempDir);
 	}
 	
-	public static String writeModelToGitPath(Model m, String path) throws NoFilepatternException, GitAPIException {
-	    RDFWriter.create().source(m.getGraph()).lang(RDFLanguages.TTL).build().output(GitToDB.gitDir+"tests/"+path);
+	public static String writeModelToGitPath(Model m, String path, String mainId) throws NoFilepatternException, GitAPIException {
+		Dataset ds = DatasetFactory.createGeneral();
+		ds.addNamedModel(BDG+mainId, m);
+	    RDFWriter.create().source(ds.asDatasetGraph()).lang(RDFLanguages.TRIG).build().output(GitToDB.gitDir+"tests/"+path);
 	    Repository r = GitHelpers.typeRepo.get(DocType.TEST); 
         Git git = new Git(r);
         RevCommit commit;
@@ -115,9 +117,9 @@ public class AppTest
 	    Property p1 = m.createProperty(BDO, "p1");
 	    Resource r2 = m.createResource(BDR+"r2");
 	    m.add(r1, p1, r2);
-	    String rev = writeModelToGitPath(m, "r1.ttl");
+	    String rev = writeModelToGitPath(m, "r1.trig", "r1");
 	    assertTrue(GitHelpers.getHeadRev(DocType.TEST).equals(rev));
-	    assertTrue(GitHelpers.getLastRefOfFile(DocType.TEST, "r1.ttl").equals(rev));
+	    assertTrue(GitHelpers.getLastRefOfFile(DocType.TEST, "r1.trig").equals(rev));
 	    logger.info("Test1 SENDING r1 to fuseki");
 	    TransferHelpers.syncTypeFuseki(DocType.TEST, 1000);
 	    Model fusekiM = FusekiHelpers.getModel(BDG+"r1", FusekiHelpers.CORE);
@@ -128,10 +130,10 @@ public class AppTest
 	    Property p2 = m.createProperty(BDO, "p2");
 	    m = ModelFactory.createDefaultModel();
 	    m.add(r2, p2, r1);
-	    String newRev = writeModelToGitPath(m, "r2.ttl");
+	    String newRev = writeModelToGitPath(m, "r2.trig", "r2");
 	    //System.out.println("just committed "+newRev);
 	    assertTrue(GitHelpers.getHeadRev(DocType.TEST).equals(newRev));
-        assertTrue(GitHelpers.getLastRefOfFile(DocType.TEST, "r1.ttl").equals(rev));
+        assertTrue(GitHelpers.getLastRefOfFile(DocType.TEST, "r1.trig").equals(rev));
         TransferHelpers.syncTypeFuseki(DocType.TEST, 1000);
         fusekiM = FusekiHelpers.getModel(BDR+"r2", FusekiHelpers.CORE);
         FusekiHelpers.setModelRevision(m, DocType.TEST, newRev, "r2");

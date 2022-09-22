@@ -12,32 +12,22 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.jena.graph.Graph;
-import org.apache.jena.ontology.DatatypeProperty;
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.ontology.Restriction;
 import org.apache.jena.query.Dataset;
-import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
-import org.apache.jena.riot.RDFLanguages;
-import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.RiotException;
-import org.apache.jena.riot.system.StreamRDFLib;
 import org.apache.jena.sparql.util.Context;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.vocabulary.OWL2;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.errors.InvalidObjectIdException;
 import org.eclipse.jgit.errors.MissingObjectException;
@@ -66,6 +56,9 @@ public class TransferHelpers {
     public static final String BDR = RESOURCE_PREFIX;
     public static final String BDO = CORE_PREFIX;
     public static final String ADM = ADMIN_PREFIX;
+    public static final String BDGU = "http://purl.bdrc.io/graph-nc/user/";
+    public static final String BDGUP = "http://purl.bdrc.io/graph-nc/user-private/";
+    
     public static final Context ctx = new Context();
     
     private static Map<String, DocType> strToDocType = new HashMap<>();
@@ -87,6 +80,8 @@ public class TransferHelpers {
         TOPIC("topic"),
         WORK("work"),
         OUTLINE("outline"),
+        USER("user"),
+        USER_PRIVATE("user-private"),
         TEST("test");
 
         private String label;
@@ -187,37 +182,33 @@ public class TransferHelpers {
             return res;
 	    }
 	    Model model = ModelFactory.createDefaultModel();
-	    Graph g = model.getGraph();
-        
-        if (path.endsWith(".ttl")) {
-            try {
-                // workaround for https://github.com/jsonld-java/jsonld-java/issues/199
-                RDFParser.create()
-                    .source(path)
-                    .lang(RDFLanguages.TTL)
-                    .parse(StreamRDFLib.graph(g));
-            } catch (RiotException e) {
-                logger.error("error reading "+path);
-                return null;
+        try {
+            Dataset dataset = RDFDataMgr.loadDataset(path);
+            Iterator<String> iter = dataset.listNames();
+            if (iter.hasNext()) {
+                String graphUri = iter.next();
+                if (iter.hasNext())
+                    logger.error("modelFromFileName " + path + " getting named model: " + graphUri + ". Has more graphs! ");
+                model = dataset.getNamedModel(graphUri);
             }
-        } else if (path.endsWith(".trig")) {
-            try {
-                Dataset dataset = RDFDataMgr.loadDataset(path);
-                Iterator<String> iter = dataset.listNames();
-                if (iter.hasNext()) {
-                    String graphUri = iter.next();
-                    if (iter.hasNext())
-                        logger.error("modelFromFileName " + path + " getting named model: " + graphUri + ". Has more graphs! ");
-                    model = dataset.getNamedModel(graphUri);
-                }
-            } catch (RiotException e) {
-                logger.error("error reading "+path);
-                return null;
-            }
+        } catch (RiotException e) {
+            logger.error("error reading "+path);
+            return null;
         }
         setPrefixes(model, type);
         return model;
 	}
+	
+	   public static Dataset datasetFromPath(String path, DocType type, String mainId) {
+	        Dataset dataset = null;
+            try {
+                dataset = RDFDataMgr.loadDataset(path);
+            } catch (RiotException e) {
+                logger.error("error reading "+path);
+                return null;
+            }
+	        return dataset;
+	    }
 	
 	public static String mainIdFromPath(String path, DocType type) {
         if (path == null || path.length() < 6)
@@ -240,13 +231,37 @@ public class TransferHelpers {
             logger.error("modelFromPath failed to fetch anything from: " + dirPath+filePath + " with type: " + type + " and mainId: " + mainId);
             return;
         }
-        final String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
+        transferToFuseki(type, mainId, filePath, model, BDG+mainId);
+	}
+	
+	   public static void addUserFileFuseki(DocType type, String dirPath, String filePath) {
+	        final String mainId = mainIdFromPath(filePath, type);
+	        if (mainId == null)
+	            return;
+	        final Dataset ds = datasetFromPath(dirPath+filePath, type, mainId);
+	        if (ds == null) { // nothing fetched from path, nothing to transfer
+	            logger.error("modelFromPath failed to fetch anything from: " + dirPath+filePath + " with type: " + type + " and mainId: " + mainId);
+	            return;
+	        }
+	        final Iterator<String> graphUrisIt = ds.listNames();
+	        while (graphUrisIt.hasNext()) {
+	            final String graphUri = graphUrisIt.next();
+	            if (graphUri.startsWith(BDA) || graphUri.startsWith(BDGUP)) {
+	                // Private
+	                transferToFuseki(DocType.USER_PRIVATE, mainId, filePath, ds.getNamedModel(graphUri), graphUri);
+	            } else {
+	                transferToFuseki(type, mainId, filePath, ds.getNamedModel(graphUri), graphUri);
+	            }
+	        }
+	    }
+	
+	public static void transferToFuseki(final DocType type, final String mainId, final String filePath, Model model, final String graphName) {
+	    final String rev = GitHelpers.getLastRefOfFile(type, filePath); // not sure yet what to do with it
         FusekiHelpers.setModelRevision(model, type, rev, mainId);
         // apply reasoner only to released models
         if (type != DocType.ETEXTCONTENT && type != DocType.ETEXT && isReleased(model)) {
             model = getInferredModel(model);
         }
-        String graphName = BDG+mainId;
         FusekiHelpers.transferModel(type, graphName, model);
 	}
 
