@@ -381,7 +381,8 @@ public class TransferHelpers {
         return m.contains(null, status, statusWithdrawn);
     }
 
-    public static Map<String,Boolean> lnameRic = new HashMap<>(); 
+    public static Map<String,Boolean> lnameRic = new HashMap<>();
+	public static boolean DRYRUN = false; 
     
     public static void tagAsRic(final String einstLname) {
         lnameRic.put(einstLname, true);

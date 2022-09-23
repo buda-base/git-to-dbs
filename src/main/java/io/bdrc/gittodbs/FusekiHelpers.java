@@ -16,7 +16,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.rdfconnection.RDFConnectionFuseki;
 import org.apache.jena.rdfconnection.RDFConnectionRemoteBuilder;
 import org.apache.jena.vocabulary.RDF;
@@ -105,7 +104,7 @@ public class FusekiHelpers {
     
             logger.info("openConnection to fuseki via RDFConnection at "+FusekiUrl);
             if (testDataset != null) {
-                fuConn = RDFConnectionFactory.connect(testDataset);
+                fuConn = RDFConnection.connect(testDataset);
             } else {
                 fuConn = fuConnBuilder.build();
             }
@@ -118,7 +117,7 @@ public class FusekiHelpers {
     
             logger.info("openConnection to fuseki via RDFConnection at "+FusekiAuthUrl);
             if (testDataset != null) {
-                fuAuthConn = RDFConnectionFactory.connect(testDataset);
+                fuAuthConn = RDFConnection.connect(testDataset);
             } else {
                 fuAuthConn = fuAuthConnBuilder.build();
             }
@@ -264,6 +263,10 @@ public class FusekiHelpers {
     }
 
     private static void loadDatasetSimple(final Dataset ds, final int distantDB) {
+    	if (TransferHelpers.DRYRUN) {
+    		logger.info("drymode: don't really send " + ds.getUnionModel().size() + " to Fuseki ("+distantDB+")");
+    		return;
+    	}
         if (distantDB == CORE) {
             if (!fuConn.isInTransaction()) {
                 fuConn.begin(ReadWrite.WRITE);
@@ -362,7 +365,9 @@ public class FusekiHelpers {
     }
 
     static void deleteModel(String graphName, int distantDB) {
-        logger.info("DELETING:" + graphName);
+        logger.info("deleting " + graphName + "from Fuseki ("+distantDB+")");
+        if (TransferHelpers.DRYRUN)
+        	return;
         openConnection(distantDB);
         RDFConnection conn = distantDB == CORE ? fuConn : fuAuthConn;
         if (!conn.isInTransaction()) {
@@ -391,7 +396,9 @@ public class FusekiHelpers {
     }
 
     static void putModel(String graphName, Model model, final int distantDB) {
-        logger.info("PUTTING:" + graphName);
+        logger.info("putting:" + graphName);
+        if (TransferHelpers.DRYRUN)
+        	return;
         openConnection(distantDB);
         RDFConnection conn = distantDB == CORE ? fuConn : fuAuthConn;
         if (!conn.isInTransaction()) {

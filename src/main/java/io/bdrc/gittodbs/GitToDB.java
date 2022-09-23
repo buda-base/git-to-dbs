@@ -59,6 +59,7 @@ public class GitToDB {
 		        + "-debug              - enables DEBUG log level - mostly jena logging\n"
 		        + "-trace              - enables TRACE log level - mostly jena logging\n"
 		        + "-help               - print this message and exits\n"
+		        + "-dryrun             - dry run mode\n"
 		        + "-version            - prints the version and exits\n"
 		        + "\nset log level with the VM argument -Dorg.slf4j.simpleLogger.defaultLogLevel=XXX\n"
 		        + "\nFusekiTransfer version: " + VERSION + "\n"
@@ -128,6 +129,9 @@ public class GitToDB {
                 FusekiHelpers.initialLoadBulkSize = (++i < args.length ? Integer.parseInt(args[i]) : null);
 			} else if (arg.equals("-timeout")) {
 				TransferHelpers.TRANSFER_TO = (++i < args.length ? Integer.parseInt(args[i]) : null);
+			} else if (arg.equals("-dryrun")) {
+				TransferHelpers.DRYRUN = true;
+			    System.err.println("dry run mode");
             } else if (arg.equals("-transferOnto")) {
                 transferOnto = true;
             } else if (arg.equals("-ric")) {
