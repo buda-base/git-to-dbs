@@ -176,7 +176,7 @@ public class TransferHelpers {
 	
 	public static Model modelFromPath(String path, DocType type, String mainId) {
 	    if (type == DocType.ETEXTCONTENT) {
-	        String dirpath = GitToDB.gitDir + DocType.ETEXT + "s/"+getMd5(mainId)+"/";	        
+	        String dirpath = GitToDB.gitDir + DocType.ETEXT + "s" + GitHelpers.localSuffix + "/"+getMd5(mainId)+"/";	        
 	        Model etextM = modelFromPath(dirpath+mainId+".trig", DocType.ETEXT, mainId);	        
 	        Model res = EtextContents.getModel(path, mainId, etextM);
             return res;
@@ -295,7 +295,7 @@ public class TransferHelpers {
 	    if (nbLeft == 0)
 	        return 0;
 	    String gitRev = GitHelpers.getHeadRev(type);
-        String dirpath = GitToDB.gitDir + type + "s/";
+        String dirpath = GitToDB.gitDir + type + "s" + GitHelpers.localSuffix + "/";
 	    if (gitRev == null) {
 	        TransferHelpers.logger.error("cannot extract latest revision from the git repo at "+dirpath);
 	        return 0;

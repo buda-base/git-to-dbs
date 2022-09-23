@@ -86,7 +86,7 @@ public class AppTest
 	public static String writeModelToGitPath(Model m, String path, String mainId) throws NoFilepatternException, GitAPIException {
 		Dataset ds = DatasetFactory.createGeneral();
 		ds.addNamedModel(BDG+mainId, m);
-	    RDFWriter.create().source(ds.asDatasetGraph()).lang(RDFLanguages.TRIG).build().output(GitToDB.gitDir+"tests/"+path);
+	    RDFWriter.create().source(ds.asDatasetGraph()).lang(RDFLanguages.TRIG).build().output(GitToDB.gitDir+"tests"+GitHelpers.localSuffix+"/"+path);
 	    Repository r = GitHelpers.typeRepo.get(DocType.TEST); 
         Git git = new Git(r);
         RevCommit commit;
