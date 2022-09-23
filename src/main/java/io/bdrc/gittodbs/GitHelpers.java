@@ -7,6 +7,7 @@ import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -23,11 +24,15 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.bdrc.gittodbs.TransferHelpers.DocType;
 
 public class GitHelpers {
-    public static Map<DocType,Repository> typeRepo = new EnumMap<>(DocType.class);
+    public static final Map<DocType,Repository> typeRepo = new EnumMap<>(DocType.class);
+    public static final String localSuffix = "-20220922";
+    public static Logger logger = LoggerFactory.getLogger(GitHelpers.class);
     
     public static void init() {
         ensureGitRepo(DocType.CORPORATION);
@@ -45,16 +50,17 @@ public class GitHelpers {
         ensureGitRepo(DocType.ETEXTCONTENT);
         ensureGitRepo(DocType.COLLECTION);
         ensureGitRepo(DocType.OUTLINE);
+        ensureGitRepo(DocType.USER);
         if (!GitToDB.ric)
             ensureGitRepo(DocType.SUBSCRIBER);
     }
     
     // for tests only
     public static void createGitRepo(DocType type) {
-        String dirpath = GitToDB.gitDir + type + 's';
-        FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        File gitDir = new File(dirpath+"/.git");
-        File wtDir = new File(dirpath);
+        final String dirpath = GitToDB.gitDir + type + 's' + localSuffix;
+        final FileRepositoryBuilder builder = new FileRepositoryBuilder();
+        final File gitDir = new File(dirpath+"/.git");
+        final File wtDir = new File(dirpath);
         try {
             Repository repository = builder.setGitDir(gitDir)
               .setWorkTree(wtDir)
@@ -62,17 +68,17 @@ public class GitHelpers {
               .build();
             repository.create();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("can't create git repo on "+dirpath, e);
         }
     }
     
     public static void ensureGitRepo(DocType type) {
         if (typeRepo.containsKey(type))
             return;
-        String dirpath = GitToDB.gitDir + type + 's';
-        FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        File gitDir = new File(dirpath+"/.git");
-        File wtDir = new File(dirpath);
+        final String dirpath = GitToDB.gitDir + type + 's' + localSuffix;
+        final FileRepositoryBuilder builder = new FileRepositoryBuilder();
+        final File gitDir = new File(dirpath+"/.git");
+        final File wtDir = new File(dirpath);
         try {
             Repository repository = builder.setGitDir(gitDir)
               .setWorkTree(wtDir)
@@ -85,7 +91,7 @@ public class GitHelpers {
             }
             typeRepo.put(type, repository);
         } catch (IOException e) {
-            TransferHelpers.logger.error(dirpath+" does not seem to be a valid git repository, quitting");
+            logger.error(dirpath+" does not seem to be a valid git repository, quitting");
             System.exit(1);
         }
     }
@@ -97,7 +103,7 @@ public class GitHelpers {
         try {
             commits = git.log().addPath(path).setMaxCount(1).call().iterator();
         } catch (GitAPIException e) {
-            e.printStackTrace();
+            logger.error("can't get last revision of file " + path, e);
             git.close();
             return null;
         }
@@ -163,7 +169,7 @@ public class GitHelpers {
             // oddity due to MissingObjectException inheriting from IOException
             throw new MissingObjectException(commitId, e.getMessage());
         } catch (IOException e) {
-            TransferHelpers.logger.error("", e);
+            logger.error("can't getchanges for type " + type + " since revision " + sinceRev, e);
             return null;
         }
         return entries;
@@ -177,7 +183,7 @@ public class GitHelpers {
         try {
             head = r.exactRef(r.getFullBranch());
         } catch (IOException e2) {
-            TransferHelpers.logger.error("unable to get reference of HEAD", e2);
+            logger.error("unable to get reference of HEAD", e2);
             return null;
         }
 
@@ -188,7 +194,7 @@ public class GitHelpers {
         try {
             commit = walk.parseCommit(head.getObjectId());
         } catch (IOException e1) {
-            TransferHelpers.logger.error("unable to parse commit, this shouldn't happen", e1);
+            logger.error("unable to parse commit, this shouldn't happen", e1);
             walk.close();
             return null;
         }
@@ -198,7 +204,7 @@ public class GitHelpers {
         try {
             treeWalk.addTree(tree);
         } catch (IOException e) {
-            TransferHelpers.logger.error("internal error, this shouldn't happen", e);
+            logger.error("internal error, this shouldn't happen", e);
         }
         treeWalk.setRecursive(true);
         return treeWalk;
