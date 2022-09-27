@@ -346,7 +346,8 @@ public class TransferHelpers {
 		return RESOURCE_PREFIX+docId.substring(colonIndex+1);
 	}
 
-	public static Model getInferredModel(Model m) {
+	public static Model getInferredModel(final Model m) {
+		BDRCReasoner.addFromEDTF(m);
 	    if (bdrcReasoner == null)
 	        return m;
 		return ModelFactory.createInfModel(bdrcReasoner, m);

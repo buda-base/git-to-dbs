@@ -1,6 +1,8 @@
 package io.bdrc.gittodbs;
 
+import java.io.ByteArrayOutputStream;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 
 import org.apache.jena.atlas.web.HttpException;
@@ -394,9 +396,11 @@ public class FusekiHelpers {
             return null;
         }
     }
-
+    
     static void putModel(String graphName, Model model, final int distantDB) {
         logger.info("putting:" + graphName);
+        if (GitToDB.debug)
+        	model.write(System.out, "TTL");
         if (TransferHelpers.DRYRUN)
         	return;
         openConnection(distantDB);

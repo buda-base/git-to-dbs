@@ -24,7 +24,6 @@ public class GitToDB {
     static String ontRoot = "https://raw.githubusercontent.com/buda-base/owl-schema/master/";
 	static String libOutputDir = null;
 	static boolean transferFuseki = false;
-	static boolean exportLib = false;
 	static int howMany = Integer.MAX_VALUE;
     static boolean transferAllDB = false;
     static boolean transferOnto = false;
@@ -32,6 +31,9 @@ public class GitToDB {
     static boolean connectPerTransfer = false;
     static boolean force = false;
     static boolean ric = false;
+    static boolean debug = false;
+    static boolean trace = false;
+    static String gitFile = null;
 	
 	static TransferHelpers.DocType docType = null;
 	
@@ -48,6 +50,7 @@ public class GitToDB {
                 + "-connectPerTransfer - connect to Fuseki for each transfer. Default is connect once per execution\n"
 		        + "-libOutputDir       - Output directory of the lib format files\n"
                 + "-type <typeName>    - name of the type to transfer: person, item, place, work, topic, lineage, office, product, etext, corporation, etextcontent\n"
+                + "-gitFile <fileName> - transfers just one file. fileName is the path relative to the root of the git repository, requires -type\n"
 		        + "-force              - Transfer all documents if git and distant revisions don't match\n"
                 + "-gitDir <path>      - path to the git directory\n"
                 + "-ontRoot <path>     - path to the ontology dir. Defaults to GH:buda-base/owl-schema/master/\n"
@@ -116,9 +119,8 @@ public class GitToDB {
             } else if (arg.equals("-type")) {
                 String typeName = (++i < args.length ? args[i] : null);
                 docType  = TransferHelpers.DocType.getType(typeName);
-            } else if (arg.equals("-libOutputDir")) {
-                libOutputDir = (++i < args.length ? args[i] : null);
-                exportLib = true;
+            } else if (arg.equals("-gitFile")) {
+                gitFile = (++i < args.length ? args[i] : null);
             } else if (arg.equals("-gitDir")) {
                 gitDir = (++i < args.length ? args[i] : null);
             } else if (arg.equals("-ontRoot")) {
@@ -144,10 +146,13 @@ public class GitToDB {
                 org.apache.log4j.Logger logger4j = org.apache.log4j.Logger.getRootLogger();
                 logger4j.setLevel(org.apache.log4j.Level.toLevel("DEBUG"));
                 logger = LoggerFactory.getLogger(GitToDB.class);
+                debug = true;
             } else if (arg.equals("-trace")) {
                 org.apache.log4j.Logger logger4j = org.apache.log4j.Logger.getRootLogger();
                 logger4j.setLevel(org.apache.log4j.Level.toLevel("TRACE"));
                 logger = LoggerFactory.getLogger(GitToDB.class);
+                trace = true;
+                debug = true;
 			} else if (arg.equals("-help")) {
 				printHelp();
 				System.exit(0);
@@ -169,7 +174,7 @@ public class GitToDB {
 		
 		FusekiHelpers.printUsage("INITIAL USAGE  ");
 		
-		if (!exportLib && !transferFuseki) {
+		if (!transferFuseki) {
 		    logger.error("nothing to do, quitting...");
             System.exit(1);
 		}
@@ -208,7 +213,12 @@ public class GitToDB {
                         nbLeft = nbLeft - TransferHelpers.syncType(DocType.EINSTANCE, nbLeft);
                         nbLeft = nbLeft - TransferHelpers.syncType(DocType.ETEXTCONTENT, nbLeft);
                     } else {
-                        TransferHelpers.syncType(docType, howMany);
+                    	if (gitFile != null) {
+                    		String dirpath = GitToDB.gitDir + docType + "s" + GitHelpers.localSuffix + "/";
+                    		TransferHelpers.addFileFuseki(docType, dirpath, gitFile);
+                    	} else {
+                    		TransferHelpers.syncType(docType, howMany);
+                    	}
                     }
                     TransferHelpers.closeConnections();
                 } catch (Exception ex) {
@@ -226,13 +236,6 @@ public class GitToDB {
     
     		logger.info("FusekiTranser shutting down");
     		shutdownAndAwaitTermination(TransferHelpers.executor);
-        }
-        if (exportLib) {
-            try {
-                LibFormat.exportAll();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
 		
 		// for an unknown reason, when execution reaches this point, if there is not
