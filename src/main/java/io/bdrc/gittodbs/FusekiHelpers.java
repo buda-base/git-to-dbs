@@ -166,6 +166,8 @@ public class FusekiHelpers {
     public static synchronized String getLastRevision(DocType type) {
         final Model model = getSyncModel(distantDB(type));
         String typeStr = type.toString();
+        if (type == DocType.USER_PRIVATE)
+            typeStr = "user";
         typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
         final Resource res = model.getResource(ADM+"GitSyncInfo"+typeStr);
         final Property p = model.getProperty(ADM+"hasLastRevision");
@@ -173,7 +175,7 @@ public class FusekiHelpers {
         String returnvalue = null;
         if (s != null)
         	returnvalue = s.getString();
-        TransferHelpers.logger.info("last revision of {} is {}", type, returnvalue);
+        TransferHelpers.logger.info("last revision of {} ({}) is {}", type, typeStr, returnvalue);
         return returnvalue;
     }
     
@@ -198,7 +200,7 @@ public class FusekiHelpers {
     public static synchronized final void initSyncModel(final int distantDB) {
         if (distantDB == CORE) {
             syncModelInitialized = true;
-            logger.info("initSyncModel: " + SYSTEM_GRAPH);
+            logger.info("initSyncModel: {} ({})", SYSTEM_GRAPH, distantDB);
             Model distantSyncModel = getModel(SYSTEM_GRAPH, distantDB);
             if (distantSyncModel != null) {
                 syncModel.add(distantSyncModel);
@@ -207,7 +209,7 @@ public class FusekiHelpers {
             }
         } else {
             authSyncModelInitialized = true;
-            logger.info("initSyncModel: " + SYSTEM_GRAPH);
+            logger.info("initSyncModel: {} ({})", SYSTEM_GRAPH, distantDB);
             Model distantSyncModel = getModel(SYSTEM_GRAPH, distantDB);
             if (distantSyncModel != null) {
                 authSyncModel.add(distantSyncModel);
@@ -387,7 +389,7 @@ public class FusekiHelpers {
     }
 
     static Model getModel(String graphName, final int distantDB) {
-        logger.info("getModel:" + graphName);
+        logger.info("getModel: {} ({})", graphName, distantDB);
         openConnection(distantDB);
         RDFConnection conn = distantDB == CORE ? fuConn : fuAuthConn;
         try {
