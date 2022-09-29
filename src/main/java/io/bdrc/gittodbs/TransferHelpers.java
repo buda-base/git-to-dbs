@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.jena.graph.Graph;
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
@@ -154,6 +153,8 @@ public class TransferHelpers {
 	    nbLeft = nbLeft - syncType(DocType.OFFICE, nbLeft);
         nbLeft = nbLeft - syncType(DocType.EINSTANCE, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.ETEXTCONTENT, nbLeft);
+	    if (!GitToDB.ric)
+	    	nbLeft = nbLeft - syncType(DocType.USER, 0);
 	    FusekiHelpers.closeConnection(FusekiHelpers.CORE);
 	    if (!GitToDB.ric) {
 	        syncType(DocType.SUBSCRIBER, 0);
