@@ -34,6 +34,7 @@ import org.eclipse.jgit.treewalk.TreeWalk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 public class TransferHelpers {
     public static final String RESOURCE_PREFIX = "http://purl.bdrc.io/resource/";
     public static final String GRAPH_PREFIX = "http://purl.bdrc.io/graph/";
@@ -178,6 +179,30 @@ public class TransferHelpers {
 	    return i;
 	}
 	
+    public static Model getPublicUserModel(final Dataset ds) {
+        final Iterator<String> graphUrisIt = ds.listNames();
+        Model res = ModelFactory.createDefaultModel();
+        while (graphUrisIt.hasNext()) {
+            final String graphUri = graphUrisIt.next();
+            if (graphUri.startsWith(BDA) || graphUri.startsWith(BDGU)) {
+                res.add(ds.getNamedModel(graphUri));
+            }
+        }
+        return res;
+    }
+    
+    public static Model getPrivateUserModel(final Dataset ds) {
+        final Iterator<String> graphUrisIt = ds.listNames();
+        Model res = ModelFactory.createDefaultModel();
+        while (graphUrisIt.hasNext()) {
+            final String graphUri = graphUrisIt.next();
+            if (graphUri.startsWith(BDA) || graphUri.startsWith(BDGUP)) {
+                res.add(ds.getNamedModel(graphUri));
+            }
+        }
+        return res;
+    }
+	
 	public static Model modelFromPath(String path, DocType type, String mainId) {
 	    if (type == DocType.ETEXTCONTENT) {
 	        String dirpath = GitToDB.gitDir + DocType.ETEXT + "s" + GitHelpers.localSuffix + "/"+getMd5(mainId)+"/";	        
@@ -188,12 +213,18 @@ public class TransferHelpers {
 	    Model model = ModelFactory.createDefaultModel();
         try {
             Dataset dataset = RDFDataMgr.loadDataset(path);
-            Iterator<String> iter = dataset.listNames();
-            if (iter.hasNext()) {
-                String graphUri = iter.next();
-                if (iter.hasNext())
-                    logger.error("modelFromFileName " + path + " getting named model: " + graphUri + ". Has more graphs! ");
-                model = dataset.getNamedModel(graphUri);
+            if (type == DocType.USER) {
+            	model = getPublicUserModel(dataset);
+            } else if (type == DocType.USER_PRIVATE) {
+            	model = getPrivateUserModel(dataset);
+            } else {
+	            Iterator<String> iter = dataset.listNames();
+	            if (iter.hasNext()) {
+	                String graphUri = iter.next();
+	                if (iter.hasNext())
+	                    logger.error("modelFromFileName " + path + " getting named model: " + graphUri + ". Has more graphs! ");
+	                model = dataset.getNamedModel(graphUri);
+	            }
             }
         } catch (RiotException e) {
             logger.error("error reading "+path);
