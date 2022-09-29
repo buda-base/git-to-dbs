@@ -164,14 +164,17 @@ public class FusekiHelpers {
     }
     
     public static synchronized String getLastRevision(DocType type) {
-        Model model = getSyncModel(distantDB(type));
+        final Model model = getSyncModel(distantDB(type));
         String typeStr = type.toString();
         typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1);
-        Resource res = model.getResource(ADM+"GitSyncInfo"+typeStr);
-        Property p = model.getProperty(ADM+"hasLastRevision");
-        Statement s = model.getProperty(res, p);
-        if (s == null) return null;
-        return s.getString();
+        final Resource res = model.getResource(ADM+"GitSyncInfo"+typeStr);
+        final Property p = model.getProperty(ADM+"hasLastRevision");
+        final Statement s = model.getProperty(res, p);
+        String returnvalue = null;
+        if (s != null)
+        	returnvalue = s.getString();
+        TransferHelpers.logger.info("last revision of {} is {}", type, returnvalue);
+        return returnvalue;
     }
     
     private static volatile Model syncModel = ModelFactory.createDefaultModel();
@@ -214,7 +217,7 @@ public class FusekiHelpers {
         }
     }
     
-    public static synchronized void setLastRevision(String revision, DocType type) {
+    public static synchronized void setLastRevision(final String revision, final DocType type) {
         final Model model = getSyncModel(distantDB(type));
         String typeStr = type.toString();
         if (type == DocType.USER_PRIVATE)
@@ -229,7 +232,7 @@ public class FusekiHelpers {
         } else {
             stmt.changeObject(lit);
         }
-        
+        TransferHelpers.logger.info("set last revision of {} to {}", type, revision);
         // bypass the transferModel machinery. Don't tangle adm:system w/ currentDataset
         putModel(SYSTEM_GRAPH, model, distantDB(type));
     }
