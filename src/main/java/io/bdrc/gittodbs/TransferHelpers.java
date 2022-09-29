@@ -138,6 +138,7 @@ public class TransferHelpers {
 	}
 	
 	public static void sync(int howMany) {
+		TransferHelpers.logger.info("start sync, ric is {}, limit is {}", GitToDB.ric, howMany);
 	    int nbLeft = howMany;
 	    nbLeft = nbLeft - syncType(DocType.PERSON, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.ITEM, nbLeft);
@@ -266,14 +267,14 @@ public class TransferHelpers {
         FusekiHelpers.transferModel(type, graphName, model);
 	}
 
-	public static void logFileHandling(int i, String path, boolean fuseki) {
+	public static void logFileHandling(int i, final String path, boolean fuseki) {
 	    TransferHelpers.logger.debug("sending "+path+" to "+(fuseki ? "Fuseki" : "Couchdb"));
 	    if (i % 100 == 0 && progress)
 	        logger.info(path + ":" + i);
 	}
 	
-	public static int syncAllHead(DocType type, int nbLeft, String dirpath) {
-	    TreeWalk tw = GitHelpers.listRepositoryContents(type);
+	public static int syncAllHead(final DocType type, int nbLeft, final String dirpath) {
+	    final TreeWalk tw = GitHelpers.listRepositoryContents(type);
         TransferHelpers.logger.info("sending all " + type + " files to Fuseki");
         int i = 0;
         try {
@@ -292,16 +293,18 @@ public class TransferHelpers {
         return i;
 	}
 	
-	public static int syncTypeFuseki(DocType type, int nbLeft) {
-	    if (nbLeft == 0)
+	public static int syncTypeFuseki(final DocType type, int nbLeft) {
+	    if (nbLeft == 0) {
+	    	TransferHelpers.logger.info("not syncing {}", type);
 	        return 0;
-	    String gitRev = GitHelpers.getHeadRev(type);
-        String dirpath = GitToDB.gitDir + type + "s" + GitHelpers.localSuffix + "/";
+	    }
+	    final String gitRev = GitHelpers.getHeadRev(type);
+        final String dirpath = GitToDB.gitDir + type + "s" + GitHelpers.localSuffix + "/";
 	    if (gitRev == null) {
 	        TransferHelpers.logger.error("cannot extract latest revision from the git repo at "+dirpath);
 	        return 0;
 	    }
-	    String distRev = FusekiHelpers.getLastRevision(type);
+	    final String distRev = FusekiHelpers.getLastRevision(type);
 	    int i = 0;
 	    if (distRev == null || distRev.isEmpty() || GitToDB.force) {
 	        i = syncAllHead(type, nbLeft, dirpath);
