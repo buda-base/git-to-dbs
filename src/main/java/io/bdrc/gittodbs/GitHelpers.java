@@ -90,6 +90,8 @@ public class GitHelpers {
                 System.exit(1);
             }
             typeRepo.put(type, repository);
+            if (type == DocType.USER)
+            	typeRepo.put(DocType.USER_PRIVATE, repository);
         } catch (IOException e) {
             logger.error(dirpath+" does not seem to be a valid git repository, quitting");
             System.exit(1);

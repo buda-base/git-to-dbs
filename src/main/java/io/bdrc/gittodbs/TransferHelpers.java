@@ -154,8 +154,10 @@ public class TransferHelpers {
 	    nbLeft = nbLeft - syncType(DocType.OFFICE, nbLeft);
         nbLeft = nbLeft - syncType(DocType.EINSTANCE, nbLeft);
 	    nbLeft = nbLeft - syncType(DocType.ETEXTCONTENT, nbLeft);
-	    if (!GitToDB.ric)
+	    if (!GitToDB.ric) {
 	    	nbLeft = nbLeft - syncType(DocType.USER, nbLeft);
+	    	nbLeft = nbLeft - syncType(DocType.USER_PRIVATE, nbLeft);
+	    }
 	    FusekiHelpers.closeConnection(FusekiHelpers.CORE);
 	    if (!GitToDB.ric) {
 	        syncType(DocType.SUBSCRIBER, nbLeft);
@@ -299,7 +301,10 @@ public class TransferHelpers {
 	        return 0;
 	    }
 	    final String gitRev = GitHelpers.getHeadRev(type);
-        final String dirpath = GitToDB.gitDir + type + "s" + GitHelpers.localSuffix + "/";
+	    String typeStr = type.toString();
+	    if (type == DocType.USER_PRIVATE)
+	    	typeStr = "user";
+        final String dirpath = GitToDB.gitDir + typeStr + "s" + GitHelpers.localSuffix + "/";
 	    if (gitRev == null) {
 	        TransferHelpers.logger.error("cannot extract latest revision from the git repo at "+dirpath);
 	        return 0;

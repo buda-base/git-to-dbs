@@ -1,8 +1,6 @@
 package io.bdrc.gittodbs;
 
-import java.io.ByteArrayOutputStream;
 import java.net.MalformedURLException;
-import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 
 import org.apache.jena.atlas.web.HttpException;
@@ -164,7 +162,8 @@ public class FusekiHelpers {
     }
     
     public static synchronized String getLastRevision(DocType type) {
-        final Model model = getSyncModel(distantDB(type));
+    	final int ddb = distantDB(type);
+        final Model model = getSyncModel(ddb);
         String typeStr = type.toString();
         if (type == DocType.USER_PRIVATE)
             typeStr = "user";
@@ -175,7 +174,7 @@ public class FusekiHelpers {
         String returnvalue = null;
         if (s != null)
         	returnvalue = s.getString();
-        TransferHelpers.logger.info("last revision of {} ({}) is {}", type, typeStr, returnvalue);
+        TransferHelpers.logger.info("last revision of {} ({}) is {} in db {}", type, typeStr, returnvalue, ddb);
         return returnvalue;
     }
     
@@ -194,7 +193,7 @@ public class FusekiHelpers {
         if (authSyncModelInitialized)
             return authSyncModel;
         initSyncModel(distantDB);
-        return syncModel;
+        return authSyncModel;
     }
     
     public static synchronized final void initSyncModel(final int distantDB) {
