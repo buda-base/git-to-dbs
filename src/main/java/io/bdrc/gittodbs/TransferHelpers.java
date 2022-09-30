@@ -364,7 +364,13 @@ public class TransferHelpers {
 	                if (newPath.equals("/dev/null") || !newPath.equals(oldPath)) {
 	                    final String mainId = mainIdFromPath(oldPath, type);
 	                    if (mainId != null) {
-	                        FusekiHelpers.deleteModel(BDG+mainId, FusekiHelpers.distantDB(type));
+	                    	String graphName = BDG+mainId;
+	                    	if (type == DocType.USER) {
+	                    		graphName = BDGU + mainId;
+	                    	} else if (type == DocType.USER_PRIVATE) {
+	                    		graphName = BDGUP + mainId;
+	                    	}
+	                        FusekiHelpers.deleteModel(graphName, FusekiHelpers.distantDB(type));
 	                    }
 	                }
 	                if (!newPath.equals("/dev/null"))
