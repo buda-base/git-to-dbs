@@ -15,6 +15,7 @@ import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFuseki;
 import org.apache.jena.rdfconnection.RDFConnectionRemoteBuilder;
@@ -386,6 +387,29 @@ public class FusekiHelpers {
             logger.warn("didn't delete graph: ", e);
         }
     }
+    
+    static void postModelInParts(final String graphName, final Model m, final int distantDB) {
+        logger.info("post in parts, size "+m.size());
+        if (m.size() <= initialLoadBulkSize) {
+            putModel(graphName, m, distantDB);
+        }
+        int size = 0;
+        deleteModel(graphName, distantDB);
+        Model newModel = ModelFactory.createDefaultModel();
+        final StmtIterator si = m.listStatements();
+        while (si.hasNext()) {
+            newModel.add(si.next());
+            size += 1;
+            if (size > initialLoadBulkSize) {
+                postModel(graphName, newModel, distantDB);
+                size = 0;
+                newModel = ModelFactory.createDefaultModel();
+            }
+        }
+        if (size > 0) {
+            postModel(graphName, newModel, distantDB);
+        }
+    }
 
     static Model getModel(String graphName, final int distantDB) {
         logger.info("getModel: {} ({})", graphName, distantDB);
@@ -413,6 +437,21 @@ public class FusekiHelpers {
             conn.begin(ReadWrite.WRITE);
         }
         conn.put(graphName, model);
+        conn.commit();
+    }
+    
+    static void postModel(String graphName, Model model, final int distantDB) {
+        logger.info("loading:" + graphName);
+        if (GitToDB.debug)
+            model.write(System.out, "TTL");
+        if (TransferHelpers.DRYRUN)
+            return;
+        openConnection(distantDB);
+        RDFConnection conn = distantDB == CORE ? fuConn : fuAuthConn;
+        if (!conn.isInTransaction()) {
+            conn.begin(ReadWrite.WRITE);
+        }
+        conn.load(graphName, model);
         conn.commit();
     }
 }

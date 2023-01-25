@@ -1,6 +1,7 @@
 package io.bdrc.gittodbs;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +35,8 @@ public class GitToDB {
     static boolean debug = false;
     static boolean trace = false;
     static String gitFile = null;
+    static String singleFile = null;
+    static String singleFileGraph = null;
 	
 	static TransferHelpers.DocType docType = null;
 	
@@ -47,6 +50,8 @@ public class GitToDB {
                 + "-fusekiName <name>  - name of the fuseki endpoint. Defaults to 'corerw'\n"
                 + "-fusekiAuthName <name>  - name of the auth fuseki endpoint. Defaults to 'authrw'\n"
                 + "-ric                - makes sure data that is restricted in China doesn't reach the Fuseki\n"
+                + "-singefile          - only transfer a single file"
+                + "-singefilegraph     - graph name that will be associated with the default graph of the single file on Fuseki"
                 + "-connectPerTransfer - connect to Fuseki for each transfer. Default is connect once per execution\n"
 		        + "-libOutputDir       - Output directory of the lib format files\n"
                 + "-type <typeName>    - name of the type to transfer: person, item, place, work, topic, lineage, office, product, etext, corporation, etextcontent\n"
@@ -97,7 +102,7 @@ public class GitToDB {
 	    }
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws MalformedURLException {
 		for (int i = 0; i < args.length; i++) {
 			String arg = args[i];
 			if (arg.equals("-fusekiHost")) {
@@ -116,6 +121,10 @@ public class GitToDB {
                 transferFuseki = true;
             } else if (arg.equals("-connectPerTransfer")) {
                 connectPerTransfer = true;
+            } else if (arg.equals("-singlefile")) {
+                singleFile = (++i < args.length ? args[i] : null);
+            } else if (arg.equals("-singlefilegraph")) {
+                singleFileGraph = (++i < args.length ? args[i] : null);
             } else if (arg.equals("-type")) {
                 String typeName = (++i < args.length ? args[i] : null);
                 docType  = TransferHelpers.DocType.getType(typeName);
@@ -178,32 +187,42 @@ public class GitToDB {
 		    logger.error("nothing to do, quitting...");
             System.exit(1);
 		}
-
-        if (gitDir == null || gitDir.isEmpty()) {
-            logger.error("please specify the git directory");
-            System.exit(1);
-        }
-        
-        if (!gitDir.endsWith("/"))
-            gitDir+='/';
-        
-        if (!ontRoot.endsWith("/"))
-            ontRoot+='/';
 		
-        GitHelpers.init();
-        
-		try {
-			TransferHelpers.init();
-		} catch (Exception e) {
-			logger.error("error in initialization", e);
-			System.exit(1);
+		logger.error(singleFile);
+		
+		if (singleFile == null) {
+            if (gitDir == null || gitDir.isEmpty()) {
+                logger.error("please specify the git directory");
+                System.exit(1);
+            }
+            
+            if (!gitDir.endsWith("/"))
+                gitDir+='/';
+            
+            if (!ontRoot.endsWith("/"))
+                ontRoot+='/';
+    		
+            GitHelpers.init();
+            try {
+                TransferHelpers.init();
+            } catch (Exception e) {
+                logger.error("error in initialization", e);
+                System.exit(1);
+            }
+		} else {
+		    FusekiHelpers.init(GitToDB.fusekiHost, GitToDB.fusekiPort, GitToDB.fusekiName, GitToDB.fusekiAuthName);
 		}
 
         if (transferOnto) {
+            logger.info("transfer ontology");
             TransferHelpers.transferOntology(); // use ontology from jar
         }
         
-        if (transferFuseki) {
+        if (singleFile != null) {
+            TransferHelpers.addSingleFileFuseki(singleFile, singleFileGraph);
+            TransferHelpers.closeConnections();
+            System.exit(0);
+        } else if (transferFuseki) {
             if (docType != null) {
                 try {
                     if (ric &&(docType == DocType.EINSTANCE || docType == DocType.ETEXTCONTENT)) {

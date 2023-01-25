@@ -22,6 +22,7 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
@@ -256,6 +257,25 @@ public class TransferHelpers {
             return path.substring(3, path.length()-(path.endsWith(".trig") ? 5 : 4));
         return path.substring(0, path.length() - (path.endsWith(".trig") ? 5 : 4));
 	}
+	
+	   public static void addSingleFileFuseki(final String filePath, final String defaultGraphName) {
+	       logger.info("add single file "+filePath);
+	       final Dataset dataset;
+	       try {
+               dataset = RDFDataMgr.loadDataset(filePath);
+           } catch (RiotException e) {
+               logger.error("error reading "+filePath);
+               return;
+           }
+	       final Iterator<String> ir = dataset.listNames();
+	       while (ir.hasNext()) {
+	           final String gn = ir.next();
+	           final Model origModel = dataset.getNamedModel(gn);
+	           FusekiHelpers.postModelInParts(gn, origModel, FusekiHelpers.CORE);
+	       }
+	       if (defaultGraphName != null)
+	           FusekiHelpers.postModelInParts(defaultGraphName, dataset.getDefaultModel(), FusekiHelpers.CORE);
+	    }
 	
 	public static void addFileFuseki(DocType type, String dirPath, String filePath) {
         final String mainId = mainIdFromPath(filePath, type);
