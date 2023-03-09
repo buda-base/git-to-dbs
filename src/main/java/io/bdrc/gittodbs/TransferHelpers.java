@@ -10,11 +10,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.zip.GZIPInputStream;
+import java.io.FileInputStream;
+import java.nio.file.Paths;
 
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.query.Dataset;
+import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.NodeIterator;
@@ -24,8 +28,10 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.reasoner.Reasoner;
+import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
+import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.sparql.util.Context;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -261,12 +267,32 @@ public class TransferHelpers {
 	   public static void addSingleFileFuseki(final String filePath, final String defaultGraphName) {
 	       logger.info("add single file "+filePath);
 	       final Dataset dataset;
-	       try {
-               dataset = RDFDataMgr.loadDataset(filePath);
-           } catch (RiotException e) {
-               logger.error("error reading "+filePath);
-               return;
-           }
+	       if (filePath.endsWith(".gz")) {
+	           GZIPInputStream gis;
+	           try {
+	               gis = new GZIPInputStream(new FileInputStream(Paths.get(filePath).toFile()));
+               } catch (IOException e1) {
+                   logger.error("error reading "+filePath);
+                   return;
+               }
+	           try {
+	               dataset = DatasetFactory.createTxnMem();
+	               RDFParser.create()
+	                   .source(gis)
+	                   .lang(Lang.TURTLE)
+	                   .parse(dataset);
+               } catch (RiotException e) {
+                   logger.error("error reading "+filePath);
+                   return;
+               }
+	       } else {
+    	       try {
+                   dataset = RDFDataMgr.loadDataset(filePath);
+               } catch (RiotException e) {
+                   logger.error("error reading "+filePath);
+                   return;
+               }
+	       }
 	       final Iterator<String> ir = dataset.listNames();
 	       while (ir.hasNext()) {
 	           final String gn = ir.next();
