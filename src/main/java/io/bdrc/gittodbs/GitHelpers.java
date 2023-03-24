@@ -154,14 +154,20 @@ public class GitHelpers {
         RevCommit commit;
         List<DiffEntry> entries = null;
         try {
-            RevWalk walk = new RevWalk(r);
-            commit = walk.parseCommit( commitId );
+            final ObjectId headCommitId = r.resolve("HEAD^{commit}");
+            final RevWalk walk = new RevWalk(r);
+            commit = walk.parseCommit(commitId);
+            final RevCommit headCommit = walk.parseCommit(headCommitId);
             walk.close();
+            if (headCommit.getCommitTime() < commit.getCommitTime()) {
+                logger.error("can't getchanges for type " + type + " since revision " + sinceRev + ", head time < commit time");
+                return null;
+            }
             CanonicalTreeParser oldTreeIter = new CanonicalTreeParser();
             oldTreeIter.reset(r.newObjectReader(), commit.getTree());
             OutputStream outputStream = DisabledOutputStream.INSTANCE;
-            ObjectId head = r.resolve("HEAD^{tree}");
             CanonicalTreeParser newTreeIter = new CanonicalTreeParser();
+            final ObjectId head = r.resolve("HEAD^{tree}");
             newTreeIter.reset(r.newObjectReader(), head);
             DiffFormatter formatter = new DiffFormatter(outputStream);
             formatter.setRepository(r);
