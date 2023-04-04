@@ -35,6 +35,7 @@ public class GitToDB {
     static boolean debug = false;
     static boolean trace = false;
     static String gitFile = null;
+    static String sinceCommit = null;
     static String singleFile = null;
     static String singleFileGraph = null;
 	
@@ -59,6 +60,7 @@ public class GitToDB {
 		        + "-force              - Transfer all documents if git and distant revisions don't match\n"
                 + "-gitDir <path>      - path to the git directory\n"
                 + "-ontRoot <path>     - path to the ontology dir. Defaults to GH:buda-base/owl-schema/master/\n"
+                + "-since <commit>     - commit from which changes should be synced to Fuseki (requires type)\n"
 		        + "-transferOnto       - transfer the core ontology in Fuseki\n"
                 + "-timeout <int>      - specify how seconds to wait for a doc transfer to complete. Defaults to 15 seconds\n"
                 + "-n <int>            - specify how many resources to transfer; for testing. Default MaxInt\n"
@@ -134,6 +136,8 @@ public class GitToDB {
                 gitDir = (++i < args.length ? args[i] : null);
             } else if (arg.equals("-ontRoot")) {
                 ontRoot = (++i < args.length ? args[i] : null);
+            } else if (arg.equals("-since")) {
+                sinceCommit = (++i < args.length ? args[i] : null);
             } else if (arg.equals("-n")) {
                 howMany = (++i < args.length ? Integer.parseInt(args[i]) : null);
             } else if (arg.equals("-bulkSz")) {
@@ -202,7 +206,10 @@ public class GitToDB {
             if (!ontRoot.endsWith("/"))
                 ontRoot+='/';
     		
-            GitHelpers.init();
+            if (docType == null)
+                GitHelpers.init();
+            else
+                GitHelpers.ensureGitRepo(docType);
             try {
                 TransferHelpers.init();
             } catch (Exception e) {

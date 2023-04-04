@@ -386,12 +386,13 @@ public class TransferHelpers {
 	        TransferHelpers.logger.error("cannot extract latest revision from the git repo at "+dirpath);
 	        return 0;
 	    }
-	    final String distRev = FusekiHelpers.getLastRevision(type);
+	    String distRev = GitToDB.sinceCommit;
+	    if (distRev == null)
+	        distRev = FusekiHelpers.getLastRevision(type);
 	    int i = 0;
 	    if (distRev == null || distRev.isEmpty() || GitToDB.force) {
 	        i = syncAllHead(type, nbLeft, dirpath);
-	    } else if (GitHelpers.hasRev(type, distRev)) {
-	        // TODO: what ??? why is the previous condition not negated??
+	    } else if (!GitHelpers.hasRev(type, distRev)) {
 	        TransferHelpers.logger.error("distant fuseki revision "+distRev+" is not found in the git repo, sending all files.");
             i = syncAllHead(type, nbLeft, dirpath);
 	    } else {

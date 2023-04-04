@@ -14,6 +14,7 @@ import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.errors.InvalidObjectIdException;
 import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.errors.RevisionSyntaxException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -122,9 +123,9 @@ public class GitHelpers {
         if (r == null)
             return false;
         try {
-            Ref ref = r.findRef(rev);
-            return (ref != null);
-        } catch (IOException e) {
+            ObjectId commitId = r.resolve(rev);
+            return commitId != null;
+        } catch (RevisionSyntaxException | IOException e1) {
             return false;
         }
     }
