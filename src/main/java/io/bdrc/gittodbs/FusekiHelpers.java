@@ -2,11 +2,18 @@ package io.bdrc.gittodbs;
 
 import java.net.MalformedURLException;
 import java.text.NumberFormat;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ReadWrite;
+import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -411,7 +418,7 @@ public class FusekiHelpers {
         }
     }
 
-    static Model getModel(String graphName, final int distantDB) {
+    static Model getModel(final String graphName, final int distantDB) {
         logger.info("getModel: {} ({})", graphName, distantDB);
         openConnection(distantDB);
         RDFConnection conn = distantDB == CORE ? fuConn : fuAuthConn;
@@ -422,6 +429,54 @@ public class FusekiHelpers {
         } catch (Exception ex) {
             logger.info("getModel:" + graphName + "  FAILED ");
             return null;
+        }
+    }
+    
+    static String getRevision(final String graphName, final int distantDB) {
+        openConnection(distantDB);
+        final RDFConnection conn = distantDB == CORE ? fuConn : fuAuthConn;
+        final String spquery = "select distinct ?rev { ?wad adm:graphId <"+graphName+"> ; adm:gitRevision ?rev }";
+        final Query q = QueryFactory.create(spquery);
+        final QueryExecution qe = conn.query(q);
+        final ResultSet rs = qe.execSelect();
+        String rev = null;
+        if (!rs.hasNext())
+            return null;
+        final Literal revl = rs.next().getLiteral("?rev");
+        if (revl == null)
+            return null;
+        rev = revl.getString();
+        if (rs.hasNext())
+            logger.error("graph "+graphName+" has two revisions!");
+        qe.close();
+        return rev;
+    }
+
+    static void getRevisions(final List<String> graphNames, final Map<String,String> ridToRevFuseki, final int distantDB) {
+        openConnection(distantDB);
+        final RDFConnection conn = distantDB == CORE ? fuConn : fuAuthConn;
+        final String spquery = "select distinct ?g ?rev { values ?g { <"+String.join("> <", graphNames)+"> } . ?wad adm:graphId ?g ; adm:gitRevision ?rev }";
+        final Query q = QueryFactory.create(spquery);
+        final QueryExecution qe = conn.query(q);
+        final ResultSet rs = qe.execSelect();
+        while (rs.hasNext()) {
+            final QuerySolution s = rs.next();
+            if (!s.contains("?g") || !s.contains("?rev"))
+                continue;
+            final String g = s.getLiteral("?g").getString();
+            final String rev = s.getLiteral("?rev").getString();
+            if (!g.startsWith("http://purl.bdrc.io/graph/"))
+                continue;
+            ridToRevFuseki.put(g.substring(26), rev);
+        }
+    }
+    
+    static void getRevisionsBatch(final List<String> graphNames, final Map<String,String> ridToRevFuseki, final int batchsize, final int distantDB) {
+        int i = 0;
+        while (i < graphNames.size()) {
+            final int nbIncrement = Math.min(batchsize, graphNames.size() - i);
+            getRevisions(graphNames.subList(i, nbIncrement), ridToRevFuseki, distantDB);
+            i += nbIncrement;
         }
     }
     

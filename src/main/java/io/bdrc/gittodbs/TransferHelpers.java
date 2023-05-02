@@ -4,6 +4,7 @@ import static io.bdrc.libraries.Models.getMd5;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.zip.GZIPInputStream;
 import java.io.FileInputStream;
 import java.nio.file.Paths;
 
+import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
@@ -34,9 +36,18 @@ import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.sparql.util.Context;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.LogCommand;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.InvalidObjectIdException;
 import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.errors.RevisionSyntaxException;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -423,7 +434,7 @@ public class TransferHelpers {
 	                if (!newPath.equals("/dev/null"))
 	                    addFileFuseki(type, dirpath, newPath);
 	            }
-            } catch (InvalidObjectIdException | MissingObjectException e) {
+            } catch (InvalidObjectIdException | RevisionSyntaxException | IOException e) {
                 TransferHelpers.logger.error("Git unknown error, this shouldn't happen.", e);
                 i = 0;
             }
@@ -514,4 +525,77 @@ public class TransferHelpers {
 	    logger.info("Transferring Ontology: " + CORE_PREFIX+"ontologySchema");
 	    FusekiHelpers.transferModel(null, BDG+"ontologySchema", ontModel, true);
 	}
+
+    public static void check_consistency(final DocType docType, final String sinceCommit) {
+        final Map<String,String> ridToRevGit = new HashMap<>();
+        final Map<String,String> ridToGitPath = new HashMap<>();
+        final Map<String,String> ridToRevFuseki = new HashMap<>();
+        final Repository r = GitHelpers.typeRepo.get(docType);
+        final int db = FusekiHelpers.distantDB(docType);
+        if (r == null) {
+            logger.error("can't find repository");
+            return;
+        }
+        String typeStr = docType.toString();
+        if (docType == DocType.USER_PRIVATE)
+            typeStr = "user";
+        final String dirpath = GitToDB.gitDir + typeStr + "s" + GitHelpers.localSuffix + "/";
+        try {
+            final Git git = new Git(r);
+            final LogCommand lc = git.log();
+            if (sinceCommit != null) {
+                final ObjectId headCommitId = r.resolve("HEAD^{commit}");
+                final ObjectId sinceCommitId = r.resolve(sinceCommit+"^{commit}");
+                lc.addRange(headCommitId, sinceCommitId);
+            }
+            final Iterable<RevCommit> logs = lc.call();
+            for (final RevCommit rc : logs) {
+                if (rc.getParentCount() == 0)
+                    break;
+                final List<DiffEntry> entries = GitHelpers.getChanges(docType, rc.getParent(0).getName(), rc.getName());
+                for (final DiffEntry de : entries) {
+                    final String newPath = de.getNewPath();
+                    final String oldPath = de.getOldPath();
+                    if (newPath.equals("/dev/null") || !newPath.equals(oldPath)) {
+                        final String mainId = mainIdFromPath(oldPath, docType);
+                        if (mainId == null || ridToRevGit.containsKey(mainId))
+                            continue;
+                        ridToRevGit.put(mainId, null);
+                        ridToGitPath.put(mainId, newPath);
+                        logger.debug(oldPath+" removed from git");
+                    }
+                    if (!newPath.equals("/dev/null")) {
+                        final String mainId = mainIdFromPath(newPath, docType);
+                        if (mainId == null || ridToRevGit.containsKey(mainId))
+                            continue;
+                        ridToGitPath.put(mainId, newPath);
+                        ridToRevGit.put(mainId, rc.getName());
+                        logger.debug(newPath+" has git revision "+rc.name());
+                    }
+                }
+            }
+            git.close();
+        } catch (RevisionSyntaxException | IOException | GitAPIException e) {
+            logger.error("can't run git command");
+            return;
+        }
+        logger.info("got git revisions for "+ridToRevGit.size()+" files");
+        // TODO: handle users
+        FusekiHelpers.getRevisionsBatch(new ArrayList<String>(ridToRevGit.keySet()), ridToRevFuseki, 20, db);
+        logger.info("got revisions from Fuseki");
+        for (final Map.Entry<String,String> e : ridToRevGit.entrySet()) {
+            final String rid = e.getKey();
+            final String gitRev = e.getValue();
+            String fusekiRev = null;
+            final String graphName = "http://purl.bdrc.io/graph/"+rid;
+            if (ridToRevFuseki.containsKey(rid))
+                fusekiRev = ridToRevFuseki.get(rid);
+            if (fusekiRev == gitRev)
+                continue;
+            if (gitRev != null)
+                addFileFuseki(docType, dirpath, ridToGitPath.get(rid));
+            else
+                FusekiHelpers.deleteModel(graphName, db);
+        }
+    }
 }

@@ -12,6 +12,8 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.InvalidObjectIdException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.errors.RevisionSyntaxException;
@@ -146,29 +148,32 @@ public class GitHelpers {
         return headRef.getObjectId().name();
     }
     
-    public static List<DiffEntry> getChanges(DocType type, String sinceRev) throws InvalidObjectIdException, MissingObjectException {
-        Repository r = typeRepo.get(type); 
+    public static List<DiffEntry> getChanges(final DocType type, final String sinceRev) throws InvalidObjectIdException, RevisionSyntaxException, AmbiguousObjectException, IncorrectObjectTypeException, IOException {
+        return getChanges(type, sinceRev, "HEAD");
+    }
+    
+    public static List<DiffEntry> getChanges(final DocType type, final String sinceRev, final String toRev) throws InvalidObjectIdException, RevisionSyntaxException, AmbiguousObjectException, IncorrectObjectTypeException, IOException {
+        final Repository r = typeRepo.get(type); 
         if (r == null)
             return null;
-        ObjectId commitId;
-        commitId = ObjectId.fromString(sinceRev);
-        RevCommit commit;
         List<DiffEntry> entries = null;
+        final ObjectId commitId = r.resolve(sinceRev);
         try {
-            final ObjectId headCommitId = r.resolve("HEAD^{commit}");
+            final ObjectId headCommitId = r.resolve(toRev+"^{commit}");
             final RevWalk walk = new RevWalk(r);
-            commit = walk.parseCommit(commitId);
+            final RevCommit commit = walk.parseCommit(commitId);
             final RevCommit headCommit = walk.parseCommit(headCommitId);
             walk.close();
             if (headCommit.getCommitTime() < commit.getCommitTime()) {
                 logger.error("can't getchanges for type " + type + " since revision " + sinceRev + ", head time < commit time");
                 return null;
             }
+            logger.info("get changes for type "+type+" from "+sinceRev+" to "+headCommitId.getName());
             CanonicalTreeParser oldTreeIter = new CanonicalTreeParser();
             oldTreeIter.reset(r.newObjectReader(), commit.getTree());
             OutputStream outputStream = DisabledOutputStream.INSTANCE;
             CanonicalTreeParser newTreeIter = new CanonicalTreeParser();
-            final ObjectId head = r.resolve("HEAD^{tree}");
+            final ObjectId head = r.resolve(toRev+"^{tree}");
             newTreeIter.reset(r.newObjectReader(), head);
             DiffFormatter formatter = new DiffFormatter(outputStream);
             formatter.setRepository(r);
