@@ -546,8 +546,9 @@ public class TransferHelpers {
             if (sinceCommit != null) {
                 final ObjectId headCommitId = r.resolve("HEAD^{commit}");
                 final ObjectId sinceCommitId = r.resolve(sinceCommit+"^{commit}");
-                lc.addRange(headCommitId, sinceCommitId);
+                lc.addRange(sinceCommitId, headCommitId);
             }
+            logger.info("get logs between {}^{commit} to HEAD^{commit}", sinceCommit);
             final Iterable<RevCommit> logs = lc.call();
             for (final RevCommit rc : logs) {
                 if (rc.getParentCount() == 0)
@@ -582,7 +583,7 @@ public class TransferHelpers {
         logger.info("got git revisions for "+ridToRevGit.size()+" files");
         // TODO: handle users
         FusekiHelpers.getRevisionsBatch(new ArrayList<String>(ridToRevGit.keySet()), ridToRevFuseki, 20, db);
-        logger.info("got revisions from Fuseki");
+        logger.info("got {} revisions from Fuseki", ridToRevFuseki.size());
         for (final Map.Entry<String,String> e : ridToRevGit.entrySet()) {
             final String rid = e.getKey();
             final String gitRev = e.getValue();
@@ -590,10 +591,12 @@ public class TransferHelpers {
             final String graphName = "http://purl.bdrc.io/graph/"+rid;
             if (ridToRevFuseki.containsKey(rid))
                 fusekiRev = ridToRevFuseki.get(rid);
-            if (fusekiRev == gitRev)
+            if (fusekiRev.equals(gitRev))
                 continue;
-            if (gitRev != null)
+            if (gitRev != null) {
+                logger.info("inconsistency on {}: {} -> {}", rid, fusekiRev, gitRev);
                 addFileFuseki(docType, dirpath, ridToGitPath.get(rid));
+            }
             else
                 FusekiHelpers.deleteModel(graphName, db);
         }

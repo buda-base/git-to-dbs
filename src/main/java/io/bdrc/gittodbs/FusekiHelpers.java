@@ -455,7 +455,7 @@ public class FusekiHelpers {
     static void getRevisions(final List<String> graphNames, final Map<String,String> ridToRevFuseki, final int distantDB) {
         openConnection(distantDB);
         final RDFConnection conn = distantDB == CORE ? fuConn : fuAuthConn;
-        final String spquery = "select distinct ?g ?rev { values ?g { <"+String.join("> <", graphNames)+"> } . ?wad adm:graphId ?g ; adm:gitRevision ?rev }";
+        final String spquery = "select distinct ?g ?rev { values ?g { <http://purl.bdrc.io/graph/"+String.join("> <http://purl.bdrc.io/graph/", graphNames)+"> } . ?wad <http://purl.bdrc.io/ontology/admin/graphId> ?g ; <http://purl.bdrc.io/ontology/admin/gitRevision> ?rev }";
         final Query q = QueryFactory.create(spquery);
         final QueryExecution qe = conn.query(q);
         final ResultSet rs = qe.execSelect();
@@ -463,7 +463,7 @@ public class FusekiHelpers {
             final QuerySolution s = rs.next();
             if (!s.contains("?g") || !s.contains("?rev"))
                 continue;
-            final String g = s.getLiteral("?g").getString();
+            final String g = s.getResource("?g").getURI();
             final String rev = s.getLiteral("?rev").getString();
             if (!g.startsWith("http://purl.bdrc.io/graph/"))
                 continue;
@@ -475,7 +475,7 @@ public class FusekiHelpers {
         int i = 0;
         while (i < graphNames.size()) {
             final int nbIncrement = Math.min(batchsize, graphNames.size() - i);
-            getRevisions(graphNames.subList(i, nbIncrement), ridToRevFuseki, distantDB);
+            getRevisions(graphNames.subList(i, i+nbIncrement), ridToRevFuseki, distantDB);
             i += nbIncrement;
         }
     }
