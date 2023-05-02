@@ -553,6 +553,10 @@ public class TransferHelpers {
             for (final RevCommit rc : logs) {
                 if (rc.getParentCount() == 0)
                     break;
+                if (rc.getParentCount() > 1) {
+                    logger.error("rev {} has more than one parent, skipping merges");
+                    break;
+                }
                 final List<DiffEntry> entries = GitHelpers.getChanges(docType, rc.getParent(0).getName(), rc.getName());
                 for (final DiffEntry de : entries) {
                     final String newPath = de.getNewPath();
@@ -571,7 +575,7 @@ public class TransferHelpers {
                             continue;
                         ridToGitPath.put(mainId, newPath);
                         ridToRevGit.put(mainId, rc.getName());
-                        logger.debug(newPath+" has git revision "+rc.name());
+                        logger.info(newPath+" has git revision "+rc.name());
                     }
                 }
             }

@@ -23,6 +23,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -161,6 +162,8 @@ public class GitHelpers {
         try {
             final ObjectId headCommitId = r.resolve(toRev+"^{commit}");
             final RevWalk walk = new RevWalk(r);
+            // not 100% sure but seems to improve things
+            walk.setRevFilter(RevFilter.NO_MERGES);
             final RevCommit commit = walk.parseCommit(commitId);
             final RevCommit headCommit = walk.parseCommit(headCommitId);
             walk.close();
