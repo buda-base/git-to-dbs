@@ -35,6 +35,7 @@ public class GitToDB {
     static boolean debug = false;
     static boolean trace = false;
     static String gitFile = null;
+    static String rid = null;
     static String sinceCommit = null;
     static String singleFile = null;
     static String singleFileGraph = null;
@@ -56,8 +57,9 @@ public class GitToDB {
                 + "-singefilegraph     - graph name that will be associated with the default graph of the single file on Fuseki"
                 + "-connectPerTransfer - connect to Fuseki for each transfer. Default is connect once per execution\n"
 		        + "-libOutputDir       - Output directory of the lib format files\n"
-		        + "-check-consistency  - Checks the consistency between git and Fuseki. Can be combined with -since and -dryrun.\n"
+		        + "-check-consistency  - Checks the consistency between git and Fuseki. Can be combined with -                 and -dryrun.\n"
                 + "-type <typeName>    - name of the type to transfer: person, item, place, work, topic, lineage, office, product, etext, corporation, etextcontent\n"
+		        + "-rid <rid>          - RID of the file to transfer, requires -type\n"
                 + "-gitFile <fileName> - transfers just one file. fileName is the path relative to the root of the git repository, requires -type\n"
 		        + "-force              - Transfer all documents if git and distant revisions don't match\n"
                 + "-gitDir <path>      - path to the git directory\n"
@@ -142,6 +144,8 @@ public class GitToDB {
                 ontRoot = (++i < args.length ? args[i] : null);
             } else if (arg.equals("-since")) {
                 sinceCommit = (++i < args.length ? args[i] : null);
+            } else if (arg.equals("-rid")) {
+                rid = (++i < args.length ? args[i] : null);
             } else if (arg.equals("-n")) {
                 howMany = (++i < args.length ? Integer.parseInt(args[i]) : null);
             } else if (arg.equals("-bulkSz")) {
@@ -195,6 +199,10 @@ public class GitToDB {
 		if (!transferFuseki) {
 		    logger.error("nothing to do, quitting...");
             System.exit(1);
+		}
+		
+		if (sinceCommit != null) {
+		    logger.error("sync since "+sinceCommit);
 		}
 		
 		if (singleFile == null) {
