@@ -1,11 +1,23 @@
 package io.bdrc.gittodbs;
 
+import static io.bdrc.libraries.Models.getMd5;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
+import org.apache.jena.query.Dataset;
+import org.apache.jena.query.QuerySolution;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
@@ -14,18 +26,25 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.SKOS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import io.bdrc.gittodbs.TransferHelpers.DocType;
 import io.bdrc.libraries.Models;
 
 public class ESUtils {
+    
+    public static final Logger logger = LoggerFactory.getLogger(ESUtils.class);
+    public static String jsonfolder = "json/";
     
     // PT is property type
     final static int PT_DIRECT = 1; // simple direct property with a literal as object
@@ -54,16 +73,48 @@ public class ESUtils {
     
     private static final Map<Property, PropInfo> propInfoMap = new HashMap<>();
     static {
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "associatedTradition"), new PropInfo(PT_RES_ONLY, null, null));
+        // General properties
         propInfoMap.put(SKOS.prefLabel, new PropInfo(PT_DIRECT, "prefLabel", null));
         propInfoMap.put(SKOS.altLabel, new PropInfo(PT_DIRECT, "altLabel", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BF, "inCollection"), new PropInfo(PT_RES_ONLY, null, null));
         propInfoMap.put(SKOS.definition, new PropInfo(PT_DIRECT, "comment", null));
         propInfoMap.put(RDFS.comment, new PropInfo(PT_DIRECT, "comment", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "note"), new PropInfo(PT_SPECIAL, "comment", ResourceFactory.createProperty(Models.BDO, "noteText")));
+
+        // Person properties
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "associatedTradition"), new PropInfo(PT_RES_ONLY, null, null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "personGender"), new PropInfo(PT_RES_ONLY, null, null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "personName"), new PropInfo(PT_SPECIAL, "altLabel", RDFS.label));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "hasTitle"), new PropInfo(PT_SPECIAL, "altLabel", RDFS.label));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "note"), new PropInfo(PT_SPECIAL, "comment", ResourceFactory.createProperty(Models.BDO, "noteText")));
+        
+        // MW properties
         propInfoMap.put(ResourceFactory.createProperty(Models.BF, "identifiedBy"), new PropInfo(PT_SPECIAL, "other_id", RDF.value));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "instanceOf"), new PropInfo(PT_MERGE, null, null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "instanceHasReproduction"), new PropInfo(PT_MERGE, null, null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "authorshipStatement"), new PropInfo(PT_DIRECT, "authorshipStatement", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "biblioNote"), new PropInfo(PT_DIRECT, "comment", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "hasSourcePrintery"), new PropInfo(PT_RES_ONLY, null, null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "hasTitle"), new PropInfo(PT_SPECIAL, "altLabel", RDFS.label));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "printMethod"), new PropInfo(PT_RES_ONLY, null, RDFS.label));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "script"), new PropInfo(PT_RES_ONLY, null, RDFS.label));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "publisherName"), new PropInfo(PT_DIRECT, "publisherName", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "incipit"), new PropInfo(PT_DIRECT, "comment", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "colophon"), new PropInfo(PT_DIRECT, "comment", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "publisherLocation"), new PropInfo(PT_DIRECT, "publisherLocation", null));
+        
+        // W / IE properties
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "scanInfo"), new PropInfo(PT_DIRECT, "comment", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "etextInfo"), new PropInfo(PT_DIRECT, "comment", null));
+        
+        // WA properties
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "catalogInfo"), new PropInfo(PT_DIRECT, "comment", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "language"), new PropInfo(PT_RES_ONLY, null, null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workIsAbout"), new PropInfo(PT_LABEL_EXT, "comment", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workGenre"), new PropInfo(PT_LABEL_EXT, "comment", null));
+        
+        // MW in outlines properties
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "inRootInstance"), new PropInfo(PT_RES_ONLY, "inRootInstance", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "partOf"), new PropInfo(PT_RES_ONLY, "partOf", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "partType"), new PropInfo(PT_RES_ONLY, "partType", null));
     }
     
     static final ObjectMapper om = new ObjectMapper();
@@ -73,18 +124,63 @@ public class ESUtils {
         return null;
     }
     
-    static Map<String,String> res_to_prefLabel_Fuseki(final Resource res) {
+    // to get the creator's cache:
+    // select ?p ?pl where {
+    //   ?p a :Person .
+    //   FILTER(exists{ ?wac :agent ?p . })
+    //   ?p skos:prefLabel ?pl .
+    // }
+    
+    static Map<String,List<String[]>> creatorsLabelCache = null;
+    
+    static final void add_to_cache_fun(final QuerySolution qs, final Map<String,List<String[]>> cache) {
+        final String plname = qs.getResource("?p").getLocalName();
+        final Literal pl = qs.getLiteral("?pl");
+        final String[] norm = normalize_lit(pl);
+        if (!cache.containsKey(plname))
+            cache.put(plname, new ArrayList<>());
+        cache.get(plname).add(norm);
+    }
+    
+    static Map<String,List<String[]>> getCreatorsLabelCache() {
+        if (creatorsLabelCache != null)
+            return creatorsLabelCache;
+        final String queryStr = "select ?p ?pl where { ?p a <"+Models.BDO+"Person> . FILTER(exists{ ?wac <"+Models.BDO+"agent> ?p . }) ?p <"+SKOS.uri+"prefLabel> ?pl . }";
+        FusekiHelpers.openConnection(0);
+        final RDFConnection conn = FusekiHelpers.fuConn;
+        creatorsLabelCache = new HashMap<>();
+        final Consumer<QuerySolution> add_to_cache = x -> add_to_cache_fun(x, creatorsLabelCache);
+        try {
+            conn.querySelect(queryStr, add_to_cache);
+        } catch (Exception ex) {
+            return null;
+        }
+        return creatorsLabelCache;
+    }
+    
+    static List<String[]> creator_res_to_labels(final Resource res) {
+        final Map<String,List<String[]>> cache = getCreatorsLabelCache();
+        return cache.get(res.getLocalName());
+    }
+    
+    static List<Literal> res_to_prefLabel_Fuseki(final Resource res) {
+        // TODO
+        return null;
+    }
+    
+    static List<String> get_ancestors(final Resource res) {
+        // get ancestors of resource, read from Fuseki
+        return null;
+    }
+    
+    static List<Literal> res_to_prefLabels(final Resource res) {
+        // if fromQuery == creator, generate and read from cache
         // TODO
         return null;
     }
     
     static Map<String,String> res_to_prefLabel_ontology(final Resource res) {
         // TODO
-        return null;
-    }
-    
-    static Map<String,String> res_to_prefLabel(final Resource res) {
-        // ontology, if not, if topic, cache, else Fuseki (or git, configurable)
         return null;
     }
     
@@ -96,22 +192,10 @@ public class ESUtils {
         return new String[] {lexr, lt};
     }
 
-    static Model get_ontology() {
-        return null;
-    }
-
     static ObjectNode getESDocument_fromModel(final Model m, final String main_lname, final Resource gitRepo, final String commit) {
         ObjectNode root = om.createObjectNode();
         addModelToESDoc(m, root, main_lname, true);
         return root;
-    }
-
-    static ObjectNode getESDocument_fromFile(final String fpath) {
-        return null;
-    }
-
-    void addESDocument_fromRes(final Resource res, final ObjectNode doc) {
-        // merges a document with another
     }
     
     static void addModelToESDoc(final Model m, final ObjectNode doc, final String main_lname, boolean add_admin) {
@@ -120,7 +204,12 @@ public class ESUtils {
         while (si.hasNext()) {
             final Statement s = si.next();
             final PropInfo pinfo = propInfoMap.get(s.getPredicate());
-            if (pinfo == null) continue;
+            if (pinfo == null) {
+                if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "workGenre")))
+                    add_event(s.getResource(), doc);
+                if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "creator")))
+                    add_creator(s.getResource(), doc);
+            }
             switch (pinfo.pt) {
             case PT_DIRECT:
                 add_direct(pinfo, s.getLiteral(), doc);
@@ -134,6 +223,9 @@ public class ESUtils {
             case PT_RES_ONLY:
                 add_associated(s.getResource(), doc);
                 break;
+            case PT_MERGE:
+                add_merged(s.getResource(), doc);
+                break;
             case PT_IGNORE:
             default:
                 continue;
@@ -141,7 +233,10 @@ public class ESUtils {
         }
         if (add_admin)
             add_admin_to_doc(m.createResource(Models.BDA+main_lname), doc);
+        post_process_labels(doc);
     }
+    
+    //static void add_outline_model_to_doc()
 
     static void add_admin_to_doc(final Resource adminData, ObjectNode root) {
         // add "graphs" array, and earliest creation date
@@ -179,6 +274,16 @@ public class ESUtils {
         return false;
     }
     
+    static void add_event(final Resource event, final ObjectNode doc) {
+        final Resource evt_type = event.getPropertyResourceValue(RDF.type);
+        if (evt_type.getLocalName().equals("PublishedEvent")) {
+            final Statement whenSt = event.getProperty(ResourceFactory.createProperty(Models.BDO, "eventWhen"));
+            if (whenSt != null) {
+                doc.put("publicationDate", whenSt.getString());
+            }
+        }
+    }
+    
     static void remove_dups(final ArrayNode prefLabels, final ArrayNode altLabels) {
         final Set<String> set1 = new HashSet<>();
         prefLabels.forEach(item -> set1.add(item.asText()));
@@ -189,7 +294,6 @@ public class ESUtils {
                 iterator.remove();
             }
         }
-        
     }
     
     static void post_process_labels(final ObjectNode doc) {
@@ -212,6 +316,10 @@ public class ESUtils {
     
     static void add_lit_to_key(String key_base, final Literal l, final ObjectNode doc) {
         String[] normalized = normalize_lit(l);
+        add_normalized_to_key(key_base, normalized, doc);
+    }
+
+    static void add_normalized_to_key(String key_base, String[] normalized, final ObjectNode doc) {
         if (normalized == null || normalized[0] == null || normalized[0].isEmpty())
             return;
         if (!normalized[1].isEmpty())
@@ -224,13 +332,66 @@ public class ESUtils {
         // If the value is not present, add it
         if (!exists)
             arrayNode.add(normalized[0]);
-        post_process_labels(doc);
     }
     
     static void add_associated(final Resource r, final ObjectNode doc) {
         if (!doc.has("associated_res"))
             doc.set("associated_res", doc.arrayNode());
         ((ArrayNode) doc.get("associated_res")).add(r.getLocalName());
+    }
+    
+    public final static Map<String, DocType> prefixToDocType = new HashMap<>();
+    static {
+        prefixToDocType.put("WAS", DocType.WORK);
+        prefixToDocType.put("ITW", DocType.ITEM);
+        prefixToDocType.put("WA", DocType.WORK);
+        prefixToDocType.put("MW", DocType.INSTANCE);
+        prefixToDocType.put("PR", DocType.COLLECTION);
+        prefixToDocType.put("IE", DocType.EINSTANCE);
+        prefixToDocType.put("IT", DocType.ITEM);
+        prefixToDocType.put("W", DocType.IINSTANCE);
+        prefixToDocType.put("P", DocType.PERSON);
+        prefixToDocType.put("G", DocType.PLACE);
+        prefixToDocType.put("R", DocType.OFFICE);
+        prefixToDocType.put("L", DocType.LINEAGE);
+        prefixToDocType.put("C", DocType.CORPORATION);
+        prefixToDocType.put("T", DocType.TOPIC);
+        prefixToDocType.put("O", DocType.OUTLINE);
+    }
+    
+    // copied from editserv, should probably be moved to libraries
+    public static final List<String> entity_prefix_3 = Arrays.asList("WAS", "ITW", "PRA");
+    public static final List<String> entity_prefix_2 = Arrays.asList("WA", "MW", "PR", "IE", "UT", "IT", "VE");
+    public static final List<String> entity_prefix_1 = Arrays.asList("W", "P", "G", "R", "L", "C", "T", "I", "U", "V", "O");
+    public static final List<String> entitySubs = Arrays.asList("I", "UT", "V", "VE");
+    
+    public static String getTypePrefix(final String lname) {
+        if (lname.isEmpty()) return null;
+        if (lname.length() >= 3 && entity_prefix_3.contains(lname.substring(0,3)))
+            return lname.substring(0,3);
+        if (lname.length() >= 2 && entity_prefix_2.contains(lname.substring(0,2)))
+            return lname.substring(0,2);
+        if (entity_prefix_1.contains(lname.substring(0,1)))
+            return lname.substring(0,1);
+        return null;
+    }
+    
+    static Model res_to_model(final Resource r) {
+        final String localPath = Models.getMd5(r.getLocalName())+"/"+r.getLocalName()+".trig";
+        final String prefix = getTypePrefix(r.getLocalName());
+        if (prefix == null) return null;
+        final DocType type = prefixToDocType.get(prefix);
+        if (type == null) return null;
+        final String fPath = GitToDB.gitDir + type + 's' + GitHelpers.localSuffix + "/" + localPath;
+        final Dataset ds = TransferHelpers.datasetFromPath(fPath, type, r.getLocalName());
+        if (ds == null) return null;
+        return ds.getNamedModel(Models.BDG+r.getLocalName());
+    }
+    
+    static void add_merged(final Resource r, final ObjectNode doc) {
+        final Model m = res_to_model(r);
+        add_associated(r, doc);
+        addModelToESDoc(m, doc, r.getLocalName(), false);
     }
     
     static void add_direct(final PropInfo pinfo, final Literal l, final ObjectNode doc) {
@@ -254,6 +415,69 @@ public class ESUtils {
         while (si.hasNext()) {
             add_lit_to_key(pinfo.key_base, si.next().getLiteral(), doc);
         }
+    }
+    
+    public static final Map<String,String> roleLnameTokey = new HashMap<>();
+    static {
+        roleLnameTokey.put("R0ER0011", "author");
+        roleLnameTokey.put("R0ER0014", "author");
+        roleLnameTokey.put("R0ER0016", "author");
+        roleLnameTokey.put("R0ER0017", "translator");
+        roleLnameTokey.put("R0ER0018", "translator");
+        roleLnameTokey.put("R0ER0019", "author");
+        roleLnameTokey.put("R0ER0020", "author");
+        roleLnameTokey.put("R0ER0023", "translator");
+        roleLnameTokey.put("R0ER0025", "author"); // terton?
+        roleLnameTokey.put("R0ER0026", "translator");
+        roleLnameTokey.put("R0ER0027", "author");
+    }
+    
+    static void add_ext_labels(final Resource ext, final ObjectNode doc, final String key_base) {
+        final List<Literal> prefLabels = res_to_prefLabels(ext);
+        for (final Literal l : prefLabels) {
+            add_lit_to_key(key_base, l, doc);
+        }
+    }
+    
+    static void add_creator(final Resource creatorNode, final ObjectNode doc) {
+        final Resource role = creatorNode.getPropertyResourceValue(ResourceFactory.createProperty(Models.BDO, "role"));
+        final String key_base = roleLnameTokey.get(role.getLocalName());
+        if (key_base == null) return;
+        final Resource agent = creatorNode.getPropertyResourceValue(ResourceFactory.createProperty(Models.BDO, "agent"));
+        if (agent == null) return;
+        add_associated(agent, doc);
+        final List<String[]> agentLabels = creator_res_to_labels(agent);
+        if (agentLabels == null) return;
+        for (final String[] norm : agentLabels)
+            add_normalized_to_key(key_base, norm, doc);
+    }
+    
+    static void save_as_json(final ObjectNode doc, final String filePath) {
+        try {
+            om.writer().writeValue(new File(filePath), doc);
+        } catch (IOException e) {
+            logger.error("cannot write %s", filePath, e);
+        }
+    }
+    
+    public static void createDirIfNotExists(final String dir) {
+        final File theDir = new File(dir);
+        if (!theDir.exists()) {
+            try {
+                theDir.mkdir();
+            }
+            catch(SecurityException se) {
+                System.err.println("could not create directory, please fasten your seat belt");
+            }
+        }
+    }
+    
+    static void save_file(final ObjectNode doc, final String main_lname, final DocType type) {
+        final String hashtext = Models.getMd5(main_lname);
+        final String dir = jsonfolder + type.toString() + hashtext.toString()+"/";
+        createDirIfNotExists(dir);
+        final String filePath = dir + main_lname + ".json";
+        save_as_json(doc, filePath);
     }
     
     // void add_from_ext_label(final Property p, final Resource obj, final ObjectNode doc)
