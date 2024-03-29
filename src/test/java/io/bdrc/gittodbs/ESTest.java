@@ -28,7 +28,8 @@ public class ESTest {
     public static void assert_trig_to_json(final String path, final DocType type, final String graph_lname, final String ref_json_path) throws StreamReadException, DatabindException, IOException {
         final Model m = TransferHelpers.modelFromPath(path, type, graph_lname);
         //final ObjectNode ref = mapper.readValue(Paths.get(ref_json_path).toFile(), ObjectNode.class);
-        final ObjectNode root = ESUtils.getESDocument_fromModel(m, graph_lname, null, "abc");
+        ObjectNode root = ESUtils.om.createObjectNode();
+        ESUtils.addModelToESDoc(m, root, graph_lname, true);
         System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root));
         //assert(ref.equals(root));
     }

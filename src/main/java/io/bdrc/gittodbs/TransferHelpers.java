@@ -5,6 +5,7 @@ import static io.bdrc.libraries.Models.getMd5;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -189,12 +190,13 @@ public class TransferHelpers {
 	        FusekiHelpers.closeConnections();
 	}
 	
+	public static List<DocType> esDts = Arrays.asList(new DocType[] {DocType.COLLECTION, DocType.PERSON, DocType.PLACE, DocType.INSTANCE});
 	public static int syncType(DocType type, int nbLeft) {
 	    int i = 0;
 	    // random result for uncoherent couch and fuseki
 	    if (GitToDB.transferFuseki)
 	        i = syncTypeFuseki(type, nbLeft);
-	    if (GitToDB.transferES)
+	    if (GitToDB.transferES && esDts.contains(type))
             i = syncTypeES(type, nbLeft);
 	    return i;
 	}
@@ -488,7 +490,7 @@ public class TransferHelpers {
                     if (newPath.equals("/dev/null") || !newPath.equals(oldPath)) {
                         final String mainId = mainIdFromPath(oldPath, type);
                         if (mainId != null)
-                            ESUtils.remove(mainId);
+                            ESUtils.remove(mainId, type);
                     }
                     if (!newPath.equals("/dev/null"))
                         addFile(type, dirpath, newPath);

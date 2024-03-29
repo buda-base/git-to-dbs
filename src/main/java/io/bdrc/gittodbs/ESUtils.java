@@ -1,11 +1,7 @@
 package io.bdrc.gittodbs;
 
-import static io.bdrc.libraries.Models.getMd5;
-
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -355,6 +351,16 @@ public class ESUtils {
         return null;
     }
     
+    static String lname_to_fpath(final String lname, DocType type) {
+        final String localPath = Models.getMd5(lname)+"/"+lname+".trig";
+        final String prefix = getTypePrefix(lname);
+        if (prefix == null) return null;
+        if (type == null)
+            type = prefixToDocType.get(prefix);
+        if (type == null) return null;
+        return GitToDB.gitDir + type + 's' + GitHelpers.localSuffix + "/" + localPath;
+    }
+    
     static Model res_to_model(final Resource r) {
         final String localPath = Models.getMd5(r.getLocalName())+"/"+r.getLocalName()+".trig";
         final String prefix = getTypePrefix(r.getLocalName());
@@ -451,6 +457,12 @@ public class ESUtils {
         }
     }
     
+    static String lname_to_json_path(final String lname, final DocType type) {
+        final String hashtext = Models.getMd5(lname);
+        final String dir = jsonfolder + type.toString() + hashtext.toString()+"/";
+        return dir + lname + ".json";
+    }
+    
     static void save_file(final ObjectNode doc, final String main_lname, final DocType type) {
         final String hashtext = Models.getMd5(main_lname);
         final String dir = jsonfolder + type.toString() + hashtext.toString()+"/";
@@ -460,23 +472,34 @@ public class ESUtils {
     }
     
     static String getLastRevision(DocType type) {
-        // TODO?
-        return null;
+        final File file = new File(lname_to_json_path("systemrev", type));
+        if (!file.exists())
+            return null;
+        try {
+            JsonNode obj = om.readTree(file);
+            return obj.get("last_rev").asText();
+        } catch (IOException e) {
+            logger.error("cannot read from %s", file, e);
+            return null;
+        }
     }
     
     static void setLastRevision(String rev, DocType type) {
-        // TODO?
+        ObjectNode root = om.createObjectNode();
+        root.put("last_rev", rev);
+        save_file(root, "systemrev", type);
     }
     
-    static void remove(String mainId) {
-        // TODO?
+    static void remove(String mainId, final DocType type) {
+        final File file = new File(lname_to_json_path(mainId, type));
+        if (file.exists())
+            file.delete();
     }
     
     static void finishDatasetTransfers() {
         // TODO?
     }
 
-    
     public static final Property status = ResourceFactory.createProperty(Models.ADM, "status");
     public static final Resource statusReleased = ResourceFactory.createResource(Models.BDA + "StatusReleased");
     public static void upload(DocType type, String mainId, String filePath, Model model, String graphUri) {
