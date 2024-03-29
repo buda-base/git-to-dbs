@@ -205,7 +205,7 @@ public class GitToDB {
 		
 		FusekiHelpers.printUsage("INITIAL USAGE  ");
 		
-		if (!transferFuseki) {
+		if (!transferFuseki && !transferES) {
 		    logger.error("nothing to do, quitting...");
             System.exit(1);
 		}
@@ -286,9 +286,7 @@ public class GitToDB {
                     System.exit(1);
                 }
             }
-    
-            
-            
+
     		logger.info("FusekiTranser shutting down");
     		shutdownAndAwaitTermination(TransferHelpers.executor);
         }        

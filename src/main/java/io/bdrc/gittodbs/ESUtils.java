@@ -184,6 +184,7 @@ public class ESUtils {
                     add_event(s.getResource(), doc);
                 if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "creator")))
                     add_creator(s.getResource(), doc);
+                continue;
             }
             switch (pinfo.pt) {
             case PT_DIRECT:
@@ -449,7 +450,7 @@ public class ESUtils {
         final File theDir = new File(dir);
         if (!theDir.exists()) {
             try {
-                theDir.mkdir();
+                theDir.mkdirs();
             }
             catch(SecurityException se) {
                 System.err.println("could not create directory, please fasten your seat belt");
@@ -459,13 +460,14 @@ public class ESUtils {
     
     static String lname_to_json_path(final String lname, final DocType type) {
         final String hashtext = Models.getMd5(lname);
-        final String dir = jsonfolder + type.toString() + hashtext.toString()+"/";
+        final String dir = jsonfolder + type.toString() + "/" + hashtext.toString()+"/";
         return dir + lname + ".json";
     }
     
     static void save_file(final ObjectNode doc, final String main_lname, final DocType type) {
         final String hashtext = Models.getMd5(main_lname);
-        final String dir = jsonfolder + type.toString() + hashtext.toString()+"/";
+        final String dir = jsonfolder + type.toString() + "/" + hashtext.toString()+"/";
+        System.out.println("create if not exists "+dir);
         createDirIfNotExists(dir);
         final String filePath = dir + main_lname + ".json";
         save_as_json(doc, filePath);
