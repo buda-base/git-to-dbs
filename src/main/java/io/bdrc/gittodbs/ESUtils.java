@@ -119,11 +119,6 @@ public class ESUtils {
     
     static final ObjectMapper om = new ObjectMapper();
     
-    static Map<String,String> res_to_prefLabel_git(final Resource res) {
-        // TODO
-        return null;
-    }
-    
     // to get the creator's cache:
     // select ?p ?pl where {
     //   ?p a :Person .
@@ -163,11 +158,6 @@ public class ESUtils {
         return cache.get(res.getLocalName());
     }
     
-    static List<Literal> res_to_prefLabel_Fuseki(final Resource res) {
-        // TODO
-        return null;
-    }
-    
     static List<String> get_ancestors(final Resource res) {
         // get ancestors of resource, read from Fuseki
         return null;
@@ -179,23 +169,12 @@ public class ESUtils {
         return null;
     }
     
-    static Map<String,String> res_to_prefLabel_ontology(final Resource res) {
-        // TODO
-        return null;
-    }
-    
     static String[] normalize_lit(final Literal l) {
         // TODO: ewts to Unicode to ewts
         // Unicode to ewts
         String lexr = l.getLexicalForm();
         String lt = l.getLanguage().toLowerCase().replace('-', '_').replace("hant", "hani").replace("hans", "hani");
         return new String[] {lexr, lt};
-    }
-
-    static ObjectNode getESDocument_fromModel(final Model m, final String main_lname, final Resource gitRepo, final String commit) {
-        ObjectNode root = om.createObjectNode();
-        addModelToESDoc(m, root, main_lname, true);
-        return root;
     }
     
     static void addModelToESDoc(final Model m, final ObjectNode doc, final String main_lname, boolean add_admin) {
@@ -480,11 +459,35 @@ public class ESUtils {
         save_as_json(doc, filePath);
     }
     
-    // void add_from_ext_label(final Property p, final Resource obj, final ObjectNode doc)
-    // void merge_with_ext(final Resource to_merge, final ObjectNode doc)
-    // void add_special(final Property p, final Resource obj, final ObjectNode doc)
-    // void save_as_json(final Resource res, final ObjectNode doc) 
-    // void send_to_es()
+    static String getLastRevision(DocType type) {
+        // TODO?
+        return null;
+    }
+    
+    static void setLastRevision(String rev, DocType type) {
+        // TODO?
+    }
+    
+    static void remove(String mainId) {
+        // TODO?
+    }
+    
+    static void finishDatasetTransfers() {
+        // TODO?
+    }
 
+    
+    public static final Property status = ResourceFactory.createProperty(Models.ADM, "status");
+    public static final Resource statusReleased = ResourceFactory.createResource(Models.BDA + "StatusReleased");
+    public static void upload(DocType type, String mainId, String filePath, Model model, String graphUri) {
+        if (!model.contains(null, status, statusReleased))
+            return; // TODO: remove?
+        final String rev = GitHelpers.getLastRefOfFile(type, filePath);
+        ObjectNode root = om.createObjectNode();
+        // TODO: outlines are different
+        addModelToESDoc(model, root, mainId, true);
+        // TODO: compute an access value for MWs based on their reproductions
+        save_file(root, mainId, type);
+    }
     
 }

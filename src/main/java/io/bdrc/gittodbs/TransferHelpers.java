@@ -194,6 +194,8 @@ public class TransferHelpers {
 	    // random result for uncoherent couch and fuseki
 	    if (GitToDB.transferFuseki)
 	        i = syncTypeFuseki(type, nbLeft);
+	    if (GitToDB.transferES)
+            i = syncTypeES(type, nbLeft);
 	    return i;
 	}
 	
@@ -314,7 +316,7 @@ public class TransferHelpers {
 	           FusekiHelpers.postModelInParts(defaultGraphName, dataset.getDefaultModel(), FusekiHelpers.CORE);
 	    }
 	
-	public static void addFileFuseki(DocType type, String dirPath, String filePath) {
+	public static void addFile(DocType type, String dirPath, String filePath) {
         final String mainId = mainIdFromPath(filePath, type);
         if (mainId == null)
             return;
@@ -323,7 +325,10 @@ public class TransferHelpers {
             logger.error("modelFromPath failed to fetch anything from: " + dirPath+filePath + " with type: " + type + " and mainId: " + mainId);
             return;
         }
-        transferToFuseki(type, mainId, filePath, model, BDG+mainId);
+        if (GitToDB.transferFuseki)
+            transferToFuseki(type, mainId, filePath, model, BDG+mainId);
+        if (GitToDB.transferES)
+            ESUtils.upload(type, mainId, filePath, model, BDG+mainId);
 	}
 	
 	   public static void addUserFileFuseki(DocType type, String dirPath, String filePath) {
@@ -358,26 +363,27 @@ public class TransferHelpers {
 	}
 
 	public static void logFileHandling(int i, final String path, boolean fuseki) {
-	    TransferHelpers.logger.debug("sending "+path+" to "+(fuseki ? "Fuseki" : "Couchdb"));
+	    TransferHelpers.logger.debug("sending "+path+" to "+(fuseki ? "Fuseki" : "ES"));
 	    if (i % 100 == 0 && progress)
 	        logger.info(path + ":" + i);
 	}
 	
 	public static int syncAllHead(final DocType type, int nbLeft, final String dirpath) {
 	    final TreeWalk tw = GitHelpers.listRepositoryContents(type);
-        TransferHelpers.logger.info("sending all " + type + " files to Fuseki");
+        TransferHelpers.logger.info("sending all " + type + " files");
         int i = 0;
         try {
             while (tw.next()) {
                 if (i+1 > nbLeft)
                     return nbLeft;
                 i = i + 1;
-                logFileHandling(i, tw.getPathString(), true);
-                addFileFuseki(type, dirpath, tw.getPathString());
+                logFileHandling(i, tw.getPathString(), GitToDB.transferFuseki);
+                addFile(type, dirpath, tw.getPathString());
             }
-            FusekiHelpers.finishDatasetTransfers(FusekiHelpers.distantDB(type));
+            if (GitToDB.transferFuseki)
+                FusekiHelpers.finishDatasetTransfers(FusekiHelpers.distantDB(type));
         } catch (IOException e) {
-            TransferHelpers.logger.error("syncFuseki", e);
+            TransferHelpers.logger.error("syncAllHead", e);
             return 0;
         }
         return i;
@@ -432,7 +438,7 @@ public class TransferHelpers {
 	                    }
 	                }
 	                if (!newPath.equals("/dev/null"))
-	                    addFileFuseki(type, dirpath, newPath);
+	                    addFile(type, dirpath, newPath);
 	            }
             } catch (InvalidObjectIdException | RevisionSyntaxException | IOException e) {
                 TransferHelpers.logger.error("Git unknown error, this shouldn't happen.", e);
@@ -442,6 +448,59 @@ public class TransferHelpers {
 	    FusekiHelpers.setLastRevision(gitRev, type);
 	    return i;
 	}
+	
+	public static int syncTypeES(final DocType type, int nbLeft) {
+        if (nbLeft == 0) {
+            TransferHelpers.logger.info("not syncing {}", type);
+            return 0;
+        }
+        final String gitRev = GitHelpers.getHeadRev(type);
+        String typeStr = type.toString();
+        if (type == DocType.USER_PRIVATE)
+            return 0;
+        final String dirpath = GitToDB.gitDir + typeStr + "s" + GitHelpers.localSuffix + "/";
+        if (gitRev == null) {
+            TransferHelpers.logger.error("cannot extract latest revision from the git repo at "+dirpath);
+            return 0;
+        }
+        String distRev = GitToDB.sinceCommit;
+        if (distRev == null)
+            distRev = ESUtils.getLastRevision(type);
+        int i = 0;
+        if (distRev == null || distRev.isEmpty() || GitToDB.force) {
+            i = syncAllHead(type, nbLeft, dirpath);
+        } else if (!GitHelpers.hasRev(type, distRev)) {
+            TransferHelpers.logger.error("distant fuseki revision "+distRev+" is not found in the git repo, sending all files.");
+            i = syncAllHead(type, nbLeft, dirpath);
+        } else {
+            List<DiffEntry> entries = null;
+            try {
+                entries = GitHelpers.getChanges(type, distRev);
+                TransferHelpers.logger.info("sending "+entries.size()+" changed " + type + " files since "+distRev+" to Fuseki");
+                for (DiffEntry de : entries) {
+                    i++;
+                    if (i > nbLeft)
+                        return nbLeft;
+                    final String newPath = de.getNewPath();
+                    logFileHandling(i, newPath, true);
+                    final String oldPath = de.getOldPath();
+                        
+                    if (newPath.equals("/dev/null") || !newPath.equals(oldPath)) {
+                        final String mainId = mainIdFromPath(oldPath, type);
+                        if (mainId != null)
+                            ESUtils.remove(mainId);
+                    }
+                    if (!newPath.equals("/dev/null"))
+                        addFile(type, dirpath, newPath);
+                }
+            } catch (InvalidObjectIdException | RevisionSyntaxException | IOException e) {
+                TransferHelpers.logger.error("Git unknown error, this shouldn't happen.", e);
+                i = 0;
+            }
+        }
+        ESUtils.setLastRevision(gitRev, type);
+        return i;
+    }
 
 	
 	public static String getFullUrlFromDocId(String docId) {
@@ -599,7 +658,7 @@ public class TransferHelpers {
                 continue;
             if (gitRev != null) {
                 logger.info("inconsistency on {}: {} -> {}", rid, fusekiRev, gitRev);
-                addFileFuseki(docType, dirpath, ridToGitPath.get(rid));
+                addFile(docType, dirpath, ridToGitPath.get(rid));
             }
             else
                 FusekiHelpers.deleteModel(graphName, db);

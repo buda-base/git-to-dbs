@@ -25,6 +25,8 @@ public class GitToDB {
     static String ontRoot = "https://raw.githubusercontent.com/buda-base/owl-schema/master/";
 	static String libOutputDir = null;
 	static boolean transferFuseki = false;
+	static boolean transferES = false;
+	static String esFilesRoot = "json/";
 	static int howMany = Integer.MAX_VALUE;
     static boolean transferAllDB = false;
     static boolean transferOnto = false;
@@ -48,6 +50,8 @@ public class GitToDB {
 		        + "Synchronize couchdb JSON-LD documents with fuseki\n"
 		        + "Options:\n" 
 		        + "-fuseki             - do transfer to Fuseki\n"
+		        + "-es                 - do transfer to ElasticSearch\n"
+		        + "-esFilesRoot <dir>  - write ES documents as files in directory\n"
 		        + "-fusekiHost <host>  - host fuseki is running on. Defaults to localhost\n"
 		        + "-fusekiPort <port>  - port fuseki is running on. Defaults to 13180\n"
                 + "-fusekiName <name>  - name of the fuseki endpoint. Defaults to 'corerw'\n"
@@ -125,6 +129,11 @@ public class GitToDB {
                 transferFuseki = true;
             } else if (arg.equals("-fuseki")) {
                 transferFuseki = true;
+            } else if (arg.equals("-es")) {
+                transferES = true;
+            } else if (arg.equals("-esFilesRoot")) {
+                esFilesRoot = (++i < args.length ? args[i] : null);
+                transferES = true;
             } else if (arg.equals("-connectPerTransfer")) {
                 connectPerTransfer = true;
             } else if (arg.equals("-check-consistency")) {
@@ -247,7 +256,7 @@ public class GitToDB {
             TransferHelpers.addSingleFileFuseki(singleFile, singleFileGraph);
             TransferHelpers.closeConnections();
             System.exit(0);
-        } else if (transferFuseki) {
+        } else if (transferFuseki || transferES) {
             if (docType != null) {
                 try {
                     if (ric &&(docType == DocType.EINSTANCE || docType == DocType.ETEXTCONTENT)) {
@@ -259,7 +268,7 @@ public class GitToDB {
                     } else {
                     	if (gitFile != null) {
                     		String dirpath = GitToDB.gitDir + docType + "s" + GitHelpers.localSuffix + "/";
-                    		TransferHelpers.addFileFuseki(docType, dirpath, gitFile);
+                    		TransferHelpers.addFile(docType, dirpath, gitFile);
                     	} else {
                     		TransferHelpers.syncType(docType, howMany);
                     	}
@@ -278,9 +287,11 @@ public class GitToDB {
                 }
             }
     
+            
+            
     		logger.info("FusekiTranser shutting down");
     		shutdownAndAwaitTermination(TransferHelpers.executor);
-        }
+        }        
 		
 		// for an unknown reason, when execution reaches this point, if there is not
 		// an explicit exit the program simply hangs indefinitely?!
