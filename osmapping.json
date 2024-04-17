@@ -1,0 +1,51 @@
+{
+  "mappings": {
+    "properties": {
+      "associated_res":    { "type": "keyword" },  
+      "graphs":  { "type": "keyword"  }, 
+      "inRootInstance":   { "type": "keyword"  },
+      "partOf":   { "type": "keyword"  },
+      "partType":   { "type": "keyword"  },
+      "prefLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" },
+      "altLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" }
+    }
+  },
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "tibetan-lenient": {
+          "tokenizer": "tibetan",
+          "filter": [ "tibetan-lenient", "tibetan-synonyms" ],
+          "char_filter": [ "tibetan-lenient" ]
+        },
+        "tibetan-ewts-lenient": {
+          "tokenizer": "tibetan",
+          "filter": [ "tibetan-lenient", "tibetan-synonyms" ],
+          "char_filter": [ "tibetan-ewts-lenient" ]
+        }
+      },
+      "filter": {
+        "tibetan-lenient": {
+          "type": "tibetan",
+          "remove_affixes": true,
+          "normalize_paba": true
+        },
+        "tibetan-synonyms": {
+          "type": "synonym_graph",
+          "synonyms_path": "tibetan-synonyms.txt"
+        }
+      },
+      "char_filter": {
+        "tibetan-lenient": {
+          "type": "tibetan",
+          "lenient": true
+        },
+        "tibetan-ewts-lenient": {
+          "type": "tibetan",
+          "lenient": true,
+          "input_method": "ewts"
+        }
+      }
+    }
+  }
+}

@@ -2,6 +2,9 @@ package io.bdrc.gittodbs;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,6 +21,7 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
@@ -26,6 +30,12 @@ import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.SKOS;
+import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch._types.OpenSearchException;
+import org.opensearch.client.opensearch.core.BulkRequest;
+import org.opensearch.client.opensearch.core.BulkResponse;
+import org.opensearch.client.opensearch.core.GetResponse;
+import org.opensearch.client.opensearch.core.bulk.BulkResponseItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +51,8 @@ public class ESUtils {
     
     public static final Logger logger = LoggerFactory.getLogger(ESUtils.class);
     public static String jsonfolder = "json/";
+    public static final boolean todisk = false;
+    public static final String indexName = "bdrcv0";
     
     // PT is property type
     final static int PT_DIRECT = 1; // simple direct property with a literal as object
@@ -217,10 +229,15 @@ public class ESUtils {
     static void add_admin_to_doc(final Resource adminData, ObjectNode root) {
         // add "graphs" array, and earliest creation date
         final Model m = adminData.getModel();
-        final String graph_lname = adminData.getPropertyResourceValue(m.createProperty(Models.ADM, "graphId")).getLocalName();
+        final Resource graph_r = adminData.getPropertyResourceValue(m.createProperty(Models.ADM, "graphId"));
         if (!root.has("graphs"))
             root.set("graphs", root.arrayNode());
-        ((ArrayNode) root.get("graphs")).add(graph_lname);
+        if (graph_r != null) {;
+            ((ArrayNode) root.get("graphs")).add(graph_r.getLocalName());
+        } else {
+            logger.error("could not find graph id in " + adminData.getLocalName());
+            ((ArrayNode) root.get("graphs")).add(adminData.getLocalName());
+        }
         final StmtIterator it = m.listStatements(null, RDF.type, m.createResource(Models.ADM+"InitialDataCreation"));
         while (it.hasNext()) {
             final Resource le = it.next().getSubject();
@@ -313,7 +330,8 @@ public class ESUtils {
     static void add_associated(final Resource r, final ObjectNode doc) {
         if (!doc.has("associated_res"))
             doc.set("associated_res", doc.arrayNode());
-        ((ArrayNode) doc.get("associated_res")).add(r.getLocalName());
+        if (!has_value_in_key(doc, "associated_res", r.getLocalName()))
+            ((ArrayNode) doc.get("associated_res")).add(r.getLocalName());
     }
     
     public final static Map<String, DocType> prefixToDocType = new HashMap<>();
@@ -376,6 +394,10 @@ public class ESUtils {
     
     static void add_merged(final Resource r, final ObjectNode doc) {
         final Model m = res_to_model(r);
+        if (m == null) {
+            logger.error("could not find model for "+r.getLocalName());
+            return;
+        }
         add_associated(r, doc);
         addModelToESDoc(m, doc, r.getLocalName(), false);
     }
@@ -464,24 +486,81 @@ public class ESUtils {
         return dir + lname + ".json";
     }
     
-    static void save_file(final ObjectNode doc, final String main_lname, final DocType type) {
-        final String hashtext = Models.getMd5(main_lname);
-        final String dir = jsonfolder + type.toString() + "/" + hashtext.toString()+"/";
-        System.out.println("create if not exists "+dir);
-        createDirIfNotExists(dir);
-        final String filePath = dir + main_lname + ".json";
-        save_as_json(doc, filePath);
+    public static BulkRequest.Builder br = null;
+    public static OpenSearchClient osc = null;
+    public static int nb_in_batch = 0;
+    public static int nb_in_batch_max = 500;
+    
+    static void upload(final ObjectNode doc, final String main_lname, final DocType type) {
+        if (todisk) {
+            final String hashtext = Models.getMd5(main_lname);
+            final String dir = jsonfolder + type.toString() + "/" + hashtext.toString()+"/";
+            createDirIfNotExists(dir);
+            final String filePath = dir + main_lname + ".json";
+            save_as_json(doc, filePath);
+            return;
+        }
+        if (osc == null)
+            try {
+                osc = OSClient.create();
+            } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e1) {
+                logger.error("cannot create client", e1);
+                return;
+            }
+        if (br == null)
+            br = new BulkRequest.Builder();
+        br.operations(op -> op           
+                .index(idx -> idx            
+                    .index("products")       
+                    .id(main_lname)
+                    .document(doc)
+                )
+            );
+        nb_in_batch += 1;
+        if (nb_in_batch > nb_in_batch_max) {
+            nb_in_batch = 0;
+            BulkResponse result = null;
+            try {
+                result = osc.bulk(br.build());
+            } catch (OpenSearchException | IOException e) {
+                logger.error("exception in bulk operation", e);
+            }
+            if (result.errors()) {
+                logger.error("Bulk had errors");
+                for (BulkResponseItem item: result.items()) {
+                    if (item.error() != null) {
+                        logger.error(item.error().reason());
+                    }
+                }
+            }
+        }
     }
     
     static String getLastRevision(DocType type) {
-        final File file = new File(lname_to_json_path("systemrev", type));
-        if (!file.exists())
-            return null;
+        if (todisk) {
+            final File file = new File(lname_to_json_path("systemrev", type));
+            if (!file.exists())
+                return null;
+            try {
+                JsonNode obj = om.readTree(file);
+                return obj.get("last_rev").asText();
+            } catch (IOException e) {
+                logger.error("cannot read from %s", file, e);
+                return null;
+            }
+        }
+        if (osc == null)
+            try {
+                osc = OSClient.create();
+            } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e1) {
+                logger.error("cannot create client", e1);
+                return null;
+            }
         try {
-            JsonNode obj = om.readTree(file);
-            return obj.get("last_rev").asText();
-        } catch (IOException e) {
-            logger.error("cannot read from %s", file, e);
+            GetResponse<ObjectNode> response = osc.get(b -> b.index(indexName).id("systemrev-"+type.toString()), ObjectNode.class);
+            return response.source().get("last_rev").asText();
+        } catch (OpenSearchException | IOException e) {
+            logger.error("cannot get document", e);
             return null;
         }
     }
@@ -489,17 +568,58 @@ public class ESUtils {
     static void setLastRevision(String rev, DocType type) {
         ObjectNode root = om.createObjectNode();
         root.put("last_rev", rev);
-        save_file(root, "systemrev", type);
+        upload(root, "systemrev", type);
     }
     
     static void remove(String mainId, final DocType type) {
-        final File file = new File(lname_to_json_path(mainId, type));
-        if (file.exists())
-            file.delete();
+        if (todisk) {
+            final File file = new File(lname_to_json_path(mainId, type));
+            if (file.exists())
+                file.delete();
+            return;
+        }
+        if (osc == null)
+            try {
+                osc = OSClient.create();
+            } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e1) {
+                logger.error("cannot creat client", e1);
+            }
+        try {
+            osc.delete(b -> b.index(indexName).id("1"));
+        } catch (OpenSearchException | IOException e) {
+            logger.error("cannot remove document", e);
+        }
+
     }
     
     static void finishDatasetTransfers() {
-        // TODO?
+        if (br != null)
+            try {
+                osc.bulk(br.build());
+            } catch (OpenSearchException | IOException e) {
+                logger.error("exception in finishDatasetTransfers", e);
+            }
+    }
+    
+    static void upload_outline(final String olname, final Model m) {
+        Resource or = m.createResource(Models.BDR+olname);
+        Resource mw = or.getPropertyResourceValue(m.createProperty(Models.BDO, "outlineOf"));
+        // TODO: get access from mw
+        upload_outline_children_rec(mw, olname);
+    }
+    
+    public static final Property partOf = ResourceFactory.createProperty(Models.BDO, "partOf"); 
+    static void upload_outline_children_rec(final Resource parent, final String olname) {
+        final ResIterator childiter = parent.getModel().listSubjectsWithProperty(partOf, parent);
+        while (childiter.hasNext()) {
+            final Resource child = childiter.next();
+            ObjectNode root = om.createObjectNode();
+            if (!root.has("graphs"))
+                root.set("graphs", root.arrayNode());
+            ((ArrayNode) root.get("graphs")).add(olname);
+            addModelToESDoc(parent.getModel(), root, child.getLocalName(), false);
+            upload(root, child.getLocalName(), DocType.OUTLINE);
+        }
     }
 
     public static final Property status = ResourceFactory.createProperty(Models.ADM, "status");
@@ -508,11 +628,15 @@ public class ESUtils {
         if (!model.contains(null, status, statusReleased))
             return; // TODO: remove?
         final String rev = GitHelpers.getLastRefOfFile(type, filePath);
+        if (type == DocType.OUTLINE) {
+            upload_outline(mainId, model);
+            return;
+        }
         ObjectNode root = om.createObjectNode();
-        // TODO: outlines are different
+        root.put("_id", mainId);
         addModelToESDoc(model, root, mainId, true);
         // TODO: compute an access value for MWs based on their reproductions
-        save_file(root, mainId, type);
+        upload(root, mainId, type);
     }
     
 }

@@ -117,16 +117,12 @@ public class GitToDB {
 			String arg = args[i];
 			if (arg.equals("-fusekiHost")) {
 				fusekiHost = (++i < args.length ? args[i] : null);
-				transferFuseki = true;
 			} else if (arg.equals("-fusekiPort")) {
 				fusekiPort = (++i < args.length ? args[i] : null);
-				transferFuseki = true;
 			} else if (arg.equals("-fusekiName")) {
                 fusekiName = (++i < args.length ? args[i] : null);
-                transferFuseki = true;
             } else if (arg.equals("-fusekiAuthName")) {
                 fusekiAuthName = (++i < args.length ? args[i] : null);
-                transferFuseki = true;
             } else if (arg.equals("-fuseki")) {
                 transferFuseki = true;
             } else if (arg.equals("-es")) {
