@@ -149,7 +149,8 @@ public class TransferHelpers {
 	
 	public static void init() throws MalformedURLException {
 
-	    if (GitToDB.transferFuseki) {
+	    if (GitToDB.transferFuseki || GitToDB.transferES) {
+	        // we need it also for the cache in ES export
 	        FusekiHelpers.init(GitToDB.fusekiHost, GitToDB.fusekiPort, GitToDB.fusekiName, GitToDB.fusekiAuthName);	        
 	    }
 		
@@ -190,7 +191,7 @@ public class TransferHelpers {
 	        FusekiHelpers.closeConnections();
 	}
 	
-	public static List<DocType> esDts = Arrays.asList(new DocType[] {DocType.COLLECTION, DocType.PERSON, DocType.PLACE, DocType.INSTANCE});
+	public static List<DocType> esDts = Arrays.asList(new DocType[] {DocType.COLLECTION, DocType.PERSON, DocType.PLACE, DocType.INSTANCE, DocType.OUTLINE, DocType.TOPIC});
 	public static int syncType(DocType type, int nbLeft) {
 	    int i = 0;
 	    // random result for uncoherent couch and fuseki
