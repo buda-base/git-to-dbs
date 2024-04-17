@@ -22,8 +22,8 @@ public class OSClient {
         var https = Boolean.parseBoolean(env.getOrDefault("HTTPS", "false"));
         var hostname = env.getOrDefault("HOST", "localhost");
         var port = Integer.parseInt(env.getOrDefault("PORT", "9200"));
-        var user = env.getOrDefault("USERNAME", "admin");
-        var pass = env.getOrDefault("PASSWORD", "admin");
+        var user = env.getOrDefault("OPENSEARCH_USERNAME", "admin");
+        var pass = env.getOrDefault("OPENSEARCH_PASSWORD", "admin");
 
         final var hosts = new HttpHost[] { new HttpHost(https ? "https" : "http", hostname, port) };
 

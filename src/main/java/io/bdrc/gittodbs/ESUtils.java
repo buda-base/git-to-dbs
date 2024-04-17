@@ -489,7 +489,7 @@ public class ESUtils {
     public static BulkRequest.Builder br = null;
     public static OpenSearchClient osc = null;
     public static int nb_in_batch = 0;
-    public static int nb_in_batch_max = 500;
+    public static int nb_in_batch_max = 5;
     
     static void upload(final ObjectNode doc, final String main_lname, final DocType type) {
         if (todisk) {
@@ -533,6 +533,7 @@ public class ESUtils {
                     }
                 }
             }
+            br = null;
         }
     }
     
@@ -558,6 +559,8 @@ public class ESUtils {
             }
         try {
             GetResponse<ObjectNode> response = osc.get(b -> b.index(indexName).id("systemrev-"+type.toString()), ObjectNode.class);
+            if (!response.found())
+                return null;
             return response.source().get("last_rev").asText();
         } catch (OpenSearchException | IOException e) {
             logger.error("cannot get document", e);
@@ -633,7 +636,6 @@ public class ESUtils {
             return;
         }
         ObjectNode root = om.createObjectNode();
-        root.put("_id", mainId);
         addModelToESDoc(model, root, mainId, true);
         // TODO: compute an access value for MWs based on their reproductions
         upload(root, mainId, type);
