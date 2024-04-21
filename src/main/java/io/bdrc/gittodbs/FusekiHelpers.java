@@ -51,6 +51,7 @@ public class FusekiHelpers {
     public static String baseUrl = null;
     public static String baseAuthUrl = null;
     public static int initialLoadBulkSize = 50000; // the number of triples above which a dataset load is triggered
+    public static int esBulkSize = 500;
     public static boolean addGitRevision = true;
     
     public static boolean updatingFuseki = true;

@@ -489,7 +489,6 @@ public class ESUtils {
     public static BulkRequest.Builder br = null;
     public static OpenSearchClient osc = null;
     public static int nb_in_batch = 0;
-    public static int nb_in_batch_max = 5;
     
     static void upload(final ObjectNode doc, final String main_lname, final DocType type) {
         if (todisk) {
@@ -511,13 +510,14 @@ public class ESUtils {
             br = new BulkRequest.Builder();
         br.operations(op -> op           
                 .index(idx -> idx            
-                    .index("products")       
+                    .index(indexName)       
                     .id(main_lname)
                     .document(doc)
                 )
             );
         nb_in_batch += 1;
-        if (nb_in_batch > nb_in_batch_max) {
+        if (nb_in_batch > FusekiHelpers.esBulkSize) {
+            logger.info("transfer docs");
             nb_in_batch = 0;
             BulkResponse result = null;
             try {
@@ -596,12 +596,23 @@ public class ESUtils {
     }
     
     static void finishDatasetTransfers() {
-        if (br != null)
+        if (br != null) {
+            BulkResponse result = null;
             try {
-                osc.bulk(br.build());
+                result = osc.bulk(br.build());
             } catch (OpenSearchException | IOException e) {
-                logger.error("exception in finishDatasetTransfers", e);
+                logger.error("exception in bulk operation", e);
             }
+            if (result.errors()) {
+                logger.error("Bulk had errors");
+                for (BulkResponseItem item: result.items()) {
+                    if (item.error() != null) {
+                        logger.error(item.error().reason());
+                    }
+                }
+            }
+        }
+        br = null;
     }
     
     static void upload_outline(final String olname, final Model m) {

@@ -155,6 +155,8 @@ public class GitToDB {
                 howMany = (++i < args.length ? Integer.parseInt(args[i]) : null);
             } else if (arg.equals("-bulkSz")) {
                 FusekiHelpers.initialLoadBulkSize = (++i < args.length ? Integer.parseInt(args[i]) : null);
+            } else if (arg.equals("-bulkSzEs")) {
+                FusekiHelpers.esBulkSize = (++i < args.length ? Integer.parseInt(args[i]) : null);
 			} else if (arg.equals("-timeout")) {
 				TransferHelpers.TRANSFER_TO = (++i < args.length ? Integer.parseInt(args[i]) : null);
 			} else if (arg.equals("-dryrun")) {
