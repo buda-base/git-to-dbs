@@ -44,6 +44,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import io.bdrc.ewtsconverter.EwtsConverter;
+import io.bdrc.ewtsconverter.TransConverter;
 import io.bdrc.gittodbs.TransferHelpers.DocType;
 import io.bdrc.libraries.Models;
 
@@ -52,7 +54,9 @@ public class ESUtils {
     public static final Logger logger = LoggerFactory.getLogger(ESUtils.class);
     public static String jsonfolder = "json/";
     public static final boolean todisk = false;
-    public static final String indexName = "bdrcv0";
+    public static final String indexName = "bdrcv1";
+    
+    final static EwtsConverter ewtsc = new EwtsConverter();
     
     // PT is property type
     final static int PT_DIRECT = 1; // simple direct property with a literal as object
@@ -82,6 +86,7 @@ public class ESUtils {
     private static final Map<Property, PropInfo> propInfoMap = new HashMap<>();
     static {
         // General properties
+        propInfoMap.put(RDF.type, new PropInfo(PT_RES_ONLY, null, null));
         propInfoMap.put(SKOS.prefLabel, new PropInfo(PT_DIRECT, "prefLabel", null));
         propInfoMap.put(SKOS.altLabel, new PropInfo(PT_DIRECT, "altLabel", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BF, "inCollection"), new PropInfo(PT_RES_ONLY, null, null));
@@ -178,10 +183,21 @@ public class ESUtils {
     }
     
     static String[] normalize_lit(final Literal l) {
-        // TODO: ewts to Unicode to ewts
-        // Unicode to ewts
+        // TODO: ewts to Unicode to ewts?
         String lexr = l.getLexicalForm();
         String lt = l.getLanguage().toLowerCase().replace('-', '_').replace("hant", "hani").replace("hans", "hani");
+        if (lt.endsWith("ewts"))
+            lt = "bo_x_ewts";
+        if (lt.equals("bo") || lt.equals("dz") || lt.endsWith("_tibt")) {
+            lexr = ewtsc.toWylie(lexr);
+            lt = "bo_x_ewts";
+        }
+        if (lt.equals("bo-alalc97")) {
+            lexr = TransConverter.alalcToEwts(lexr);
+            lt = "bo_x_ewts";
+        }
+        if (lt.equals("en_x_mixed") || lt.equals("bo_x_mixed") || lt.equals("bo_x_phon_en_m_tbrc") || lt.equals("bo_x-phon_en_m_thlib") || lt.equals("bo_x_phon_en"))
+            lt = "en";
         return new String[] {lexr, lt};
     }
     
