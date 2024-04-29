@@ -12,7 +12,11 @@
       "partOf":   { "type": "keyword"  },
       "partType":   { "type": "keyword"  },
       "prefLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
-      "altLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" }
+      "prefLabel_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
+      "comment_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
+      "comment_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
+      "altLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
+      "altLabel_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" }
     }
   },
   "settings": {
@@ -37,6 +41,11 @@
           "tokenizer": "tibetan",
           "filter": [ "tibetan-lenient", "tibetan-synonyms", "shingle_2_3" ],
           "char_filter": [ "tibetan-ewts-lenient" ]
+        },
+        "english-lenient": {
+          "tokenizer": "standard",
+          "filter": [ "asciifolding", "lowercase", "stop", "english-stemmer2", "english-synonyms", "english-stemmer1" ],
+          "char_filter": [ "simple-diacritics" ]
         }
       },
       "filter": {
@@ -53,6 +62,18 @@
         "tibetan-synonyms": {
           "type": "synonym_graph",
           "synonyms_path": "tibetan-synonyms.txt"
+        },
+        "english-synonyms": {
+          "type": "synonym_graph",
+          "synonyms_path": "english-synonyms.txt"
+        },
+        "english-stemmer1": {
+          "type": "stemmer",
+          "language": "english"
+        },
+        "english-stemmer2": {
+          "type": "stemmer",
+          "language": "possessive_english"
         }
       },
       "char_filter": {
