@@ -210,6 +210,8 @@ public class ESUtils {
             if (pinfo == null) {
                 if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "workGenre")))
                     add_event(s.getResource(), doc);
+                if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "placeLat")))
+                    add_gis(s.getResource(), doc);
                 if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "creator")))
                     add_creator(s.getResource(), doc);
                 continue;
@@ -241,6 +243,14 @@ public class ESUtils {
     }
     
     //static void add_outline_model_to_doc()
+
+    private static void add_gis(final Resource resource, final ObjectNode doc) {
+        final Statement latS = resource.getProperty(resource.getModel().createProperty(Models.BDO, "placeLat"));
+        final Statement longS = resource.getProperty(resource.getModel().createProperty(Models.BDO, "placeLong"));
+        if (latS == null || longS == null)
+            return;
+        doc.put("gis_coord", latS.getLiteral().getLexicalForm() + "," + longS.getLiteral().getLexicalForm());
+    }
 
     static void add_admin_to_doc(final Resource adminData, ObjectNode root) {
         // add "graphs" array, and earliest creation date
