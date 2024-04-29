@@ -1,13 +1,18 @@
 {
   "mappings": {
     "properties": {
-      "associated_res":    { "type": "keyword" },  
-      "graphs":  { "type": "keyword"  }, 
+      "associated_res":    { "type": "keyword" },
+      "creation_date": {"type": "date", "doc_values": true, "ignore_malformed": true },
+      "gis_coord": { "type": "geo_point", "ignore_malformed": true },
+      "gis_shape": { "type": "geo_shape", "ignore_malformed": true },
+      "graphs":  { "type": "keyword"  },
+      "db_score": { "type": "rank_feature" },
+      "pop_score": { "type": "rank_feature" },
       "inRootInstance":   { "type": "keyword"  },
       "partOf":   { "type": "keyword"  },
       "partType":   { "type": "keyword"  },
-      "prefLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" },
-      "altLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" }
+      "prefLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
+      "altLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" }
     }
   },
   "settings": {
@@ -22,9 +27,24 @@
           "tokenizer": "tibetan",
           "filter": [ "tibetan-lenient", "tibetan-synonyms" ],
           "char_filter": [ "tibetan-ewts-lenient" ]
+        },
+        "tibetan-lenient-shingle": {
+          "tokenizer": "tibetan",
+          "filter": [ "tibetan-lenient", "tibetan-synonyms", "shingle_2_3" ],
+          "char_filter": [ "tibetan-lenient" ]
+        },
+        "tibetan-ewts-lenient-shingle": {
+          "tokenizer": "tibetan",
+          "filter": [ "tibetan-lenient", "tibetan-synonyms", "shingle_2_3" ],
+          "char_filter": [ "tibetan-ewts-lenient" ]
         }
       },
       "filter": {
+        "shingle_2_3": {
+          "type": "shingle",
+          "min_shingle_size": 2,
+          "max_shingle_size": 3
+        },
         "tibetan-lenient": {
           "type": "tibetan",
           "remove_affixes": true,
