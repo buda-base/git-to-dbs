@@ -1,7 +1,10 @@
 package io.bdrc.gittodbs;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -81,6 +84,53 @@ public class ESUtils {
             this.subProp = subProp;
         }
         
+    }
+    
+    static Map<String,Integer> getScores(final String fname, final boolean scoreFirst) {
+        final Map<String,Integer> res = new HashMap<>();
+        final InputStream is = ESUtils.class.getResourceAsStream(fname);
+        if (is == null) {
+            logger.error("cannot open "+fname);
+            return res;
+        }
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        try {
+            while(reader.ready()) {
+                final String line = reader.readLine();
+                final String[] linecomponents = line.split(",");
+                if (linecomponents.length < 2)
+                    continue;
+                final String scoreStr = scoreFirst ? linecomponents[0] : linecomponents[1];
+                final String lname = scoreFirst ? linecomponents[1] : linecomponents[0];
+                final Integer score = Integer.valueOf(scoreStr);
+                res.put(lname, score);
+            }
+        } catch (IOException e) {
+            logger.error("error reading "+fname, e);
+        }
+        return res;
+    }
+    
+    final static Map<String,Integer> user_popularity_scores = getScores("user_popularity.csv", true);
+    final static Map<String,Integer> entity_scores = getScores("entityScores.csv", false);
+    
+    static void add_scores(final String lname, final ObjectNode doc) {
+        final Integer userpopscore = user_popularity_scores.get(lname);
+        if (userpopscore != null) {
+            int initialuserpopscore = 0;
+            final JsonNode initialuserpopscoreN = doc.get("pop_score");
+            if (initialuserpopscoreN != null)
+                initialuserpopscore = initialuserpopscoreN.asInt();
+            doc.put("pop_score", userpopscore+initialuserpopscore);
+        }
+        final Integer entityscore = entity_scores.get(lname);
+        if (entityscore != null) {
+            int initialscore = 0;
+            final JsonNode initialscoreN = doc.get("db_score");
+            if (initialscoreN != null)
+                initialscore = initialscoreN.asInt();
+            doc.put("db_score", userpopscore+initialscore);
+        }
     }
     
     private static final Map<Property, PropInfo> propInfoMap = new HashMap<>();
@@ -314,7 +364,18 @@ public class ESUtils {
             }
         }
     }
-    
+
+    // etext access:
+    //   0: no access at all
+    //   1: search only
+    //   2: full access
+
+    // scans access:
+    //   0: no access
+    //   1: extract only
+    //   2: IA
+    //   3: open access
+
     static void post_process_labels(final ObjectNode doc) {
         // we remove the prefLabels that are in the altLabels
         final Iterator<Map.Entry<String, JsonNode>> iter = doc.fields();
