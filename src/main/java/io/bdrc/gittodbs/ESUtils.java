@@ -71,7 +71,6 @@ public class ESUtils {
     final static int PT_RES_ANCESTORS = 9; // only record object rid in the associated resources array but also record ancestors
     final static int PT_TYPED_LABEL = 6; // property like hasTitle or personName
     final static int PT_SPECIAL = 7; // property like hasTitle or personName
-    // TODO: special properties like event and creator need their own thing
     
     final static class PropInfo {
         int pt;
@@ -152,6 +151,8 @@ public class ESUtils {
         // MW properties
         propInfoMap.put(ResourceFactory.createProperty(Models.BF, "identifiedBy"), new PropInfo(PT_SPECIAL, "other_id", RDF.value));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "instanceOf"), new PropInfo(PT_MERGE, null, null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "serialInstanceOf"), new PropInfo(PT_LABEL_EXT, "seriesName", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "seriesNumber"), new PropInfo(PT_DIRECT, "issueName", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "instanceHasReproduction"), new PropInfo(PT_MERGE, null, null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "authorshipStatement"), new PropInfo(PT_DIRECT, "authorshipStatement", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "biblioNote"), new PropInfo(PT_DIRECT, "comment", null));
