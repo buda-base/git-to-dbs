@@ -4,13 +4,25 @@
       "associated_res":    { "type": "keyword" },
       "creation_date": {"type": "date", "doc_values": true, "ignore_malformed": true },
       "gis_coord": { "type": "geo_point", "ignore_malformed": true },
-      "gis_shape": { "type": "geo_shape", "ignore_malformed": true },
       "graphs":  { "type": "keyword"  },
+      "other_id":  { "type": "keyword" },
+      "publicationDate": {"type": "date", "format" : "date_optional_time", "doc_values": true, "ignore_malformed": true },
       "db_score": { "type": "rank_feature" },
       "pop_score": { "type": "rank_feature" },
-      "inRootInstance":   { "type": "keyword"  },
-      "partOf":   { "type": "keyword"  },
-      "partType":   { "type": "keyword"  },
+      "inRootInstance":   { "type": "keyword" },
+      "partOf":   { "type": "keyword" },
+      "partType":   { "type": "keyword" },
+      "scans_access": { "type": "rank_feature" },
+      "etext_access": { "type": "rank_feature" },
+      "issueName": {"type": "keyword" },
+      "seriesName_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
+      "seriesName_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
+      "authorshipStatement_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
+      "authorshipStatement_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
+      "publisherName_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
+      "publisherLocation_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
+      "publisherName_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
+      "publisherLocation_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
       "prefLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
       "prefLabel_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
       "comment_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
@@ -44,7 +56,7 @@
         },
         "english-lenient": {
           "tokenizer": "standard",
-          "filter": [ "asciifolding", "lowercase", "stop", "english-stemmer2", "english-synonyms", "english-stemmer1" ],
+          "filter": [ "asciifolding", "lowercase", "stop", "english-possessive", "english-synonyms", "english-stemmer" ],
           "char_filter": [ "simple-diacritics" ]
         }
       },
@@ -67,11 +79,11 @@
           "type": "synonym_graph",
           "synonyms_path": "english-synonyms.txt"
         },
-        "english-stemmer1": {
+        "english-stemmer": {
           "type": "stemmer",
           "language": "english"
         },
-        "english-stemmer2": {
+        "english-possessive": {
           "type": "stemmer",
           "language": "possessive_english"
         }
