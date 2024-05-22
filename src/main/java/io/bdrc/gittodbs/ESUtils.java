@@ -22,6 +22,7 @@ import org.apache.jena.query.Dataset;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
@@ -255,6 +256,10 @@ public class ESUtils {
     static void addModelToESDoc(final Model m, final ObjectNode doc, final String main_lname, boolean add_admin) {
         final Resource mainRes = m.createResource(Models.BDR+main_lname);
         final StmtIterator si = m.listStatements(mainRes, null, (RDFNode) null);
+        if (main_lname.startsWith("MW")) {
+            doc.put("scans_access", 0);
+            doc.put("etext_access", 0);
+        }
         while (si.hasNext()) {
             final Statement s = si.next();
             final PropInfo pinfo = propInfoMap.get(s.getPredicate());
@@ -366,17 +371,6 @@ public class ESUtils {
         }
     }
 
-    // etext access:
-    //   0: no access at all
-    //   1: search only
-    //   2: full access
-
-    // scans access:
-    //   0: no access
-    //   1: extract only
-    //   2: IA
-    //   3: open access
-
     static void post_process_labels(final ObjectNode doc) {
         // we remove the prefLabels that are in the altLabels
         final Iterator<Map.Entry<String, JsonNode>> iter = doc.fields();
@@ -480,12 +474,90 @@ public class ESUtils {
         return ds.getNamedModel(Models.BDG+r.getLocalName());
     }
     
+    // etext access:
+    //   0: no access
+    //   10: search only
+    //   20: open access
+
+    // scans access:
+    //   0: no access
+    //   5: extract only
+    //   10: IA
+    //   20: open access
+    
+    final static Resource imageInstance = ResourceFactory.createResource(Models.BDO+"ImageInstance");
+    final static Resource etextInstance = ResourceFactory.createResource(Models.BDO+"EtextInstance");
+    final static Property digitalLendingPossible = ResourceFactory.createProperty(Models.BDO+"digitalLendingPossible");
+    final static Property restrictedInChina = ResourceFactory.createProperty(Models.ADM+"restrictedInChina");
+    final static Property access = ResourceFactory.createProperty(Models.ADM+"access");
+    final static Resource accessOpen = ResourceFactory.createProperty(Models.BDA+"AccessOpen");
+    final static Resource accessFairUse = ResourceFactory.createProperty(Models.BDA+"AccessFairUse");
+    final static Property volumePagesTotal = ResourceFactory.createProperty(Models.BDO+"volumePagesTotal");
+    static void add_access(final Model m, final ObjectNode doc) {
+        if (m.contains(null, restrictedInChina, m.createTypedLiteral(true)))
+            doc.put("ric", true);
+        if (m.contains(null, RDF.type, imageInstance)) {
+            // check if there is at least one volume with images
+            final NodeIterator ni = m.listObjectsOfProperty(volumePagesTotal);
+            boolean hasVolumeWithImages = false;
+            while (ni.hasNext()) {
+                final int n = ni.next().asLiteral().getInt();
+                if (n > 2) {
+                    hasVolumeWithImages = true;
+                    break;
+                }
+            }
+            if (!hasVolumeWithImages) {
+                return;
+            }
+            JsonNode current_accessN = doc.get("scans_access");
+            int current_access = 0;
+            if (current_accessN != null)
+                current_access = current_accessN.asInt();
+            int new_access = 0;
+            if (m.contains(null, access, accessOpen)) {
+                new_access = 20;
+            } else if (m.contains(null, access, accessFairUse)) {
+                if (m.contains(null, digitalLendingPossible, m.createTypedLiteral(false)))
+                    new_access = 5;
+                else
+                    new_access = 10;
+            } else {
+                new_access = 0;
+            }
+            if (new_access > current_access) {
+                doc.put("scans_access", new_access);
+            }
+        } else if (m.contains(null, RDF.type, etextInstance)) {
+            // TODO: export access of openpecha
+            JsonNode current_accessN = doc.get("etext_access");
+            int current_access = 0;
+            if (current_accessN != null)
+                current_access = current_accessN.asInt();
+            int new_access = 0;
+            if (m.contains(null, access, accessOpen)) {
+                new_access = 20;
+            } else if (m.contains(null, access, accessFairUse)) {
+                new_access = 10;
+            } else {
+                new_access = 0;
+            }
+            if (new_access > current_access) {
+                doc.put("etext_access", new_access);
+            }
+        }
+    }
+    
     static void add_merged(final Resource r, final ObjectNode doc) {
         final Model m = res_to_model(r);
         if (m == null) {
             logger.error("could not find model for "+r.getLocalName());
             return;
         }
+        if (!m.contains(null, status, statusReleased))
+            return;
+        // TODO: get max for publication date?
+        add_access(m, doc);
         add_associated(r, doc);
         addModelToESDoc(m, doc, r.getLocalName(), false);
     }
@@ -659,7 +731,7 @@ public class ESUtils {
     static void setLastRevision(String rev, DocType type) {
         ObjectNode root = om.createObjectNode();
         root.put("last_rev", rev);
-        upload(root, "systemrev", type);
+        upload(root, "systemrev-"+type.toString(), type);
     }
     
     static void remove(String mainId, final DocType type) {

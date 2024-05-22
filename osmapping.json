@@ -10,6 +10,7 @@
       "db_score": { "type": "rank_feature" },
       "pop_score": { "type": "rank_feature" },
       "inRootInstance":   { "type": "keyword" },
+      "ric":   { "type": "boolean" },
       "partOf":   { "type": "keyword" },
       "partType":   { "type": "keyword" },
       "scans_access": { "type": "rank_feature" },
