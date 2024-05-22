@@ -1,6 +1,5 @@
 package io.bdrc.gittodbs;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutorService;
@@ -52,6 +51,7 @@ public class GitToDB {
 		        + "-fuseki             - do transfer to Fuseki\n"
 		        + "-es                 - do transfer to ElasticSearch\n"
 		        + "-esFilesRoot <dir>  - write ES documents as files in directory\n"
+		        + "-esIndex <str>      - specify ES index\n"
 		        + "-fusekiHost <host>  - host fuseki is running on. Defaults to localhost\n"
 		        + "-fusekiPort <port>  - port fuseki is running on. Defaults to 13180\n"
                 + "-fusekiName <name>  - name of the fuseki endpoint. Defaults to 'corerw'\n"
@@ -130,6 +130,8 @@ public class GitToDB {
             } else if (arg.equals("-esFilesRoot")) {
                 esFilesRoot = (++i < args.length ? args[i] : null);
                 transferES = true;
+            } else if (arg.equals("-esIndex")) {
+                ESUtils.indexName = (++i < args.length ? args[i] : null);
             } else if (arg.equals("-connectPerTransfer")) {
                 connectPerTransfer = true;
             } else if (arg.equals("-check-consistency")) {

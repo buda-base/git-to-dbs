@@ -2,6 +2,8 @@ package io.bdrc.gittodbs;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -58,7 +60,7 @@ public class ESUtils {
     public static final Logger logger = LoggerFactory.getLogger(ESUtils.class);
     public static String jsonfolder = "json/";
     public static final boolean todisk = false;
-    public static final String indexName = "bdrcv1";
+    public static String indexName = "bdrc_prod";
     
     final static EwtsConverter ewtsc = new EwtsConverter();
     
@@ -88,12 +90,20 @@ public class ESUtils {
     
     static Map<String,Integer> getScores(final String fname, final boolean scoreFirst) {
         final Map<String,Integer> res = new HashMap<>();
-        final InputStream is = ESUtils.class.getResourceAsStream(fname);
-        if (is == null) {
-            logger.error("cannot open "+fname);
-            return res;
+        BufferedReader reader = null;
+        final File f = new File(fname);
+        if (f.isFile()) {
+            try {
+                reader = new BufferedReader(new FileReader(f));
+            } catch (FileNotFoundException e) { } // very stupid
+        } else {
+            final InputStream is = ESUtils.class.getResourceAsStream(fname);
+            if (is == null) {
+                logger.error("cannot open "+fname);
+                return res;
+            }
+            reader = new BufferedReader(new InputStreamReader(is));
         }
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         try {
             while(reader.ready()) {
                 final String line = reader.readLine();
