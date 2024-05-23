@@ -526,14 +526,15 @@ public class ESUtils {
     // rank_features must be strictly positive (non-zero)
     // etext access:
     //   1: no access
-    //   10: search only
-    //   20: open access
+    //   1000: search only
+    //   2000: open access
 
     // scans access:
     //   1: no access
-    //   5: extract only
-    //   10: IA
-    //   20: open access
+    //   500: extract only
+    //   1000: IA
+    //   1500: open access through IIIF
+    //   2000: open access on BDRC
     
     final static Resource imageInstance = ResourceFactory.createResource(Models.BDO+"ImageInstance");
     final static Resource etextInstance = ResourceFactory.createResource(Models.BDO+"EtextInstance");
@@ -558,8 +559,11 @@ public class ESUtils {
                     break;
                 }
             }
-            if (!hasVolumeWithImages)
+            boolean hasIiif = false;
+            if (!hasVolumeWithImages) {
                 hasVolumeWithImages = m.contains(null, hasIIIFManifest, (RDFNode) null);
+                hasIiif = true;
+            }
             if (!hasVolumeWithImages)
                 return;
             JsonNode current_accessN = doc.get("scans_access");
@@ -568,7 +572,7 @@ public class ESUtils {
                 current_access = current_accessN.asInt();
             int new_access = 1;
             if (m.contains(null, access, accessOpen)) {
-                new_access = 20;
+                new_access = hasIiif ? 15 : 20;
             } else if (m.contains(null, access, accessFairUse)) {
                 if (m.contains(null, digitalLendingPossible, m.createTypedLiteral(false)))
                     new_access = 5;
