@@ -223,7 +223,7 @@ public class ESUtils {
         try {
             conn.querySelect(queryStr, add_to_cache);
         } catch (Exception ex) {
-            logger.error("could not run "+queryStr);
+            logger.error("cannot run "+queryStr, ex);
             return null;
         }
         return creatorsLabelCache;
@@ -236,8 +236,45 @@ public class ESUtils {
     
     static List<String> get_ancestors(final Resource res) {
         // get ancestors of resource, read from Fuseki
+        // TODO?
         return null;
     }
+    
+    static Map<String,List<String[]>> resLabelCache = new HashMap<>();
+    static List<String[]> res_to_prefLabels(final Resource res) {
+        final String resLname = res.getLocalName();
+        if (resLabelCache.containsKey(resLname))
+            return resLabelCache.get(resLname);
+        final Model m = res_to_model(res);
+        if (m == null) {
+            logger.error("could not find model for "+res.getLocalName());
+            resLabelCache.put(resLname, null);
+            return null;
+        }
+        if (!m.contains(null, status, statusReleased)) {
+            resLabelCache.put(resLname, null);
+            return null;
+        }
+        final List<String[]> litlist = new ArrayList<>();
+        final StmtIterator si = m.listStatements(res, SKOS.prefLabel, (RDFNode) null);
+        while (si.hasNext()) {
+            final Literal l = si.next().getLiteral();
+            final String[] norm = normalize_lit(l);
+            litlist.add(norm);
+        }
+        resLabelCache.put(resLname, litlist);
+        return litlist;
+    }
+    
+    
+    static void add_ext_prefLabel(PropInfo pinfo, Resource res, ObjectNode doc) {
+        final List<String[]> norms = res_to_prefLabels(res);
+        if (norms == null)
+            return;
+        for (final String[] norm : norms)
+            add_normalized_to_key(pinfo.key_base, norm, doc);
+    }
+    
     
     static String[] normalize_lit(final Literal l) {
         // TODO: ewts to Unicode to ewts?
@@ -269,7 +306,9 @@ public class ESUtils {
             final Statement s = si.next();
             final PropInfo pinfo = propInfoMap.get(s.getPredicate());
             if (pinfo == null) {
-                if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "workGenre")))
+                if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "instanceEvent")))
+                    add_event(s.getResource(), doc);
+                if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "personEvent")))
                     add_event(s.getResource(), doc);
                 if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "placeLat")))
                     add_gis(s.getResource(), doc);
@@ -283,6 +322,10 @@ public class ESUtils {
                 break;
             case PT_LABEL_ONT:
                 add_from_ont_label(pinfo, s.getResource(), doc);
+                break;
+            case PT_LABEL_EXT:
+                add_associated(s.getResource(), doc);
+                add_ext_prefLabel(pinfo, s.getResource(), doc);
                 break;
             case PT_SPECIAL:
                 add_special(pinfo, s.getResource(), doc);
@@ -362,6 +405,7 @@ public class ESUtils {
                 doc.put("publicationDate", whenSt.getString());
             }
         }
+        // TODO: personEvents
     }
     
     static void remove_dups(final ArrayNode prefLabels, final ArrayNode altLabels) {
@@ -603,13 +647,6 @@ public class ESUtils {
         roleLnameTokey.put("R0ER0025", "author"); // terton?
         roleLnameTokey.put("R0ER0026", "translator");
         roleLnameTokey.put("R0ER0027", "author");
-    }
-    
-    static void add_ext_labels(final Resource ext, final ObjectNode doc, final String key_base) {
-        final List<Literal> prefLabels = res_to_prefLabels(ext);
-        for (final Literal l : prefLabels) {
-            add_lit_to_key(key_base, l, doc);
-        }
     }
     
     static void add_creator(final Resource creatorNode, final ObjectNode doc) {
