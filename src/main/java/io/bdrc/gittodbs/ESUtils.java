@@ -223,6 +223,7 @@ public class ESUtils {
         try {
             conn.querySelect(queryStr, add_to_cache);
         } catch (Exception ex) {
+            logger.error("could not run "+queryStr);
             return null;
         }
         return creatorsLabelCache;
@@ -235,12 +236,6 @@ public class ESUtils {
     
     static List<String> get_ancestors(final Resource res) {
         // get ancestors of resource, read from Fuseki
-        return null;
-    }
-    
-    static List<Literal> res_to_prefLabels(final Resource res) {
-        // if fromQuery == creator, generate and read from cache
-        // TODO
         return null;
     }
     
