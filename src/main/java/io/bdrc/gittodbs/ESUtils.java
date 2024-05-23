@@ -299,8 +299,8 @@ public class ESUtils {
         final Resource mainRes = m.createResource(Models.BDR+main_lname);
         final StmtIterator si = m.listStatements(mainRes, null, (RDFNode) null);
         if (main_lname.startsWith("MW")) {
-            doc.put("scans_access", 0);
-            doc.put("etext_access", 0);
+            doc.put("scans_access", 1);
+            doc.put("etext_access", 1);
         }
         while (si.hasNext()) {
             final Statement s = si.next();
@@ -523,13 +523,14 @@ public class ESUtils {
         return ds.getNamedModel(Models.BDG+r.getLocalName());
     }
     
+    // rank_features must be strictly positive (non-zero)
     // etext access:
-    //   0: no access
+    //   1: no access
     //   10: search only
     //   20: open access
 
     // scans access:
-    //   0: no access
+    //   1: no access
     //   5: extract only
     //   10: IA
     //   20: open access
@@ -542,6 +543,7 @@ public class ESUtils {
     final static Resource accessOpen = ResourceFactory.createProperty(Models.BDA+"AccessOpen");
     final static Resource accessFairUse = ResourceFactory.createProperty(Models.BDA+"AccessFairUse");
     final static Property volumePagesTotal = ResourceFactory.createProperty(Models.BDO+"volumePagesTotal");
+    final static Property hasIIIFManifest = ResourceFactory.createProperty(Models.BDO+"hasIIIFManifest");
     static void add_access(final Model m, final ObjectNode doc) {
         if (m.contains(null, restrictedInChina, m.createTypedLiteral(true)))
             doc.put("ric", true);
@@ -556,14 +558,15 @@ public class ESUtils {
                     break;
                 }
             }
-            if (!hasVolumeWithImages) {
+            if (!hasVolumeWithImages)
+                hasVolumeWithImages = m.contains(null, hasIIIFManifest, (RDFNode) null);
+            if (!hasVolumeWithImages)
                 return;
-            }
             JsonNode current_accessN = doc.get("scans_access");
-            int current_access = 0;
+            int current_access = 1;
             if (current_accessN != null)
                 current_access = current_accessN.asInt();
-            int new_access = 0;
+            int new_access = 1;
             if (m.contains(null, access, accessOpen)) {
                 new_access = 20;
             } else if (m.contains(null, access, accessFairUse)) {
@@ -572,7 +575,7 @@ public class ESUtils {
                 else
                     new_access = 10;
             } else {
-                new_access = 0;
+                new_access = 1;
             }
             if (new_access > current_access) {
                 doc.put("scans_access", new_access);
@@ -580,16 +583,16 @@ public class ESUtils {
         } else if (m.contains(null, RDF.type, etextInstance)) {
             // TODO: export access of openpecha
             JsonNode current_accessN = doc.get("etext_access");
-            int current_access = 0;
+            int current_access = 1;
             if (current_accessN != null)
                 current_access = current_accessN.asInt();
-            int new_access = 0;
+            int new_access = 1;
             if (m.contains(null, access, accessOpen)) {
                 new_access = 20;
             } else if (m.contains(null, access, accessFairUse)) {
                 new_access = 10;
             } else {
-                new_access = 0;
+                new_access = 1;
             }
             if (new_access > current_access) {
                 doc.put("etext_access", new_access);
