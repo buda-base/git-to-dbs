@@ -146,17 +146,17 @@ public class ESUtils {
     private static final Map<Property, PropInfo> propInfoMap = new HashMap<>();
     static {
         // General properties
-        propInfoMap.put(RDF.type, new PropInfo(PT_RES_ONLY, null, null));
+        propInfoMap.put(RDF.type, new PropInfo(PT_RES_ONLY, "type", null));
         propInfoMap.put(SKOS.prefLabel, new PropInfo(PT_DIRECT, "prefLabel", null));
         propInfoMap.put(SKOS.altLabel, new PropInfo(PT_DIRECT, "altLabel", null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BF, "inCollection"), new PropInfo(PT_RES_ONLY, null, null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BF, "inCollection"), new PropInfo(PT_RES_ONLY, "inCollection", null));
         propInfoMap.put(SKOS.definition, new PropInfo(PT_DIRECT, "comment", null));
         propInfoMap.put(RDFS.comment, new PropInfo(PT_DIRECT, "comment", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "note"), new PropInfo(PT_SPECIAL, "comment", ResourceFactory.createProperty(Models.BDO, "noteText")));
 
         // Person properties
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "associatedTradition"), new PropInfo(PT_RES_ONLY, null, null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "personGender"), new PropInfo(PT_RES_ONLY, null, null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "associatedTradition"), new PropInfo(PT_RES_ONLY, "associatedTradition", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "personGender"), new PropInfo(PT_RES_ONLY, "personGender", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "personName"), new PropInfo(PT_SPECIAL, "altLabel", RDFS.label));
         
         // MW properties
@@ -167,10 +167,10 @@ public class ESUtils {
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "instanceHasReproduction"), new PropInfo(PT_MERGE, null, null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "authorshipStatement"), new PropInfo(PT_DIRECT, "authorshipStatement", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "biblioNote"), new PropInfo(PT_DIRECT, "comment", null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "hasSourcePrintery"), new PropInfo(PT_RES_ONLY, null, null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "hasSourcePrintery"), new PropInfo(PT_RES_ONLY, "hasSourcePrintery", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "hasTitle"), new PropInfo(PT_SPECIAL, "altLabel", RDFS.label));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "printMethod"), new PropInfo(PT_RES_ONLY, null, RDFS.label));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "script"), new PropInfo(PT_RES_ONLY, null, RDFS.label));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "printMethod"), new PropInfo(PT_RES_ONLY, "printMethod", RDFS.label));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "script"), new PropInfo(PT_RES_ONLY, "script", RDFS.label));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "publisherName"), new PropInfo(PT_DIRECT, "publisherName", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "incipit"), new PropInfo(PT_DIRECT, "comment", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "colophon"), new PropInfo(PT_DIRECT, "comment", null));
@@ -181,10 +181,10 @@ public class ESUtils {
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "etextInfo"), new PropInfo(PT_DIRECT, "comment", null));
         
         // WA properties
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "catalogInfo"), new PropInfo(PT_DIRECT, "comment", null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "language"), new PropInfo(PT_RES_ONLY, null, null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workIsAbout"), new PropInfo(PT_LABEL_EXT, "comment", null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workGenre"), new PropInfo(PT_LABEL_EXT, "comment", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "catalogInfo"), new PropInfo(PT_DIRECT, "summary", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "language"), new PropInfo(PT_RES_ONLY, "language", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workIsAbout"), new PropInfo(PT_LABEL_EXT, "workIsAbout", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workGenre"), new PropInfo(PT_LABEL_EXT, "workGenre", null));
         
         // MW in outlines properties
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "inRootInstance"), new PropInfo(PT_RES_ONLY, "inRootInstance", null));
@@ -324,14 +324,14 @@ public class ESUtils {
                 add_from_ont_label(pinfo, s.getResource(), doc);
                 break;
             case PT_LABEL_EXT:
-                add_associated(s.getResource(), doc);
+                add_associated(s.getResource(), pinfo.key_base, doc);
                 add_ext_prefLabel(pinfo, s.getResource(), doc);
                 break;
             case PT_SPECIAL:
                 add_special(pinfo, s.getResource(), doc);
                 break;
             case PT_RES_ONLY:
-                add_associated(s.getResource(), doc);
+                add_associated(s.getResource(), pinfo.key_base, doc);
                 break;
             case PT_MERGE:
                 add_merged(s.getResource(), doc);
@@ -458,11 +458,11 @@ public class ESUtils {
             arrayNode.add(normalized[0]);
     }
     
-    static void add_associated(final Resource r, final ObjectNode doc) {
-        if (!doc.has("associated_res"))
-            doc.set("associated_res", doc.arrayNode());
-        if (!has_value_in_key(doc, "associated_res", r.getLocalName()))
-            ((ArrayNode) doc.get("associated_res")).add(r.getLocalName());
+    static void add_associated(final Resource r, final String prop, final ObjectNode doc) {
+        if (!doc.has(prop))
+            doc.set(prop, doc.arrayNode());
+        if (!has_value_in_key(doc, prop, r.getLocalName()))
+            ((ArrayNode) doc.get(prop)).add(r.getLocalName());
     }
     
     public final static Map<String, DocType> prefixToDocType = new HashMap<>();
@@ -526,15 +526,15 @@ public class ESUtils {
     // rank_features must be strictly positive (non-zero)
     // etext access:
     //   1: no access
-    //   1000: search only
-    //   2000: open access
+    //   2: search only
+    //   3: open access
 
     // scans access:
     //   1: no access
-    //   500: extract only
-    //   1000: IA
-    //   1500: open access through IIIF
-    //   2000: open access on BDRC
+    //   2: extract only
+    //   3: IA
+    //   4: open access through IIIF
+    //   5: open access on BDRC
     
     final static Resource imageInstance = ResourceFactory.createResource(Models.BDO+"ImageInstance");
     final static Resource etextInstance = ResourceFactory.createResource(Models.BDO+"EtextInstance");
@@ -572,12 +572,12 @@ public class ESUtils {
                 current_access = current_accessN.asInt();
             int new_access = 1;
             if (m.contains(null, access, accessOpen)) {
-                new_access = hasIiif ? 15 : 20;
+                new_access = hasIiif ? 4 : 5;
             } else if (m.contains(null, access, accessFairUse)) {
                 if (m.contains(null, digitalLendingPossible, m.createTypedLiteral(false)))
-                    new_access = 5;
+                    new_access = 2;
                 else
-                    new_access = 10;
+                    new_access = 3;
             } else {
                 new_access = 1;
             }
@@ -592,9 +592,9 @@ public class ESUtils {
                 current_access = current_accessN.asInt();
             int new_access = 1;
             if (m.contains(null, access, accessOpen)) {
-                new_access = 20;
+                new_access = 3;
             } else if (m.contains(null, access, accessFairUse)) {
-                new_access = 10;
+                new_access = 2;
             } else {
                 new_access = 1;
             }
@@ -614,7 +614,7 @@ public class ESUtils {
             return;
         // TODO: get max for publication date?
         add_access(m, doc);
-        add_associated(r, doc);
+        add_associated(r, "merged", doc);
         addModelToESDoc(m, doc, r.getLocalName(), false);
     }
     
@@ -623,7 +623,7 @@ public class ESUtils {
     }
     
     static void add_from_ont_label(final PropInfo pinfo, final Resource r, final ObjectNode doc) {
-        add_associated(r, doc);
+        add_associated(r, pinfo.key_base, doc);
         final Model ont = TransferHelpers.ontModel;
         Property labelP = SKOS.prefLabel;
         if (ont.contains(r, RDFS.label))
@@ -662,7 +662,7 @@ public class ESUtils {
         if (key_base == null) return;
         final Resource agent = creatorNode.getPropertyResourceValue(ResourceFactory.createProperty(Models.BDO, "agent"));
         if (agent == null) return;
-        add_associated(agent, doc);
+        add_associated(agent, key_base+"_res", doc);
         final List<String[]> agentLabels = creator_res_to_labels(agent);
         if (agentLabels == null) return;
         for (final String[] norm : agentLabels)
