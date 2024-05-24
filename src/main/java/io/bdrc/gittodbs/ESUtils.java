@@ -148,6 +148,7 @@ public class ESUtils {
         // General properties
         propInfoMap.put(RDF.type, new PropInfo(PT_RES_ONLY, "type", null));
         propInfoMap.put(SKOS.prefLabel, new PropInfo(PT_DIRECT, "prefLabel", null));
+        propInfoMap.put(RDFS.label, new PropInfo(PT_DIRECT, "prefLabel", null));
         propInfoMap.put(SKOS.altLabel, new PropInfo(PT_DIRECT, "altLabel", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BF, "inCollection"), new PropInfo(PT_RES_ONLY, "inCollection", null));
         propInfoMap.put(SKOS.definition, new PropInfo(PT_DIRECT, "comment", null));
@@ -324,7 +325,7 @@ public class ESUtils {
                 add_from_ont_label(pinfo, s.getResource(), doc);
                 break;
             case PT_LABEL_EXT:
-                add_associated(s.getResource(), pinfo.key_base, doc);
+                add_associated(s.getResource(), pinfo.key_base+"_res", doc);
                 add_ext_prefLabel(pinfo, s.getResource(), doc);
                 break;
             case PT_SPECIAL:
@@ -545,10 +546,50 @@ public class ESUtils {
     final static Resource accessFairUse = ResourceFactory.createProperty(Models.BDA+"AccessFairUse");
     final static Property volumePagesTotal = ResourceFactory.createProperty(Models.BDO+"volumePagesTotal");
     final static Property hasIIIFManifest = ResourceFactory.createProperty(Models.BDO+"hasIIIFManifest");
+    final static Resource Synced = ResourceFactory.createResource(Models.ADM+"Synced");
+    final static Resource LGIGS001 = ResourceFactory.createResource(Models.BDA+"LGIGS001");
+    final static Resource LGIGS002 = ResourceFactory.createResource(Models.BDA+"LGIGS002");
+    final static Resource LGIGS003 = ResourceFactory.createResource(Models.BDA+"LGIGS003");
+    final static Property logDate = ResourceFactory.createProperty(Models.ADM+"logDate");
+    final static Property logEntry = ResourceFactory.createProperty(Models.ADM+"logEntry");
+    
+    static String get_first_sync_date(final Model m) {
+        String firstSyncDate = null;
+        if (m.contains(null, logEntry, LGIGS001) || m.contains(null, logEntry, LGIGS002) || m.contains(null, logEntry, LGIGS003))
+            return "2016-03-30T16:20:30.571Z";
+        final StmtIterator si = m.listStatements(null, RDF.type, Synced);
+        while (si.hasNext()) {
+            final Resource le = si.next().getSubject();
+            final Statement n = le.getProperty(logDate);
+            if (n != null) {
+                final String dateStr = n.getLiteral().getLexicalForm();
+                if (firstSyncDate == null)
+                    firstSyncDate = dateStr;
+                else
+                    firstSyncDate = firstSyncDate.compareTo(dateStr) < 0 ? firstSyncDate : dateStr;
+            }
+        }
+        return firstSyncDate;
+    }
+    
+    final static void add_first_sync_date(final Model m, final ObjectNode doc, final String key) {
+        final String modelFirstSyncDate = get_first_sync_date(m);
+        if (modelFirstSyncDate == null) return;
+        if (!doc.has(key)) {
+            doc.put(key, modelFirstSyncDate);
+            return;
+        }
+        final String docFirstSyncDate = doc.get(key).asText();
+        if (docFirstSyncDate.compareTo(modelFirstSyncDate) < 0)
+            return;
+        doc.put(key, modelFirstSyncDate);
+    }
+
     static void add_access(final Model m, final ObjectNode doc) {
         if (m.contains(null, restrictedInChina, m.createTypedLiteral(true)))
             doc.put("ric", true);
         if (m.contains(null, RDF.type, imageInstance)) {
+            add_first_sync_date(m, doc, "firstScanSyncDate");
             // check if there is at least one volume with images
             final NodeIterator ni = m.listObjectsOfProperty(volumePagesTotal);
             boolean hasVolumeWithImages = false;
