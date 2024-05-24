@@ -7,6 +7,7 @@
       "graphs":  { "type": "keyword"  },
       "other_id":  { "type": "keyword" },
       "publicationDate": {"type": "date", "format" : "date_optional_time", "doc_values": true, "ignore_malformed": true },
+      "firstScanSyncDate": {"type": "date", "format" : "date_optional_time", "doc_values": true, "ignore_malformed": true },
       "db_score": { "type": "rank_feature" },
       "pop_score": { "type": "rank_feature" },
       "inRootInstance":   { "type": "keyword" },
@@ -50,7 +51,7 @@
       "altLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
       "altLabel_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
       "author_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
-      "translator_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
+      "translator_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" }
     }
   },
   "settings": {
