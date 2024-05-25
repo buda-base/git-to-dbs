@@ -74,6 +74,7 @@ public class ESUtils {
     final static int PT_RES_ANCESTORS = 9; // only record object rid in the associated resources array but also record ancestors
     final static int PT_TYPED_LABEL = 6; // property like hasTitle or personName
     final static int PT_SPECIAL = 7; // property like hasTitle or personName
+    final static int PT_NESTED = 10; // property like hasTitle or personName
     
     final static class PropInfo {
         int pt;
@@ -184,8 +185,8 @@ public class ESUtils {
         // WA properties
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "catalogInfo"), new PropInfo(PT_DIRECT, "summary", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "language"), new PropInfo(PT_RES_ONLY, "language", null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workIsAbout"), new PropInfo(PT_LABEL_EXT, "workIsAbout", null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workGenre"), new PropInfo(PT_LABEL_EXT, "workGenre", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workIsAbout"), new PropInfo(PT_NESTED, "workIsAbout", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workGenre"), new PropInfo(PT_NESTED, "workGenre", null));
         
         // MW in outlines properties
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "inRootInstance"), new PropInfo(PT_RES_ONLY, "inRootInstance", null));
@@ -268,12 +269,12 @@ public class ESUtils {
     }
     
     
-    static void add_ext_prefLabel(PropInfo pinfo, Resource res, ObjectNode doc) {
+    static void add_ext_prefLabel(final String key, Resource res, ObjectNode doc) {
         final List<String[]> norms = res_to_prefLabels(res);
         if (norms == null)
             return;
         for (final String[] norm : norms)
-            add_normalized_to_key(pinfo.key_base, norm, doc);
+            add_normalized_to_key(key, norm, doc);
     }
     
     
@@ -321,12 +322,12 @@ public class ESUtils {
             case PT_DIRECT:
                 add_direct(pinfo, s.getLiteral(), doc);
                 break;
-            case PT_LABEL_ONT:
-                add_from_ont_label(pinfo, s.getResource(), doc);
+            case PT_NESTED:
+                add_nested(s.getResource(), pinfo.key_base, doc, false);
                 break;
             case PT_LABEL_EXT:
                 add_associated(s.getResource(), pinfo.key_base+"_res", doc);
-                add_ext_prefLabel(pinfo, s.getResource(), doc);
+                add_ext_prefLabel(pinfo.key_base, s.getResource(), doc);
                 break;
             case PT_SPECIAL:
                 add_special(pinfo, s.getResource(), doc);
@@ -345,6 +346,33 @@ public class ESUtils {
         if (add_admin)
             add_admin_to_doc(m.createResource(Models.BDA+main_lname), doc);
         post_process_labels(doc);
+    }
+    
+    static void add_nested(final Resource r, final String key, final ObjectNode doc, final boolean from_creators_cache) {
+        // first check if r is already in the property so we don't add it twice:
+        final String rlocal = r.getLocalName();
+        ArrayNode vals = null;
+        if (doc.has(key) && doc.get(key).isArray()) {
+            vals = (ArrayNode) doc.get(key);
+            for (JsonNode element : vals) {
+                if (element.has("id") && element.get("id").asText().equals(rlocal)) {
+                    return;
+                }
+            }
+        } else {
+            vals = doc.arrayNode();
+            doc.set(key, vals);
+        }
+        ObjectNode val = doc.objectNode();
+        val.put("id", rlocal);
+        if (from_creators_cache) {
+            final List<String[]> agentLabels = creator_res_to_labels(r);
+            if (agentLabels == null) return;
+            for (final String[] norm : agentLabels)
+                add_normalized_to_key("prefLabel", norm, val);
+        }
+        vals.add(val);
+        add_ext_prefLabel("prefLabel", r, val);
     }
     
     //static void add_outline_model_to_doc()
@@ -385,7 +413,6 @@ public class ESUtils {
                 break;
             }
         }
-        // TODO: add latest_scans_sync_date, latest_etext_sync_date
     }
     
     static boolean has_value_in_key(final ObjectNode doc, final String key, final String value) {
@@ -703,11 +730,7 @@ public class ESUtils {
         if (key_base == null) return;
         final Resource agent = creatorNode.getPropertyResourceValue(ResourceFactory.createProperty(Models.BDO, "agent"));
         if (agent == null) return;
-        add_associated(agent, key_base+"_res", doc);
-        final List<String[]> agentLabels = creator_res_to_labels(agent);
-        if (agentLabels == null) return;
-        for (final String[] norm : agentLabels)
-            add_normalized_to_key(key_base, norm, doc);
+        add_nested(agent, key_base, doc, true);
     }
     
     static void save_as_json(final ObjectNode doc, final String filePath) {
@@ -892,13 +915,13 @@ public class ESUtils {
         if (!model.contains(null, status, statusReleased))
             return; // TODO: remove?
         final String rev = GitHelpers.getLastRefOfFile(type, filePath);
+        // TODO: add rev?
         if (type == DocType.OUTLINE) {
             upload_outline(mainId, model);
             return;
         }
         ObjectNode root = om.createObjectNode();
         addModelToESDoc(model, root, mainId, true);
-        // TODO: compute an access value for MWs based on their reproductions
         upload(root, mainId, type);
     }
     
