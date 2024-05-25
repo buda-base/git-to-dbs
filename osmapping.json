@@ -30,7 +30,7 @@
       "workGenre": {
         "type": "nested",
         "properties": {
-          "id": "keyword",
+          "id": { "type": "keyword" },
           "prefLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
           "prefLabel_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" }
         }
@@ -38,7 +38,7 @@
       "workIsAbout": {
         "type": "nested",
         "properties": {
-          "id": "keyword",
+          "id": { "type": "keyword" },
           "prefLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
           "prefLabel_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" }
         }
@@ -46,7 +46,7 @@
       "author": {
         "type": "nested",
         "properties": {
-          "id": "keyword",
+          "id": { "type": "keyword" },
           "prefLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
           "prefLabel_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" }
         }
@@ -54,7 +54,7 @@
       "translator": {
         "type": "nested",
         "properties": {
-          "id": "keyword",
+          "id": { "type": "keyword" },
           "prefLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
           "prefLabel_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" }
         }
@@ -75,7 +75,7 @@
       "comment_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
       "comment_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
       "altLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
-      "altLabel_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
+      "altLabel_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" }
     }
   },
   "settings": {
