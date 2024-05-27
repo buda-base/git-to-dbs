@@ -31,32 +31,104 @@
         "type": "nested",
         "properties": {
           "id": { "type": "keyword" },
-          "prefLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
-          "prefLabel_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" }
+          "prefLabel_bo_x_ewts": { 
+            "type": "text", 
+            "analyzer": "tibetan-ewts-lenient" , 
+            "index_options": "offsets",
+            "fields": {
+              "keyword": { 
+                "type": "keyword"
+              }
+            } 
+          },
+          "prefLabel_en": { 
+            "type": "text",
+            "analyzer": "english-lenient" ,
+            "index_options": "offsets",
+            "fields": {
+              "keyword": { 
+                "type": "keyword"
+              }
+            }
+          }
         }
       },
       "workIsAbout": {
         "type": "nested",
         "properties": {
           "id": { "type": "keyword" },
-          "prefLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
-          "prefLabel_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" }
+          "prefLabel_bo_x_ewts": { 
+            "type": "text", 
+            "analyzer": "tibetan-ewts-lenient" , 
+            "index_options": "offsets",
+            "fields": {
+              "keyword": { 
+                "type": "keyword"
+              }
+            } 
+          },
+          "prefLabel_en": { 
+            "type": "text",
+            "analyzer": "english-lenient" ,
+            "index_options": "offsets",
+            "fields": {
+              "keyword": { 
+                "type": "keyword"
+              }
+            }
+          }
         }
       },
       "author": {
         "type": "nested",
         "properties": {
           "id": { "type": "keyword" },
-          "prefLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
-          "prefLabel_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" }
+          "prefLabel_bo_x_ewts": { 
+            "type": "text", 
+            "analyzer": "tibetan-ewts-lenient" , 
+            "index_options": "offsets",
+            "fields": {
+              "keyword": { 
+                "type": "keyword"
+              }
+            } 
+          },
+          "prefLabel_en": { 
+            "type": "text",
+            "analyzer": "english-lenient" ,
+            "index_options": "offsets",
+            "fields": {
+              "keyword": { 
+                "type": "keyword"
+              }
+            }
+          }
         }
       },
       "translator": {
         "type": "nested",
         "properties": {
           "id": { "type": "keyword" },
-          "prefLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
-          "prefLabel_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" }
+          "prefLabel_bo_x_ewts": { 
+            "type": "text", 
+            "analyzer": "tibetan-ewts-lenient" , 
+            "index_options": "offsets",
+            "fields": {
+              "keyword": { 
+                "type": "keyword"
+              }
+            } 
+          },
+          "prefLabel_en": { 
+            "type": "text",
+            "analyzer": "english-lenient" ,
+            "index_options": "offsets",
+            "fields": {
+              "keyword": { 
+                "type": "keyword"
+              }
+            }
+          }
         }
       },
       "seriesName_res":  {"type": "keyword" },

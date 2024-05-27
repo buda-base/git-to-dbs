@@ -1,0 +1,94 @@
+GET bdrc_prod/_search
+{
+  "from": 0,
+  "size": 0,
+  "aggs": {
+    "workIsAbout": {
+      "nested": { "path": "workIsAbout" },
+      "aggs": {
+        "test": { 
+          "composite": {
+            "sources": 
+            [ 
+              { "id": { "terms": { "field": "workIsAbout.id" } } },
+              { "prefLabel_en": { "terms": { "field": "workIsAbout.prefLabel_en.keyword", "missing_bucket": true } } },
+              { "prefLabel_bo_x_ewts": { "terms": { "field": "workIsAbout.prefLabel_bo_x_ewts.keyword" } } }
+            ] 
+          }
+        }
+      }
+    },
+    "workGenre": {
+      "nested": { "path": "workGenre" },
+      "aggs": {
+        "test": { 
+          "composite": {
+            "sources": 
+            [ 
+              { "id": { "terms": { "field": "workGenre.id" } } },
+              { "prefLabel_en": { "terms": { "field": "workGenre.prefLabel_en.keyword", "missing_bucket": true } } },
+              { "prefLabel_bo_x_ewts": { "terms": { "field": "workGenre.prefLabel_bo_x_ewts.keyword" } } }
+            ] 
+          }
+        }
+      }
+    },
+    "author": {
+      "nested": { "path": "author" },
+      "aggs": {
+        "test": { 
+          "composite": {
+            "sources": 
+            [ 
+              { "id": { "terms": { "field": "author.id" } } },
+              { "prefLabel_en": { "terms": { "field": "author.prefLabel_en.keyword", "missing_bucket": true } } },
+              { "prefLabel_bo_x_ewts": { "terms": { "field": "author.prefLabel_bo_x_ewts.keyword" } } }
+            ] 
+          }
+        }
+      }
+    },
+    "translator": {
+      "nested": { "path": "translator" },
+      "aggs": {
+        "test": { 
+          "composite": {
+            "sources": 
+            [ 
+              { "id": { "terms": { "field": "translator.id" } } },
+              { "prefLabel_en": { "terms": { "field": "translator.prefLabel_en.keyword", "missing_bucket": true } } },
+              { "prefLabel_bo_x_ewts": { "terms": { "field": "translator.prefLabel_bo_x_ewts.keyword" } } }
+            ] 
+          }
+        }
+      }
+    }
+  },
+  "highlight": {
+    "fields": {
+      "prefLabel_bo_x_ewts": {}
+    }
+  },
+  "query": {
+    "multi_match": {
+      "type": "phrase",
+      "query": "spyod 'jug",
+      "fields": [
+        "seriesName_bo_x_ewts",
+        "seriesName_en",
+        "authorshipStatement_bo_x_ewts",
+        "authorshipStatement_en",
+        "publisherName_bo_x_ewts",
+        "publisherLocation_bo_x_ewts",
+        "publisherName_en",
+        "publisherLocation_en",
+        "prefLabel_bo_x_ewts",
+        "prefLabel_en",
+        "comment_bo_x_ewts",
+        "comment_en",
+        "altLabel_bo_x_ewts",
+        "altLabel_en"
+      ]
+    }
+  }
+}
