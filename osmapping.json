@@ -19,8 +19,6 @@
       "printMethod": { "type": "keyword" },
       "script": { "type": "keyword" },
       "language": { "type": "keyword" },
-      "author_res":   { "type": "keyword" },
-      "translator_res":   { "type": "keyword" },
       "ric":   { "type": "boolean" },
       "partOf":   { "type": "keyword" },
       "partType":   { "type": "keyword" },

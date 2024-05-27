@@ -3,6 +3,36 @@ GET bdrc_prod/_search
   "from": 0,
   "size": 0,
   "aggs": {
+    "type": {
+      "terms": {
+        "field": "type"
+      }
+    },
+    "inCollection": {
+      "terms": {
+        "field": "inCollection"
+      }
+    },
+    "associatedTradition": {
+      "terms": {
+        "field": "associatedTradition"
+      }
+    },
+    "personGender": {
+      "terms": {
+        "field": "personGender"
+      }
+    },
+    "printMethod": {
+      "terms": {
+        "field": "printMethod"
+      }
+    },
+    "script": {
+      "terms": {
+        "field": "script"
+      }
+    },
     "workIsAbout": {
       "nested": { "path": "workIsAbout" },
       "aggs": {
