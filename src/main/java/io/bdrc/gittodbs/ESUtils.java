@@ -297,7 +297,7 @@ public class ESUtils {
         return new String[] {lexr, lt};
     }
     
-    static void addModelToESDoc(final Model m, final ObjectNode doc, final String main_lname, boolean add_admin) {
+    static void addModelToESDoc(final Model m, final ObjectNode doc, final String main_lname, boolean add_admin, boolean add_type) {
         final Resource mainRes = m.createResource(Models.BDR+main_lname);
         final StmtIterator si = m.listStatements(mainRes, null, (RDFNode) null);
         if (main_lname.startsWith("MW")) {
@@ -318,6 +318,8 @@ public class ESUtils {
                     add_creator(s.getResource(), doc);
                 continue;
             }
+            if (pinfo.key_base.equals("type") && !add_type)
+                continue; 
             switch (pinfo.pt) {
             case PT_DIRECT:
                 add_direct(pinfo, s.getLiteral(), doc);
@@ -683,7 +685,7 @@ public class ESUtils {
         // TODO: get max for publication date?
         add_access(m, doc);
         add_associated(r, "merged", doc);
-        addModelToESDoc(m, doc, r.getLocalName(), false);
+        addModelToESDoc(m, doc, r.getLocalName(), false, false);
     }
     
     static void add_direct(final PropInfo pinfo, final Literal l, final ObjectNode doc) {
@@ -904,7 +906,7 @@ public class ESUtils {
             if (!root.has("graphs"))
                 root.set("graphs", root.arrayNode());
             ((ArrayNode) root.get("graphs")).add(olname);
-            addModelToESDoc(parent.getModel(), root, child.getLocalName(), false);
+            addModelToESDoc(parent.getModel(), root, child.getLocalName(), false, true);
             upload(root, child.getLocalName(), DocType.OUTLINE);
         }
     }
@@ -921,7 +923,7 @@ public class ESUtils {
             return;
         }
         ObjectNode root = om.createObjectNode();
-        addModelToESDoc(model, root, mainId, true);
+        addModelToESDoc(model, root, mainId, true, true);
         upload(root, mainId, type);
     }
     
