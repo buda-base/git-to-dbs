@@ -185,8 +185,8 @@ public class ESUtils {
         // WA properties
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "catalogInfo"), new PropInfo(PT_DIRECT, "summary", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "language"), new PropInfo(PT_RES_ONLY, "language", null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workIsAbout"), new PropInfo(PT_NESTED, "workIsAbout", null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workGenre"), new PropInfo(PT_NESTED, "workGenre", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workIsAbout"), new PropInfo(PT_RES_ONLY, "workIsAbout", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workGenre"), new PropInfo(PT_RES_ONLY, "workGenre", null));
         
         // MW in outlines properties
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "inRootInstance"), new PropInfo(PT_RES_ONLY, "inRootInstance", null));
@@ -732,7 +732,7 @@ public class ESUtils {
         if (key_base == null) return;
         final Resource agent = creatorNode.getPropertyResourceValue(ResourceFactory.createProperty(Models.BDO, "agent"));
         if (agent == null) return;
-        add_nested(agent, key_base, doc, true);
+        add_associated(agent, key_base, doc);
     }
     
     static void save_as_json(final ObjectNode doc, final String filePath) {

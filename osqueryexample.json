@@ -34,66 +34,25 @@ GET bdrc_prod/_search
       }
     },
     "workIsAbout": {
-      "nested": { "path": "workIsAbout" },
-      "aggs": {
-        "test": { 
-          "composite": {
-            "sources": 
-            [ 
-              { "id": { "terms": { "field": "workIsAbout.id" } } },
-              { "prefLabel_en": { "terms": { "field": "workIsAbout.prefLabel_en.keyword", "missing_bucket": true } } },
-              { "prefLabel_bo_x_ewts": { "terms": { "field": "workIsAbout.prefLabel_bo_x_ewts.keyword", "missing_bucket": true } } }
-            ] 
-          }
-        }
+      "terms": {
+        "field": "workIsAbout"
       }
     },
     "workGenre": {
-      "nested": { "path": "workGenre" },
-      "aggs": {
-        "test": { 
-          "composite": {
-            "sources": 
-            [ 
-              { "id": { "terms": { "field": "workGenre.id" } } },
-              { "prefLabel_en": { "terms": { "field": "workGenre.prefLabel_en.keyword", "missing_bucket": true } } },
-              { "prefLabel_bo_x_ewts": { "terms": { "field": "workGenre.prefLabel_bo_x_ewts.keyword", "missing_bucket": true } } }
-            ] 
-          }
-        }
+      "terms": {
+        "field": "workGenre"
       }
     },
     "author": {
-      "nested": { "path": "author" },
-      "aggs": {
-        "test": { 
-          "composite": {
-            "sources": 
-            [ 
-              { "id": { "terms": { "field": "author.id" } } },
-              { "prefLabel_en": { "terms": { "field": "author.prefLabel_en.keyword", "missing_bucket": true } } },
-              { "prefLabel_bo_x_ewts": { "terms": { "field": "author.prefLabel_bo_x_ewts.keyword", "missing_bucket": true } } }
-            ] 
-          }
-        }
+      "terms": {
+        "field": "author"
       }
     },
     "translator": {
-      "nested": { "path": "translator" },
-      "aggs": {
-        "test": { 
-          "composite": {
-            "sources": 
-            [ 
-              { "id": { "terms": { "field": "translator.id" } } },
-              { "prefLabel_en": { "terms": { "field": "translator.prefLabel_en.keyword", "missing_bucket": true } } },
-              { "prefLabel_bo_x_ewts": { "terms": { "field": "translator.prefLabel_bo_x_ewts.keyword", "missing_bucket": true } } }
-            ] 
-          }
-        }
+      "terms": {
+        "field": "translator"
       }
-    }
-  },
+    },
   "highlight": {
     "fields": {
       "prefLabel_bo_x_ewts": {},
