@@ -29,7 +29,7 @@ public class ESTest {
         final Model m = TransferHelpers.modelFromPath(path, type, graph_lname);
         //final ObjectNode ref = mapper.readValue(Paths.get(ref_json_path).toFile(), ObjectNode.class);
         ObjectNode root = ESUtils.om.createObjectNode();
-        ESUtils.addModelToESDoc(m, root, graph_lname, true);
+        ESUtils.addModelToESDoc(m, root, graph_lname, true, true);
         System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root));
         //assert(ref.equals(root));
     }
