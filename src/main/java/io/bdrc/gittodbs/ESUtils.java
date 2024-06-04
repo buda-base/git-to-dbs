@@ -318,7 +318,7 @@ public class ESUtils {
                     add_creator(s.getResource(), doc);
                 continue;
             }
-            if (pinfo.key_base.equals("type") && !add_type)
+            if ("type".equals(pinfo.key_base) && !add_type)
                 continue; 
             switch (pinfo.pt) {
             case PT_DIRECT:
