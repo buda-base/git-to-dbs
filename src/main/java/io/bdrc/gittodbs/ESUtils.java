@@ -86,11 +86,20 @@ public class ESUtils {
             this.key_base = key_base;
             this.subProp = subProp;
         }
-        
     }
     
-    static Map<String,Integer> getScores(final String fname, final boolean scoreFirst) {
-        final Map<String,Integer> res = new HashMap<>();
+    static float transform_score(final int score, final int minScore, final int maxScore, final float[] range) {
+        float step1 = (score - minScore) / maxScore;
+        float multiplier = range[1] - range[0];
+        return range[0] + (multiplier * step1);
+    }
+    
+    static Map<String,Float[]> getScores(final String fname, final boolean scoreFirst, final float[] range) {
+        Integer maxScore = 0;
+        Integer minScore = -1;
+        final Map<String,Float[]> res = new HashMap<>();
+        final Map<String,Integer> lnameToScore = new HashMap<>();
+        final Map<String,Integer[]> prefixToMinMax = new HashMap<>();
         BufferedReader reader = null;
         final File f = new File(fname);
         if (f.isFile()) {
@@ -113,34 +122,52 @@ public class ESUtils {
                     continue;
                 final String scoreStr = scoreFirst ? linecomponents[0] : linecomponents[1];
                 final String lname = scoreFirst ? linecomponents[1] : linecomponents[0];
+                final String prefix = getTypePrefix(lname);
+                if (!prefixToMinMax.containsKey(prefix))
+                    prefixToMinMax.put(prefix, new Integer[] {0,-1});
+                Integer[] prefixMinMax = prefixToMinMax.get(prefix);
                 final Integer score = Integer.valueOf(scoreStr);
-                res.put(lname, score);
+                maxScore = Math.max(maxScore, score);
+                minScore = minScore == -1 ? score : Math.min(score,  minScore);
+                prefixMinMax[0] = prefixMinMax[0] == -1 ? score : Math.min(score,  prefixMinMax[0]);
+                prefixMinMax[1] = Math.max(score,  prefixMinMax[1]);
+                lnameToScore.put(lname, score);
             }
         } catch (IOException e) {
             logger.error("error reading "+fname, e);
         }
+        for (Map.Entry<String,Integer> e : lnameToScore.entrySet()) {
+            final String prefix = getTypePrefix(e.getKey());
+            final Integer[] prefixMinMax = prefixToMinMax.get(prefix);
+            final float scoreInPrefix = transform_score(e.getValue(), prefixMinMax[0], prefixMinMax[1], range);
+            final float globalScore = transform_score(e.getValue(), prefixMinMax[0], prefixMinMax[1], range);
+            final Float[] resForLname = new Float[2];
+            resForLname[0] = globalScore;
+            resForLname[1] = scoreInPrefix;
+            res.put(e.getKey(), resForLname);
+        }
         return res;
     }
     
-    final static Map<String,Integer> user_popularity_scores = getScores("user_popularity.csv", true);
-    final static Map<String,Integer> entity_scores = getScores("entityScores.csv", false);
+    final static Map<String,Float[]> user_popularity_scores = getScores("user_popularity.csv", true, new float[] {(float) 0.4, (float) 1.0});
+    final static Map<String,Float[]> entity_scores = getScores("entityScores.csv", false, new float[] {(float) 0.5, (float) 1.0});
     
     static void add_scores(final String lname, final ObjectNode doc) {
-        final Integer userpopscore = user_popularity_scores.get(lname);
+        final Float[] userpopscore = user_popularity_scores.get(lname);
         if (userpopscore != null) {
-            int initialuserpopscore = 0;
             final JsonNode initialuserpopscoreN = doc.get("pop_score");
-            if (initialuserpopscoreN != null)
-                initialuserpopscore = initialuserpopscoreN.asInt();
-            doc.put("pop_score", userpopscore+initialuserpopscore);
+            if (initialuserpopscoreN == null) {
+                doc.put("pop_score", userpopscore[0]);
+                doc.put("pop_score_in_type", userpopscore[1]);
+            }
         }
-        final Integer entityscore = entity_scores.get(lname);
+        final Float[] entityscore = entity_scores.get(lname);
         if (entityscore != null) {
-            int initialscore = 0;
             final JsonNode initialscoreN = doc.get("db_score");
-            if (initialscoreN != null)
-                initialscore = initialscoreN.asInt();
-            doc.put("db_score", userpopscore+initialscore);
+            if (initialscoreN == null) {
+                doc.put("db_score", entityscore[0]);
+                doc.put("db_score_in_type", entityscore[1]);
+            }
         }
     }
     
