@@ -94,6 +94,24 @@ public class ESUtils {
         return range[0] + (multiplier * step1);
     }
     
+    
+    // copied from editserv, should probably be moved to libraries
+    public static final List<String> entity_prefix_3 = Arrays.asList("WAS", "ITW", "PRA");
+    public static final List<String> entity_prefix_2 = Arrays.asList("WA", "MW", "PR", "IE", "UT", "IT", "VE");
+    public static final List<String> entity_prefix_1 = Arrays.asList("W", "P", "G", "R", "L", "C", "T", "I", "U", "V", "O");
+    public static final List<String> entitySubs = Arrays.asList("I", "UT", "V", "VE");
+    
+    public static String getTypePrefix(final String lname) {
+        if (lname.isEmpty()) return null;
+        if (lname.length() >= 3 && entity_prefix_3.contains(lname.substring(0,3)))
+            return lname.substring(0,3);
+        if (lname.length() >= 2 && entity_prefix_2.contains(lname.substring(0,2)))
+            return lname.substring(0,2);
+        if (entity_prefix_1.contains(lname.substring(0,1)))
+            return lname.substring(0,1);
+        return null;
+    }
+    
     static Map<String,Float[]> getScores(final String fname, final boolean scoreFirst, final float[] range) {
         Integer maxScore = 0;
         Integer minScore = -1;
@@ -539,23 +557,6 @@ public class ESUtils {
         prefixToDocType.put("C", DocType.CORPORATION);
         prefixToDocType.put("T", DocType.TOPIC);
         prefixToDocType.put("O", DocType.OUTLINE);
-    }
-    
-    // copied from editserv, should probably be moved to libraries
-    public static final List<String> entity_prefix_3 = Arrays.asList("WAS", "ITW", "PRA");
-    public static final List<String> entity_prefix_2 = Arrays.asList("WA", "MW", "PR", "IE", "UT", "IT", "VE");
-    public static final List<String> entity_prefix_1 = Arrays.asList("W", "P", "G", "R", "L", "C", "T", "I", "U", "V", "O");
-    public static final List<String> entitySubs = Arrays.asList("I", "UT", "V", "VE");
-    
-    public static String getTypePrefix(final String lname) {
-        if (lname.isEmpty()) return null;
-        if (lname.length() >= 3 && entity_prefix_3.contains(lname.substring(0,3)))
-            return lname.substring(0,3);
-        if (lname.length() >= 2 && entity_prefix_2.contains(lname.substring(0,2)))
-            return lname.substring(0,2);
-        if (entity_prefix_1.contains(lname.substring(0,1)))
-            return lname.substring(0,1);
-        return null;
     }
     
     static String lname_to_fpath(final String lname, DocType type) {
