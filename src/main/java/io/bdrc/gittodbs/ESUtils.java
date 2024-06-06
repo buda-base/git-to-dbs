@@ -196,7 +196,7 @@ public class ESUtils {
         propInfoMap.put(SKOS.prefLabel, new PropInfo(PT_DIRECT, "prefLabel", null));
         propInfoMap.put(RDFS.label, new PropInfo(PT_DIRECT, "prefLabel", null));
         propInfoMap.put(SKOS.altLabel, new PropInfo(PT_DIRECT, "altLabel", null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BF, "inCollection"), new PropInfo(PT_RES_ONLY, "inCollection", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "inCollection"), new PropInfo(PT_RES_ONLY, "inCollection", null));
         propInfoMap.put(SKOS.definition, new PropInfo(PT_DIRECT, "comment", null));
         propInfoMap.put(RDFS.comment, new PropInfo(PT_DIRECT, "comment", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "note"), new PropInfo(PT_SPECIAL, "comment", ResourceFactory.createProperty(Models.BDO, "noteText")));
