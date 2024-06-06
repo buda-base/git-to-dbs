@@ -1,7 +1,6 @@
 package io.bdrc.gittodbs;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 
 import org.apache.jena.rdf.model.Model;
 import org.junit.BeforeClass;

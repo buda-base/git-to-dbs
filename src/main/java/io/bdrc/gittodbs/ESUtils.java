@@ -64,6 +64,8 @@ public class ESUtils {
     
     final static EwtsConverter ewtsc = new EwtsConverter();
     
+    final static String TMP = "http://purl.bdrc.io/ontology/tmp/";
+    
     // PT is property type
     final static int PT_DIRECT = 1; // simple direct property with a literal as object
     final static int PT_LABEL_ONT = 2; // property where the label of the object is in the ontology
@@ -303,6 +305,33 @@ public class ESUtils {
         return creatorsTraditionCache;
     }
     
+    static Map<String,List<Integer>> personsCenturyCache = null;
+    
+    static final void add_to_century_cache_fun(final QuerySolution qs, final Map<String,List<Integer>> cache) {
+        final String plname = qs.getResource("?p").getLocalName();
+        final Integer t = qs.getLiteral("?c").getInt();
+        if (!cache.containsKey(plname))
+            cache.put(plname, new ArrayList<>());
+        cache.get(plname).add(t);
+    }
+    
+    static Map<String,List<Integer>> getPersonsCenturyCache() {
+        if (personsCenturyCache != null)
+            return personsCenturyCache;
+        final String queryStr = "select ?p ?c where { ?p <"+TMP+"associatedCentury> ?c . })  }";
+        FusekiHelpers.openConnection(0);
+        final RDFConnection conn = FusekiHelpers.fuConn;
+        personsCenturyCache = new HashMap<>();
+        final Consumer<QuerySolution> add_to_cache = x -> add_to_century_cache_fun(x, personsCenturyCache);
+        try {
+            conn.querySelect(queryStr, add_to_cache);
+        } catch (Exception ex) {
+            logger.error("cannot run "+queryStr, ex);
+            return null;
+        }
+        return personsCenturyCache;
+    }
+    
     static List<String[]> creator_res_to_labels(final Resource res) {
         final Map<String,List<String[]>> cache = getCreatorsLabelCache();
         return cache.get(res.getLocalName());
@@ -375,6 +404,12 @@ public class ESUtils {
         if (main_lname.startsWith("MW")) {
             doc.put("scans_access", 1);
             doc.put("etext_access", 1);
+        }
+        if (main_lname.startsWith("P")) {
+            // add century for persons (not in the ttl data but from a cache)
+            final Map<String,List<Integer>> agentToCent = getPersonsCenturyCache();
+            if (agentToCent.containsKey(main_lname))
+                add_centuries(doc, agentToCent.get(main_lname));
         }
         while (si.hasNext()) {
             final Statement s = si.next();
@@ -496,6 +531,15 @@ public class ESUtils {
         // Check if the value is not already in the ArrayNode
         for (JsonNode node : arrayNode) {
             if (node.asText().equals(value))
+                return true;
+        }
+        return false;
+    }
+    
+    static boolean arraynode_has_value(final ArrayNode arrayNode, final Integer value) {
+        // Check if the value is not already in the ArrayNode
+        for (JsonNode node : arrayNode) {
+            if (node.asInt() == value)
                 return true;
         }
         return false;
@@ -787,6 +831,16 @@ public class ESUtils {
         roleLnameTokey.put("R0ER0027", "author");
     }
     
+    static void add_centuries(final ObjectNode doc, final List<Integer> cents) {
+        if (!doc.has("associatedCentury"))
+            doc.set("associatedCentury", doc.arrayNode());
+        final ArrayNode cs = (ArrayNode) doc.get("associatedCentury");
+        for (final Integer c : cents) {
+            if (!arraynode_has_value(cs, c))
+                cs.add(c);
+        }
+    }
+    
     static void add_creator(final Resource creatorNode, final ObjectNode doc) {
         final Resource role = creatorNode.getPropertyResourceValue(ResourceFactory.createProperty(Models.BDO, "role"));
         final String key_base = roleLnameTokey.get(role.getLocalName());
@@ -800,6 +854,11 @@ public class ESUtils {
             for (final String t : agentToTrad.get(agentLocal)) {
                 add_associated(t, "associatedTradition", doc);
             }
+        }
+        if ("author".equals(key_base)) {
+            final Map<String,List<Integer>> agentToCent = getPersonsCenturyCache();
+            if (agentToCent.containsKey(agentLocal))
+                add_centuries(doc, agentToCent.get(agentLocal));
         }
     }
     
@@ -984,7 +1043,7 @@ public class ESUtils {
     public static void upload(DocType type, String mainId, String filePath, Model model, String graphUri) {
         if (!model.contains(null, status, statusReleased))
             return; // TODO: remove?
-        final String rev = GitHelpers.getLastRefOfFile(type, filePath);
+        //final String rev = GitHelpers.getLastRefOfFile(type, filePath);
         // TODO: add rev?
         if (type == DocType.OUTLINE) {
             upload_outline(mainId, model);
