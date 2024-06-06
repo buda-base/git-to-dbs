@@ -318,7 +318,7 @@ public class ESUtils {
     static Map<String,List<Integer>> getPersonsCenturyCache() {
         if (personsCenturyCache != null)
             return personsCenturyCache;
-        final String queryStr = "select ?p ?c where { ?p <"+TMP+"associatedCentury> ?c . })  }";
+        final String queryStr = "select ?p ?c where { ?p <"+TMP+"associatedCentury> ?c }";
         FusekiHelpers.openConnection(0);
         final RDFConnection conn = FusekiHelpers.fuConn;
         personsCenturyCache = new HashMap<>();
