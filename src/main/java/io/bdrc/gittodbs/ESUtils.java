@@ -276,6 +276,33 @@ public class ESUtils {
         return creatorsLabelCache;
     }
     
+    static Map<String,List<String>> creatorsTraditionCache = null;
+    
+    static final void add_to_trad_cache_fun(final QuerySolution qs, final Map<String,List<String>> cache) {
+        final String plname = qs.getResource("?p").getLocalName();
+        final String t = qs.getResource("?t").getLocalName();
+        if (!cache.containsKey(plname))
+            cache.put(plname, new ArrayList<>());
+        cache.get(plname).add(t);
+    }
+    
+    static Map<String,List<String>> getCreatorsTraditionCache() {
+        if (creatorsTraditionCache != null)
+            return creatorsTraditionCache;
+        final String queryStr = "select ?p ?t where { ?p <"+Models.BDO+"associatedTradition> ?t . FILTER(exists{ ?wac <"+Models.BDO+"agent> ?p . })  }";
+        FusekiHelpers.openConnection(0);
+        final RDFConnection conn = FusekiHelpers.fuConn;
+        creatorsTraditionCache = new HashMap<>();
+        final Consumer<QuerySolution> add_to_cache = x -> add_to_trad_cache_fun(x, creatorsTraditionCache);
+        try {
+            conn.querySelect(queryStr, add_to_cache);
+        } catch (Exception ex) {
+            logger.error("cannot run "+queryStr, ex);
+            return null;
+        }
+        return creatorsTraditionCache;
+    }
+    
     static List<String[]> creator_res_to_labels(final Resource res) {
         final Map<String,List<String[]>> cache = getCreatorsLabelCache();
         return cache.get(res.getLocalName());
@@ -536,10 +563,14 @@ public class ESUtils {
     }
     
     static void add_associated(final Resource r, final String prop, final ObjectNode doc) {
+        add_associated(r.getLocalName(), prop, doc);
+    }
+    
+    static void add_associated(final String r, final String prop, final ObjectNode doc) {
         if (!doc.has(prop))
             doc.set(prop, doc.arrayNode());
-        if (!has_value_in_key(doc, prop, r.getLocalName()))
-            ((ArrayNode) doc.get(prop)).add(r.getLocalName());
+        if (!has_value_in_key(doc, prop, r))
+            ((ArrayNode) doc.get(prop)).add(r);
     }
     
     public final static Map<String, DocType> prefixToDocType = new HashMap<>();
@@ -763,6 +794,13 @@ public class ESUtils {
         final Resource agent = creatorNode.getPropertyResourceValue(ResourceFactory.createProperty(Models.BDO, "agent"));
         if (agent == null) return;
         add_associated(agent, key_base, doc);
+        final Map<String,List<String>> agentToTrad = getCreatorsTraditionCache();
+        final String agentLocal = agent.getLocalName();
+        if (agentToTrad.containsKey(agentLocal)) {
+            for (final String t : agentToTrad.get(agentLocal)) {
+                add_associated(t, "associatedTradition", doc);
+            }
+        }
     }
     
     static void save_as_json(final ObjectNode doc, final String filePath) {
