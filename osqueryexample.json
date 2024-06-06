@@ -23,6 +23,11 @@ GET bdrc_prod/_search
         "field": "personGender"
       }
     },
+    "associatedCentury": {
+      "terms": {
+        "field": "associatedCentury"
+      }
+    },
     "printMethod": {
       "terms": {
         "field": "printMethod"
