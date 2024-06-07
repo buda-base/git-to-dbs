@@ -91,7 +91,7 @@ public class ESUtils {
     }
     
     static float transform_score(final int score, final int minScore, final int maxScore, final float[] range) {
-        float step1 = (score - minScore) / maxScore;
+        float step1 = (score - minScore) / (float) maxScore;
         float multiplier = range[1] - range[0];
         return range[0] + (multiplier * step1);
     }
@@ -179,6 +179,9 @@ public class ESUtils {
             if (initialuserpopscoreN == null) {
                 doc.put("pop_score", userpopscore[0]);
                 doc.put("pop_score_in_type", userpopscore[1]);
+            } else {
+                doc.put("pop_score", Math.max(userpopscore[0], doc.get("pop_score").asDouble()));
+                doc.put("pop_score_in_type", Math.max(userpopscore[1], doc.get("pop_score").asDouble()));
             }
         }
         final Float[] entityscore = entity_scores.get(lname);
