@@ -494,8 +494,8 @@ public class ESUtils {
                 continue;
             }
         }
+        add_scores(main_lname, doc);
         if (add_admin) {
-            add_scores(main_lname, doc);
             add_admin_to_doc(m.createResource(Models.BDA+main_lname), doc);
         }
         post_process_labels(doc);
