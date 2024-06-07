@@ -278,6 +278,44 @@ public class ESUtils {
         return creatorsLabelCache;
     }
     
+    static Map<String,Integer> mwToOPEtextAccess = null;
+    static String OPEtextAccessQuery = "select distinct ?mw ?acc {\n"
+            + "    ?eiadm <"+Models.ADM+"syncAgent> <"+Models.BDR+"SAOPT> ;\n"
+            + "               <"+Models.ADM+"status> <"+Models.BDA+"StatusReleased> ;\n"
+            + "               <"+Models.ADM+"access> ?acc ;\n"
+            + "               <"+Models.ADM+"adminAbout> ?ei .\n"
+            + "        ?ei <"+Models.BDO+"instanceReproductionOf> ?mw .\n"
+            + "  FILTER(?acc = <"+Models.BDA+"AccessOpen> || ?acc = <"+Models.BDA+"AccessFairUse>)\n"
+            + "  FILTER(not exists {?mw a <"+Models.BDO+"ImageInstance> })\n"
+            + "}";
+
+    static final void add_to_opaccess_cache_fun(final QuerySolution qs, final Map<String,Integer> cache) {
+        final String mwlname = qs.getResource("?mw").getLocalName();
+        final String acclname = qs.getResource("?acc").getLocalName();
+        final int etextAccess = "AccessOpen".equals(acclname) ? 3 : 2;
+        if (!cache.containsKey(mwlname)) {
+            cache.put(mwlname, etextAccess);
+            return;
+        }
+        cache.put(acclname, Math.max(etextAccess, cache.get(acclname)));
+    }
+    
+    static Map<String,Integer> getMwToOPCache() {
+        if (mwToOPEtextAccess != null)
+            return mwToOPEtextAccess;
+        FusekiHelpers.openConnection(0);
+        final RDFConnection conn = FusekiHelpers.fuConn;
+        mwToOPEtextAccess = new HashMap<>();
+        final Consumer<QuerySolution> add_to_cache = x -> add_to_opaccess_cache_fun(x, mwToOPEtextAccess);
+        try {
+            conn.querySelect(OPEtextAccessQuery, add_to_cache);
+        } catch (Exception ex) {
+            logger.error("cannot run "+OPEtextAccessQuery, ex);
+            return null;
+        }
+        return mwToOPEtextAccess;
+    }
+    
     static Map<String,List<String>> creatorsTraditionCache = null;
     
     static final void add_to_trad_cache_fun(final QuerySolution qs, final Map<String,List<String>> cache) {
@@ -403,7 +441,8 @@ public class ESUtils {
         final StmtIterator si = m.listStatements(mainRes, null, (RDFNode) null);
         if (main_lname.startsWith("MW")) {
             doc.put("scans_access", 1);
-            doc.put("etext_access", 1);
+            final Map<String,Integer> MWToOPAccess = getMwToOPCache();
+            doc.put("etext_access", MWToOPAccess.getOrDefault(main_lname, 1));
         }
         if (main_lname.startsWith("P")) {
             // add century for persons (not in the ttl data but from a cache)
