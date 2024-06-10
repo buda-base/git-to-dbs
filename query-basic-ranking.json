@@ -1,0 +1,219 @@
+GET bdrc_prod/_search
+{
+  "from": 0,
+  "size": 25,
+  "explain": false,
+  "query": {
+    "function_score": {
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "multi_match": {
+                "type": "phrase",
+                "query": "bka' 'gyur",
+                "fields": [
+                    "altLabel_bo_alalc97^0.6",
+                    "altLabel_bo_latn_pinyin^0.6",
+                    "altLabel_bo_latn_wadegile^0.6",
+                    "altLabel_bo_x_ewts^0.6",
+                    "altLabel_cmg_mong^0.6",
+                    "altLabel_cmg_x_poppe^0.6",
+                    "altLabel_de^0.6",
+                    "altLabel_en^0.6",
+                    "altLabel_ja_alalc97^0.6",
+                    "altLabel_ja_x_ndia^0.6",
+                    "altLabel_km^0.6",
+                    "altLabel_km_x_twktt^0.6",
+                    "altLabel_km_x_unspec^0.6",
+                    "altLabel_mn^0.6",
+                    "altLabel_mn_alalc97^0.6",
+                    "altLabel_pi_khmr^0.6",
+                    "altLabel_pi_x_iast^0.6",
+                    "altLabel_pi_x_twktt^0.6",
+                    "altLabel_sa_alalc97^0.6",
+                    "altLabel_sa_deva^0.6",
+                    "altLabel_sa_x_iast^0.6",
+                    "altLabel_sa_x_ndia^0.6",
+                    "altLabel_sa_x_rma^0.6",
+                    "altLabel_sa_x_trans^0.6",
+                    "altLabel_zh_alalc97^0.6",
+                    "altLabel_zh_hani^0.6",
+                    "altLabel_zh_latn_pinyin^0.6",
+                    "altLabel_zh_latn_pinyin_x_ndia^0.6",
+                    "altLabel_zh_latn_wadegile^0.6",
+                    "associatedTradition^0.05",
+                    "author^0.1",
+                    "authorshipStatement_bo_x_ewts^0.005",
+                    "authorshipStatement_en^0.005",
+                    "authorshipStatement_sa_deva^0.005",
+                    "authorshipStatement_zh^0.005",
+                    "authorshipStatement_zh_alalc97^0.005",
+                    "authorshipStatement_zh_hani^0.005",
+                    "authorshipStatement_zh_latn_pinyin_x_ndia^0.005",
+                    "comment^0.0001",
+                    "comment_bo_x_ewts^0.0001",
+                    "comment_en^0.0001",
+                    "comment_sa_deva^0.0001",
+                    "comment_sa_x_iast^0.0001",
+                    "comment_zh_hani^0.0001",
+                    "comment_zh_latn_pinyin^0.0001",
+                    "prefLabel_bo_alalc97^1",
+                    "prefLabel_bo_latn_wadegile^1",
+                    "prefLabel_bo_x_ewts^1",
+                    "prefLabel_de^1",
+                    "prefLabel_en^1",
+                    "prefLabel_fr^1",
+                    "prefLabel_fr_alalc97^1",
+                    "prefLabel_fr_x_iast^1",
+                    "prefLabel_ja^1",
+                    "prefLabel_ja_alalc97^1",
+                    "prefLabel_ja_x_ndia^1",
+                    "prefLabel_km^1",
+                    "prefLabel_km_x_twktt^1",
+                    "prefLabel_km_x_unspec^1",
+                    "prefLabel_mn^1",
+                    "prefLabel_mn_alalc97^1",
+                    "prefLabel_pi_khmr^1",
+                    "prefLabel_pi_x_iast^1",
+                    "prefLabel_pi_x_twktt^1",
+                    "prefLabel_ru^1",
+                    "prefLabel_ru_alalc97^1",
+                    "prefLabel_sa_alalc97^1",
+                    "prefLabel_sa_deva^1",
+                    "prefLabel_sa_x_iast^1",
+                    "prefLabel_sa_x_ndia^1",
+                    "prefLabel_sa_x_phon_en_m_tbrc^1",
+                    "prefLabel_sa_x_trans^1",
+                    "prefLabel_zh_alalc97^1",
+                    "prefLabel_zh_hani^1",
+                    "prefLabel_zh_latn_pinyin^1",
+                    "prefLabel_zh_latn_pinyin_x_ndia^1",
+                    "prefLabel_zh_latn_wadegile^1",
+                    "publisherLocation_bo_latn_wadegile^0.01",
+                    "publisherLocation_bo_x_ewts^0.01",
+                    "publisherLocation_en^0.01",
+                    "publisherLocation_fr^0.01",
+                    "publisherLocation_mn_alalc97^0.01",
+                    "publisherLocation_sa_deva^0.01",
+                    "publisherLocation_zh_hani^0.01",
+                    "publisherLocation_zh_latn_pinyin_x_ndia^0.01",
+                    "publisherName_bo_latn_wadegile^0.01",
+                    "publisherName_bo_x_ewts^0.01",
+                    "publisherName_en^0.01",
+                    "publisherName_fr^0.01",
+                    "publisherName_sa_deva^0.01",
+                    "publisherName_sa_x_iast^0.01",
+                    "publisherName_zh_hani^0.01",
+                    "publisherName_zh_latn_pinyin_x_ndia^0.01",
+                    "seriesName_bo_x_ewts^0.1",
+                    "seriesName_en^0.1",
+                    "seriesName_res^0.1",
+                    "seriesName_zh_hani^0.1",
+                    "seriesName_zh_latn_pinyin_x_ndia^0.1",
+                    "translator^0.05",
+                    "type^0.5",
+                    "workGenre^0.02",
+                    "workIsAbout^0.01"                ]
+              }
+            }
+          ]
+        }
+      },
+      "script_score": {
+        "script": {
+          "source": """
+            double score = 0.0;
+
+            // BM25
+            score += _score;
+
+            // PAGE TYPE
+            if (doc['type'].value.contains('Instance')) {
+                // large collection or author's collection
+                if (doc['workGenre'].size() != 0 && (doc['workGenre'].value == 'T208' || doc['workGenre'].value == 'T1081')) {
+                    score *= 1;
+                // normal text
+                } else {
+                    score *= 0.75;
+                }
+            } else if (doc['type'].value.contains('Person')) {
+                score *= 0.9;
+            } else if (doc['type'].value.contains('Place')) {
+                score *= 0.4;
+            } else if (doc['type'].value.contains('Topic')) {
+                score *= 0.8;
+            } else if (doc['type'].value.contains('Collection')) {
+                score *= 0.5;
+            }
+
+            // ACCESS LEVELS
+            // Access level score assessments take into account the combinations of scans and etext availability,
+            // for example, if scans are openly available, etext availability matters less, otherwise etext restrictions matter much more
+            //   scans
+            //   5: open access on BDRC
+            //   4: open access through IIIF
+            //   3: IA
+            //   2: extract only
+            //   1: no access
+            //   etext
+            //   3: open access
+            //   2: search only
+            //   1: no access
+
+            if (doc['type'].value.contains('Instance')) {
+              Map access = new HashMap();
+              access.put(5.0, new HashMap());
+              ((Map)access.get(5.0)).put(3.0, 1.0);
+              ((Map)access.get(5.0)).put(2.0, 0.99);
+              ((Map)access.get(5.0)).put(1.0, 0.99);
+              ((Map)access.get(5.0)).put(0.0, 0.99);
+              access.put(4.0, new HashMap());
+              ((Map)access.get(4.0)).put(3.0, 1.0);
+              ((Map)access.get(4.0)).put(2.0, 0.8);
+              ((Map)access.get(4.0)).put(1.0, 0.8);
+              ((Map)access.get(4.0)).put(0.0, 0.8);
+              access.put(3.0, new HashMap());
+              ((Map)access.get(3.0)).put(3.0, 0.9);
+              ((Map)access.get(3.0)).put(2.0, 0.55);
+              ((Map)access.get(3.0)).put(1.0, 0.5);
+              ((Map)access.get(3.0)).put(0.0, 0.5);
+              access.put(2.0, new HashMap());
+              ((Map)access.get(2.0)).put(3.0, 0.85);
+              ((Map)access.get(2.0)).put(2.0, 0.5);
+              ((Map)access.get(2.0)).put(1.0, 0.5);
+              ((Map)access.get(2.0)).put(0.0, 0.5);
+              access.put(1.0, new HashMap());
+              ((Map)access.get(1.0)).put(3.0, 0.9);
+              ((Map)access.get(1.0)).put(2.0, 0.35);
+              ((Map)access.get(1.0)).put(1.0, 0.3);
+              ((Map)access.get(1.0)).put(0.0, 0.3);
+              access.put(0.0, new HashMap());
+              ((Map)access.get(0.0)).put(3.0, 0.85);
+              ((Map)access.get(0.0)).put(2.0, 0.3);
+              ((Map)access.get(0.0)).put(1.0, 0.25);
+
+              double scans_access = doc['scans_access'].size() != 0 ? doc['scans_access'].value : 0.0;
+              double etext_access = doc['etext_access'].size() != 0 ? doc['etext_access'].value : 0.0;
+
+              score *= access.get(scans_access).get(etext_access);
+            }
+
+            // POPULARITY AND DB SCORES
+            double pop_score = doc['pop_score'].size() != 0 ? doc['pop_score'].value : 0.4;
+            score *= pop_score;
+            double db_score = doc['db_score'].size() != 0 ? doc['db_score'].value : 0.5;
+            score *= db_score;
+            
+
+            // ROOT TEXT genre T1KG8787
+            if (doc['workGenre'].size() != 0 && doc['workGenre'].value.contains("T1KG8787")) {
+              score *=1.5;
+            }
+            return score;
+          """
+        }
+      }
+    }
+  }
+}
