@@ -66,6 +66,100 @@ GET bdrc_prod/_search
       "seriesName_en": {},
     }
   },
+  "script_score": {
+        "script": {
+          "source": """
+            double score = 0.0;
+
+            // BM25
+            score += _score;
+
+            // PAGE TYPE
+            if (doc['type'].value.contains('Instance')) {
+                // large collection or author's collection
+                if (doc['workGenre'].size() != 0 && (doc['workGenre'].value == 'T208' || doc['workGenre'].value == 'T1081')) {
+                    score *= 1;
+                // normal text
+                } else {
+                    score *= 0.75;
+                }
+            } else if (doc['type'].value.contains('Person')) {
+                score *= 0.9;
+            } else if (doc['type'].value.contains('Place')) {
+                score *= 0.4;
+            } else if (doc['type'].value.contains('Topic')) {
+                score *= 0.8;
+            } else if (doc['type'].value.contains('Collection')) {
+                score *= 0.5;
+            }
+
+            // ACCESS LEVELS
+            // Access level score assessments take into account the combinations of scans and etext availability,
+            // for example, if scans are openly available, etext availability matters less, otherwise etext restrictions matter much more
+            //   scans
+            //   5: open access on BDRC
+            //   4: open access through IIIF
+            //   3: IA
+            //   2: extract only
+            //   1: no access
+            //   etext
+            //   3: open access
+            //   2: search only
+            //   1: no access
+
+            if (doc['type'].value.contains('Instance')) {
+              Map access = new HashMap();
+              access.put(5.0, new HashMap());
+              ((Map)access.get(5.0)).put(3.0, 1.0);
+              ((Map)access.get(5.0)).put(2.0, 0.99);
+              ((Map)access.get(5.0)).put(1.0, 0.99);
+              ((Map)access.get(5.0)).put(0.0, 0.99);
+              access.put(4.0, new HashMap());
+              ((Map)access.get(4.0)).put(3.0, 1.0);
+              ((Map)access.get(4.0)).put(2.0, 0.8);
+              ((Map)access.get(4.0)).put(1.0, 0.8);
+              ((Map)access.get(4.0)).put(0.0, 0.8);
+              access.put(3.0, new HashMap());
+              ((Map)access.get(3.0)).put(3.0, 0.9);
+              ((Map)access.get(3.0)).put(2.0, 0.55);
+              ((Map)access.get(3.0)).put(1.0, 0.5);
+              ((Map)access.get(3.0)).put(0.0, 0.5);
+              access.put(2.0, new HashMap());
+              ((Map)access.get(2.0)).put(3.0, 0.85);
+              ((Map)access.get(2.0)).put(2.0, 0.5);
+              ((Map)access.get(2.0)).put(1.0, 0.5);
+              ((Map)access.get(2.0)).put(0.0, 0.5);
+              access.put(1.0, new HashMap());
+              ((Map)access.get(1.0)).put(3.0, 0.9);
+              ((Map)access.get(1.0)).put(2.0, 0.35);
+              ((Map)access.get(1.0)).put(1.0, 0.3);
+              ((Map)access.get(1.0)).put(0.0, 0.3);
+              access.put(0.0, new HashMap());
+              ((Map)access.get(0.0)).put(3.0, 0.85);
+              ((Map)access.get(0.0)).put(2.0, 0.3);
+              ((Map)access.get(0.0)).put(1.0, 0.25);
+
+              double scans_access = doc['scans_access'].size() != 0 ? doc['scans_access'].value : 0.0;
+              double etext_access = doc['etext_access'].size() != 0 ? doc['etext_access'].value : 0.0;
+
+              score *= access.get(scans_access).get(etext_access);
+            }
+
+            // POPULARITY AND DB SCORES
+            double pop_score = doc['pop_score'].size() != 0 ? doc['pop_score'].value : 0.4;
+            score *= pop_score;
+            double db_score = doc['db_score'].size() != 0 ? doc['db_score'].value : 0.5;
+            score *= db_score;
+            
+
+            // ROOT TEXT genre T1KG8787
+            if (doc['workGenre'].size() != 0 && doc['workGenre'].value.contains('T1KG8787')) {
+              score *=1.5;
+            }
+            return score;
+          """
+        }
+      },
   "query": {
     "bool": {
       "must": [
