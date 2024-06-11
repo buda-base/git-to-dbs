@@ -489,6 +489,10 @@ public class ESUtils {
                 add_ext_prefLabel(pinfo.key_base, s.getResource(), doc);
                 break;
             case PT_SPECIAL:
+                if (s.getObject().isLiteral()) {
+                    logger.error("needed resource but found literal");
+                    continue;
+                }
                 add_special(pinfo, s.getResource(), doc);
                 break;
             case PT_RES_ONLY:
@@ -1097,10 +1101,16 @@ public class ESUtils {
         upload_outline_children_rec(mw, olname, rootDoc);
     }
     
-    public static final List<String> fieldsToCopy = Arrays.asList(new String[] {"scans_access", "etext_access", "language", "script", "hasSourcePrintery", "printMethod", "inCollection", "firstScanSyncDate", "db_score", "db_score_in_type", "pop_score", "pop_score_in_type" });
+    public static final List<String> fieldsToCopy = Arrays.asList(new String[] {"language", "script", "hasSourcePrintery", "printMethod", "inCollection", "firstScanSyncDate", "db_score", "db_score_in_type", "pop_score", "pop_score_in_type" });
+    public static final List<String> fieldsToCopyReplace = Arrays.asList(new String[] {"scans_access", "etext_access"});
     static void copyRootFields(final ObjectNode part, final ObjectNode rootNode) {
         for (final String field : fieldsToCopy) {
             if (part.has(field) || rootNode == null || rootNode.get(field) == null)
+                continue;
+            part.set(field, rootNode.get(field));
+        }
+        for (final String field : fieldsToCopyReplace) {
+            if (rootNode == null || rootNode.get(field) == null)
                 continue;
             part.set(field, rootNode.get(field));
         }
