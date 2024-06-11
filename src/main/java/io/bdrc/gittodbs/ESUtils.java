@@ -240,8 +240,8 @@ public class ESUtils {
         
         // MW in outlines properties
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "inRootInstance"), new PropInfo(PT_RES_ONLY, "inRootInstance", null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "partOf"), new PropInfo(PT_RES_ONLY, "partOf", null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "partType"), new PropInfo(PT_RES_ONLY, "partType", null));
+        //propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "partOf"), new PropInfo(PT_RES_ONLY, "partOf", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "partType"), new PropInfo(PT_RES_ONLY, "type", null));
     }
     
     static final ObjectMapper om = new ObjectMapper();
@@ -470,7 +470,7 @@ public class ESUtils {
                     add_creator(s.getResource(), doc);
                 continue;
             }
-            if ("type".equals(pinfo.key_base) && !add_type)
+            if (s.getPredicate().equals(RDF.type) && !add_type)
                 continue;
             // hack for a bug in the data, some instances only have the SerialInstance type
             if ("type".equals(pinfo.key_base) && s.getResource().equals(SerialInstance)) {
@@ -942,6 +942,28 @@ public class ESUtils {
     public static OpenSearchClient osc = null;
     public static int nb_in_batch = 0;
     
+    static ObjectNode getDoc(final String id) {
+        if (osc == null)
+            try {
+                osc = OSClient.create();
+            } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e1) {
+                logger.error("cannot create client", e1);
+                return null;
+            }
+        try {
+            GetResponse<ObjectNode> response = osc.get(g -> {
+                g.index(indexName).id(id);
+                return g;
+             }, ObjectNode.class);
+             if (!response.found())
+                 return null;
+             return response.source();
+        } catch (OpenSearchException | IOException e) {
+            logger.error("error fetching doc", e);
+            return null;
+        }
+    }
+    
     static void upload(final ObjectNode doc, final String main_lname, final DocType type) {
         if (todisk) {
             final String hashtext = Models.getMd5(main_lname);
@@ -1068,23 +1090,34 @@ public class ESUtils {
     }
     
     static void upload_outline(final String olname, final Model m) {
-        Resource or = m.createResource(Models.BDR+olname);
-        Resource mw = or.getPropertyResourceValue(m.createProperty(Models.BDO, "outlineOf"));
+        final Resource or = m.createResource(Models.BDR+olname);
+        final Resource mw = or.getPropertyResourceValue(m.createProperty(Models.BDO, "outlineOf"));
+        final ObjectNode rootDoc = getDoc(mw.getLocalName());
         // TODO: get access from mw
-        upload_outline_children_rec(mw, olname);
+        upload_outline_children_rec(mw, olname, rootDoc);
+    }
+    
+    public static final List<String> fieldsToCopy = Arrays.asList(new String[] {"scans_access", "etext_access", "language", "script", "hasSourcePrintery", "printMethod", "inCollection", "firstScanSyncDate", "db_score", "db_score_in_type", "pop_score", "pop_score_in_type" });
+    static void copyRootFields(final ObjectNode part, final ObjectNode rootNode) {
+        for (final String field : fieldsToCopy) {
+            if (part.has(field) || rootNode == null || rootNode.get(field) == null)
+                continue;
+            part.set(field, rootNode.get(field));
+        }
     }
     
     public static final Property partOf = ResourceFactory.createProperty(Models.BDO, "partOf"); 
-    static void upload_outline_children_rec(final Resource parent, final String olname) {
+    static void upload_outline_children_rec(final Resource parent, final String olname, final ObjectNode rootNode) {
         final ResIterator childiter = parent.getModel().listSubjectsWithProperty(partOf, parent);
         while (childiter.hasNext()) {
             final Resource child = childiter.next();
-            ObjectNode root = om.createObjectNode();
-            if (!root.has("graphs"))
-                root.set("graphs", root.arrayNode());
-            ((ArrayNode) root.get("graphs")).add(olname);
-            addModelToESDoc(parent.getModel(), root, child.getLocalName(), false, true);
-            upload(root, child.getLocalName(), DocType.OUTLINE);
+            ObjectNode childDoc = om.createObjectNode();
+            if (!childDoc.has("graphs"))
+                childDoc.set("graphs", childDoc.arrayNode());
+            ((ArrayNode) childDoc.get("graphs")).add(olname);
+            addModelToESDoc(parent.getModel(), childDoc, child.getLocalName(), false, false);
+            copyRootFields(childDoc, rootNode);
+            upload(childDoc, child.getLocalName(), DocType.OUTLINE);
         }
     }
 
