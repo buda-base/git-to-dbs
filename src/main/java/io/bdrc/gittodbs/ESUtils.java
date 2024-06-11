@@ -1118,6 +1118,7 @@ public class ESUtils {
             addModelToESDoc(parent.getModel(), childDoc, child.getLocalName(), false, false);
             copyRootFields(childDoc, rootNode);
             upload(childDoc, child.getLocalName(), DocType.OUTLINE);
+            upload_outline_children_rec(child, olname, rootNode);
         }
     }
 
