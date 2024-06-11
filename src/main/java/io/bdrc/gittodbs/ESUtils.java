@@ -439,6 +439,9 @@ public class ESUtils {
         return new String[] {lexr, lt};
     }
     
+    static final Resource SerialInstance = ResourceFactory.createResource(Models.BDO+"SerialInstance");
+    static final Resource Instance = ResourceFactory.createResource(Models.BDO+"Instance");
+    
     static void addModelToESDoc(final Model m, final ObjectNode doc, final String main_lname, boolean add_admin, boolean add_type) {
         final Resource mainRes = m.createResource(Models.BDR+main_lname);
         final StmtIterator si = m.listStatements(mainRes, null, (RDFNode) null);
@@ -467,8 +470,13 @@ public class ESUtils {
                     add_creator(s.getResource(), doc);
                 continue;
             }
-            if ("type".equals(pinfo.key_base) && (!add_type || s.getResource().getLocalName().equals("SerialInstance")))
-                continue; 
+            if ("type".equals(pinfo.key_base) && !add_type)
+                continue;
+            // hack for a bug in the data, some instances only have the SerialInstance type
+            if ("type".equals(pinfo.key_base) && s.getResource().equals(SerialInstance)) {
+                add_associated(Instance, pinfo.key_base, doc);
+                continue;
+            }
             switch (pinfo.pt) {
             case PT_DIRECT:
                 add_direct(pinfo, s.getLiteral(), doc);
