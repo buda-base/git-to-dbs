@@ -465,7 +465,7 @@ public class ESUtils {
                 if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "personEvent")))
                     add_event(s.getResource(), doc);
                 if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "placeLat")))
-                    add_gis(s.getResource(), doc);
+                    add_gis(mainRes, doc);
                 if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "creator")))
                     add_creator(s.getResource(), doc);
                 continue;
