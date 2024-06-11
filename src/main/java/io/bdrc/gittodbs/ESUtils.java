@@ -174,7 +174,7 @@ public class ESUtils {
     
     static void add_scores(final String lname, final ObjectNode doc) {
         final Float[] userpopscore = user_popularity_scores.get(lname);
-        if (userpopscore != null) {
+        if (userpopscore != null && !lname.startsWith("WA")) {
             final JsonNode initialuserpopscoreN = doc.get("pop_score");
             if (initialuserpopscoreN == null) {
                 doc.put("pop_score", userpopscore[0]);
