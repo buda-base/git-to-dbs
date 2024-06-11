@@ -57,19 +57,84 @@ GET bdrc_prod/_search
       "terms": {
         "field": "translator"
       }
-    },
+    }
+  },
   "highlight": {
     "fields": {
       "prefLabel_bo_x_ewts": {},
       "altLabel_bo_x_ewts": {},
       "seriesName_bo_x_ewts": {},
-      "seriesName_en": {},
+      "seriesName_en": {}
     }
   },
-  "script_score": {
+  "query": {
+    "function_score": {
+      "script_score": {
         "script": {
-          "source": """
-            double score = 0.0;
+          "id": "bdrc-score"
+        }
+      },
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "multi_match": {
+                "type": "phrase",
+                "query": "spyod 'jug",
+                "fields": [
+                  "seriesName_bo_x_ewts^2",
+                  "seriesName_en^2",
+                  "authorshipStatement_bo_x_ewts",
+                  "authorshipStatement_en",
+                  "publisherName_bo_x_ewts",
+                  "publisherLocation_bo_x_ewts",
+                  "publisherName_en",
+                  "publisherLocation_en",
+                  "prefLabel_bo_x_ewts^5",
+                  "prefLabel_en^5",
+                  "comment_bo_x_ewts",
+                  "comment_en",
+                  "altLabel_bo_x_ewts^4",
+                  "altLabel_en^4"
+                ]
+              }
+            } ,
+            {
+              "multi_match": {
+                "type": "phrase_prefix",
+                "query": "spyod 'jug",
+                "fields": [
+                  "seriesName_bo_x_ewts^2",
+                  "seriesName_en^2",
+                  "authorshipStatement_bo_x_ewts",
+                  "authorshipStatement_en",
+                  "publisherName_bo_x_ewts",
+                  "publisherLocation_bo_x_ewts",
+                  "publisherName_en",
+                  "publisherLocation_en",
+                  "prefLabel_bo_x_ewts^5",
+                  "prefLabel_en^5",
+                  "comment_bo_x_ewts",
+                  "comment_en",
+                  "altLabel_bo_x_ewts^4",
+                  "altLabel_en^4"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+
+
+POST _scripts/bdrc-score
+{
+  "script": {
+    "lang": "painless",
+    "source": """
+    double score = 0.0;
 
             // BM25
             score += _score;
@@ -153,62 +218,10 @@ GET bdrc_prod/_search
             
 
             // ROOT TEXT genre T1KG8787
-            if (doc['workGenre'].size() != 0 && doc['workGenre'].value.contains('T1KG8787')) {
+            if (doc['workGenre'].size() != 0 && doc['workGenre'].value.contains("T1KG8787")) {
               score *=1.5;
             }
             return score;
-          """
-        }
-      },
-  "query": {
-    "bool": {
-      "must": [
-        {
-          "multi_match": {
-            "type": "phrase",
-            "query": "spyod 'jug",
-            "fields": [
-              "seriesName_bo_x_ewts^2",
-              "seriesName_en^2",
-              "authorshipStatement_bo_x_ewts",
-              "authorshipStatement_en",
-              "publisherName_bo_x_ewts",
-              "publisherLocation_bo_x_ewts",
-              "publisherName_en",
-              "publisherLocation_en",
-              "prefLabel_bo_x_ewts^5",
-              "prefLabel_en^5",
-              "comment_bo_x_ewts",
-              "comment_en",
-              "altLabel_bo_x_ewts^4",
-              "altLabel_en^4"
-            ]
-          }
-        } ,
-        {
-          "multi_match": {
-            "type": "phrase_prefix",
-            "query": "spyod 'jug",
-            "fields": [
-              "seriesName_bo_x_ewts^2",
-              "seriesName_en^2",
-              "authorshipStatement_bo_x_ewts",
-              "authorshipStatement_en",
-              "publisherName_bo_x_ewts",
-              "publisherLocation_bo_x_ewts",
-              "publisherName_en",
-              "publisherLocation_en",
-              "prefLabel_bo_x_ewts^5",
-              "prefLabel_en^5",
-              "comment_bo_x_ewts",
-              "comment_en",
-              "altLabel_bo_x_ewts^4",
-              "altLabel_en^4"
-            ]
-          }
-        }
-      ]
-    }
-    
+    """
   }
 }
