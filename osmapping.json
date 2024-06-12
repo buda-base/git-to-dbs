@@ -12,6 +12,7 @@
       "db_score_in_type": { "type": "half_float" },
       "pop_score": { "type": "half_float" },
       "pop_score_in_type": { "type": "half_float" },
+      "pop_score_rk": { "type": "rank_feature" },
       "inRootInstance":   { "type": "keyword" },
       "type":   { "type": "keyword" },
       "inCollection":   { "type": "keyword" },

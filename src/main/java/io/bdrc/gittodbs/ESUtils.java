@@ -178,9 +178,11 @@ public class ESUtils {
             final JsonNode initialuserpopscoreN = doc.get("pop_score");
             if (initialuserpopscoreN == null) {
                 doc.put("pop_score", userpopscore[0]);
+                doc.put("pop_score_rk", userpopscore[0]);
                 doc.put("pop_score_in_type", userpopscore[1]);
             } else {
                 doc.put("pop_score", Math.max(userpopscore[0], doc.get("pop_score").asDouble()));
+                doc.put("pop_score_rk", Math.max(userpopscore[0], doc.get("pop_score_rk").asDouble()));
                 doc.put("pop_score_in_type", Math.max(userpopscore[1], doc.get("pop_score").asDouble()));
             }
         }
