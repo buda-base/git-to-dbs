@@ -53,6 +53,14 @@
     }
   },
   "settings": {
+    "index": {
+      "similarity": {
+        "default": {
+          "type": "BM25",
+          "k1": 0.0
+        }
+      }
+    },
     "analysis": {
       "analyzer": {
         "tibetan-lenient": {
