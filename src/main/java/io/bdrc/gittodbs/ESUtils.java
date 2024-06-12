@@ -186,6 +186,12 @@ public class ESUtils {
                 doc.put("pop_score_in_type", Math.max(userpopscore[1], doc.get("pop_score").asDouble()));
             }
         }
+        // an absent rank feature will result in the results not being displayed in rank_feature queries
+        if (userpopscore == null && !lname.startsWith("WA")) {
+            final JsonNode initialuserpopscoreN = doc.get("pop_score_rk");
+            if (initialuserpopscoreN == null)
+                doc.put("pop_score_rk", 0.1);
+        }
         final Float[] entityscore = entity_scores.get(lname);
         if (entityscore != null) {
             final JsonNode initialscoreN = doc.get("db_score");
