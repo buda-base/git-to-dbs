@@ -289,8 +289,18 @@ public class ESUtils {
         return creatorsLabelCache;
     }
     
-    static Map<String,Integer> mwToOPEtextAccess = null;
-    static String OPEtextAccessQuery = "select distinct ?mw ?acc {\n"
+    final static class EtextInfo {
+        final Integer access;
+        final Float quality;
+        
+        EtextInfo(final Integer access, final Float quality) {
+            this.access = access;
+            this.quality = quality;
+        }
+    }
+    
+    static Map<String,EtextInfo> mwToOPEtextAccess = null;
+    static String OPEtextAccessQuery = "select distinct ?mw ?acc ?ci ?soft {\n"
             + "    ?eiadm <"+Models.ADM+"syncAgent> <"+Models.BDR+"SAOPT> ;\n"
             + "               <"+Models.ADM+"status> <"+Models.BDA+"StatusReleased> ;\n"
             + "               <"+Models.ADM+"access> ?acc ;\n"
@@ -298,20 +308,29 @@ public class ESUtils {
             + "        ?ei <"+Models.BDO+"instanceReproductionOf> ?mw .\n"
             + "  FILTER(?acc = <"+Models.BDA+"AccessOpen> || ?acc = <"+Models.BDA+"AccessFairUse>)\n"
             + "  FILTER(not exists {?mw a <"+Models.BDO+"ImageInstance> })\n"
+            + "  OPTIONAL { ?ei <"+Models.BDO+"OPFOCRWordMedianConfidenceIndex> ?ci . }\n"
+            + "  OPTIONAL { ?ei <"+Models.BDO+"OPFOCRSoftware> ?soft . }\n"
             + "}";
 
-    static final void add_to_opaccess_cache_fun(final QuerySolution qs, final Map<String,Integer> cache) {
+    static final void add_to_opaccess_cache_fun(final QuerySolution qs, final Map<String,EtextInfo> cache) {
         final String mwlname = qs.getResource("?mw").getLocalName();
         final String acclname = qs.getResource("?acc").getLocalName();
+        final String soft = qs.contains("soft") ? qs.getLiteral("soft").getLexicalForm() : null;
+        final Float ci = qs.contains("ci") ? qs.getLiteral("ci").getFloat() : null;
         final int etextAccess = "AccessOpen".equals(acclname) ? 3 : 2;
+        Float q = ci;
+        if ("norbuketaka".equals(soft))
+            q = (float) 2.0;
         if (!cache.containsKey(mwlname)) {
-            cache.put(mwlname, etextAccess);
+            cache.put(mwlname, new EtextInfo(etextAccess, q));
             return;
         }
-        cache.put(acclname, Math.max(etextAccess, cache.get(acclname)));
+        final EtextInfo oldei = cache.get(acclname);
+        final EtextInfo newei = new EtextInfo(Math.max(etextAccess, oldei.access), Math.max(q, oldei.quality));
+        cache.put(acclname, newei);
     }
     
-    static Map<String,Integer> getMwToOPCache() {
+    static Map<String,EtextInfo> getMwToOPCache() {
         if (mwToOPEtextAccess != null)
             return mwToOPEtextAccess;
         FusekiHelpers.openConnection(0);
@@ -455,8 +474,21 @@ public class ESUtils {
         final StmtIterator si = m.listStatements(mainRes, null, (RDFNode) null);
         if (main_lname.startsWith("MW")) {
             doc.put("scans_access", 1);
-            final Map<String,Integer> MWToOPAccess = getMwToOPCache();
-            doc.put("etext_access", MWToOPAccess.getOrDefault(main_lname, 1));
+            final Map<String,EtextInfo> MWToOPAccess = getMwToOPCache();
+            if (MWToOPAccess.containsKey(main_lname)) {
+                doc.put("etext_access", MWToOPAccess.get(main_lname).access);
+                doc.put("etext_quality", MWToOPAccess.get(main_lname).quality);
+            } else {
+                doc.put("etext_access", 1);
+            }
+        }
+        if (main_lname.startsWith("IE")) {
+            // for etexts currently on the git repos, we have two cases: IE4CZ5369 and IE23703 are paginated, the rest is not:
+            if ("IE4CZ5369".equals(main_lname) || "IE23703".equals(main_lname)) {
+                doc.put("etext_quality", (float) 4.0);
+            } else {
+                doc.put("etext_quality", (float) 3.0);
+            }
         }
         if (main_lname.startsWith("P")) {
             // add century for persons (not in the ttl data but from a cache)

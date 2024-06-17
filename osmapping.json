@@ -28,6 +28,7 @@
       "partType":   { "type": "keyword" },
       "scans_access": { "type": "half_float" },
       "etext_access": { "type": "half_float" },
+      "etext_quality": { "type": "half_float" },
       "issueName": { "type": "keyword" },
       "workGenre": { "type": "keyword" },
       "workIsAbout": { "type": "keyword" },
