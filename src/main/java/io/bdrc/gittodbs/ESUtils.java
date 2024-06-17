@@ -326,7 +326,14 @@ public class ESUtils {
             return;
         }
         final EtextInfo oldei = cache.get(mwlname);
-        final EtextInfo newei = new EtextInfo(Math.max(etextAccess, oldei.access), Math.max(q, oldei.quality));
+        Float newq = q;
+        if (oldei.quality != null) {
+            if (q == null)
+                newq = oldei.quality;
+            else
+                newq = Math.max(q, oldei.quality);
+        }
+        final EtextInfo newei = new EtextInfo(Math.max(etextAccess, oldei.access), newq);
         cache.put(mwlname, newei);
     }
     
