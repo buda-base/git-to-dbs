@@ -734,6 +734,8 @@ public class ESUtils {
     //   5: open access on BDRC
     
     final static Resource imageInstance = ResourceFactory.createResource(Models.BDO+"ImageInstance");
+    final static Property inCollection = ResourceFactory.createProperty(Models.BDO+"inCollection");
+    final static Resource PR0ET009 = ResourceFactory.createResource(Models.BDR+"PR0ET009");
     final static Resource etextInstance = ResourceFactory.createResource(Models.BDO+"EtextInstance");
     final static Property digitalLendingPossible = ResourceFactory.createProperty(Models.BDO+"digitalLendingPossible");
     final static Property restrictedInChina = ResourceFactory.createProperty(Models.ADM+"restrictedInChina");
@@ -847,7 +849,8 @@ public class ESUtils {
             logger.error("could not find model for "+r.getLocalName());
             return;
         }
-        if (!m.contains(null, status, statusReleased))
+        // ignore non-released, etexts from Namsel
+        if (!m.contains(null, status, statusReleased) || m.contains(null, inCollection, PR0ET009))
             return;
         // TODO: get max for publication date?
         add_access(m, doc);
