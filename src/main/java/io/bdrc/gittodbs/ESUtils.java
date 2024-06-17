@@ -579,8 +579,6 @@ public class ESUtils {
         vals.add(val);
         add_ext_prefLabel("prefLabel", r, val);
     }
-    
-    //static void add_outline_model_to_doc()
 
     private static void add_gis(final Resource resource, final ObjectNode doc) {
         final Statement latS = resource.getProperty(resource.getModel().createProperty(Models.BDO, "placeLat"));
@@ -1145,7 +1143,7 @@ public class ESUtils {
     }
     
     public static final List<String> fieldsToCopy = Arrays.asList(new String[] {"language", "script", "hasSourcePrintery", "printMethod", "inCollection", "firstScanSyncDate", "db_score", "db_score_in_type", "pop_score", "pop_score_in_type" });
-    public static final List<String> fieldsToCopyReplace = Arrays.asList(new String[] {"scans_access", "etext_access"});
+    public static final List<String> fieldsToCopyReplace = Arrays.asList(new String[] {"scans_access", "scans_freshness", "scans_quality", "etext_access", "etext_freshness", "etext_quality"});
     static void copyRootFields(final ObjectNode part, final ObjectNode rootNode) {
         for (final String field : fieldsToCopy) {
             if (part.has(field) || rootNode == null || rootNode.get(field) == null)
