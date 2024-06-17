@@ -325,9 +325,9 @@ public class ESUtils {
             cache.put(mwlname, new EtextInfo(etextAccess, q));
             return;
         }
-        final EtextInfo oldei = cache.get(acclname);
+        final EtextInfo oldei = cache.get(mwlname);
         final EtextInfo newei = new EtextInfo(Math.max(etextAccess, oldei.access), Math.max(q, oldei.quality));
-        cache.put(acclname, newei);
+        cache.put(mwlname, newei);
     }
     
     static Map<String,EtextInfo> getMwToOPCache() {
