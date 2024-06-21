@@ -10,6 +10,9 @@ import java.io.InputStreamReader;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -822,16 +825,24 @@ public class ESUtils {
         return firstSyncDate;
     }
     
+    static final LocalDate startDate = LocalDate.of(2016, 5, 1);
+    static final LocalDate endDate = LocalDate.of(2026, 5, 1);
+    static final long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
     final static void add_first_sync_date(final Model m, final ObjectNode doc, final String key) {
         final String modelFirstSyncDate = get_first_sync_date(m);
+        LocalDate syncDate = LocalDate.parse(modelFirstSyncDate, DateTimeFormatter.ISO_DATE);
+        long daysFromStart = ChronoUnit.DAYS.between(startDate, syncDate);
+        float freshness = (float) daysFromStart / totalDays;
         if (modelFirstSyncDate == null) return;
         if (!doc.has(key)) {
             doc.put(key, modelFirstSyncDate);
+            doc.put("scans_freshness", freshness);
             return;
         }
         final String docFirstSyncDate = doc.get(key).asText();
         if (docFirstSyncDate.compareTo(modelFirstSyncDate) < 0)
             return;
+        doc.put("scans_freshness", freshness);
         doc.put(key, modelFirstSyncDate);
     }
 
