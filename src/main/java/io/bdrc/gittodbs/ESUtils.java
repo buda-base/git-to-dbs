@@ -513,6 +513,8 @@ public class ESUtils {
                     add_event(s.getResource(), doc);
                 if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "placeLat")))
                     add_gis(mainRes, doc);
+                if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "qualityGrade")))
+                    add_quality(mainRes, s.getInt(), doc);
                 if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "creator")))
                     add_creator(s.getResource(), doc);
                 continue;
@@ -560,6 +562,19 @@ public class ESUtils {
         post_process_labels(doc);
     }
     
+    private static void add_quality(Resource mainRes, int qualitygrade, ObjectNode doc) {
+        // if not scans not sure what to do
+        if (!mainRes.getLocalName().startsWith("W"))
+            return;
+        // we assume that quality grade is between 0 and 5
+        float grade = (qualitygrade + 1) / (float) 6;
+        if (!doc.has("scans_quality")) {
+            doc.put("scans_quality", grade);
+            return;
+        }
+        doc.put("scans_quality", Math.max(doc.get("scans_quality").asDouble(), grade));
+    }
+
     static void add_nested(final Resource r, final String key, final ObjectNode doc, final boolean from_creators_cache) {
         // first check if r is already in the property so we don't add it twice:
         final String rlocal = r.getLocalName();
