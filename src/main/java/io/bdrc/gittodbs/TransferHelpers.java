@@ -323,6 +323,8 @@ public class TransferHelpers {
         final String mainId = mainIdFromPath(filePath, type);
         if (mainId == null)
             return;
+        if (GitToDB.transferES && ESUtils.shouldIgore(mainId))
+            return;
         Model model = modelFromPath(dirPath+filePath, type, mainId);
         if (model == null) { // nothing fetched from path, nothing to transfer
             logger.error("modelFromPath failed to fetch anything from: " + dirPath+filePath + " with type: " + type + " and mainId: " + mainId);

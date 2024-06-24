@@ -264,6 +264,48 @@ public class ESUtils {
     //   ?p skos:prefLabel ?pl .
     // }
     
+    // to get the works to import:
+    // select distinct ?wa ?l {
+     //     ?wa2 :workIsAbout ?wa .
+     //      ?wa a :Work .
+     //     FILTER(not exists {?wa :workHasInstance ?mw })
+     //     FILTER(exists {?wadm adm:adminAbout ?wa ; adm:status bda:StatusReleased . })
+     //   }
+    
+    static final String waListQuery = "select distinct ?wa {\n"
+            + "  {\n"
+            + "    ?wa2 :workIsAbout ?wa .\n"
+            + "    ?wa a :Work .\n"
+            + "  } union {\n"
+            + "    ?wa :workHasParallelsIn ?wa2 . \n"
+            + "  }\n"
+            + "  FILTER(not exists {?wa :workHasInstance ?mw })\n"
+            + "  FILTER(exists {?wadm adm:adminAbout ?wa ; adm:status bda:StatusReleased . })\n"
+            + "}";
+    
+    static Map<String,Boolean> worksToSend = null;
+    
+    static final void add_to_works_cache_fun(final QuerySolution qs, final Map<String,Boolean> cache) {
+        final String walname = qs.getResource("?wa").getLocalName();
+        cache.put(walname, true);
+    }
+    
+    static final Map<String,Boolean> getWorksToSend() {
+        if (worksToSend == null)
+            return worksToSend;
+        FusekiHelpers.openConnection(0);
+        final RDFConnection conn = FusekiHelpers.fuConn;
+        worksToSend = new HashMap<>();
+        final Consumer<QuerySolution> add_to_cache = x -> add_to_works_cache_fun(x, worksToSend);
+        try {
+            conn.querySelect(waListQuery, add_to_cache);
+        } catch (Exception ex) {
+            logger.error("cannot run "+waListQuery, ex);
+            return null;
+        }
+        return worksToSend;
+    }
+    
     static Map<String,List<String[]>> creatorsLabelCache = null;
     
     static final void add_to_cache_fun(final QuerySolution qs, final Map<String,List<String[]>> cache) {
@@ -1204,6 +1246,13 @@ public class ESUtils {
             upload(childDoc, child.getLocalName(), DocType.OUTLINE);
             upload_outline_children_rec(child, olname, rootNode);
         }
+    }
+    
+    public static final boolean shouldIgore(final String lname) {
+        if (!lname.startsWith("WA"))
+            return false;
+        final Map<String,Boolean> worksToInclude = getWorksToSend();
+        return !worksToInclude.containsKey(lname);
     }
 
     public static final Property status = ResourceFactory.createProperty(Models.ADM, "status");
