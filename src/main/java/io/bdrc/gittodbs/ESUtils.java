@@ -877,7 +877,7 @@ public class ESUtils {
             return;
         LocalDate syncDate;
         try {
-            syncDate = LocalDate.parse(modelFirstSyncDate, DateTimeFormatter.ISO_DATE);
+            syncDate = LocalDate.parse(modelFirstSyncDate, DateTimeFormatter.ISO_DATE_TIME);
         } catch (DateTimeParseException e) {
             logger.error("cannot parse "+modelFirstSyncDate);
             return;
