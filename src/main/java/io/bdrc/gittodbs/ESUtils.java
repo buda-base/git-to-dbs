@@ -873,6 +873,8 @@ public class ESUtils {
     static final long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
     final static void add_first_sync_date(final Model m, final ObjectNode doc, final String key) {
         final String modelFirstSyncDate = get_first_sync_date(m);
+        if (modelFirstSyncDate == null)
+            return;
         LocalDate syncDate;
         try {
             syncDate = LocalDate.parse(modelFirstSyncDate, DateTimeFormatter.ISO_DATE);
@@ -882,7 +884,6 @@ public class ESUtils {
         }
         long daysFromStart = ChronoUnit.DAYS.between(startDate, syncDate);
         float freshness = (float) daysFromStart / totalDays;
-        if (modelFirstSyncDate == null) return;
         if (!doc.has(key)) {
             doc.put(key, modelFirstSyncDate);
             doc.put("scans_freshness", freshness);
