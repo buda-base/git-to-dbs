@@ -12,6 +12,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -872,7 +873,13 @@ public class ESUtils {
     static final long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
     final static void add_first_sync_date(final Model m, final ObjectNode doc, final String key) {
         final String modelFirstSyncDate = get_first_sync_date(m);
-        LocalDate syncDate = LocalDate.parse(modelFirstSyncDate, DateTimeFormatter.ISO_DATE);
+        LocalDate syncDate;
+        try {
+            syncDate = LocalDate.parse(modelFirstSyncDate, DateTimeFormatter.ISO_DATE);
+        } catch (DateTimeParseException e) {
+            logger.error("cannot parse "+modelFirstSyncDate);
+            return;
+        }
         long daysFromStart = ChronoUnit.DAYS.between(startDate, syncDate);
         float freshness = (float) daysFromStart / totalDays;
         if (modelFirstSyncDate == null) return;
