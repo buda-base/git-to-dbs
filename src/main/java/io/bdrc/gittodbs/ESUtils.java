@@ -499,6 +499,12 @@ public class ESUtils {
             add_normalized_to_key(key, norm, doc);
     }
     
+    static void add_complete(final Boolean complete, final ObjectNode doc) {
+        // don't replace when true:
+        if (doc.has("complete") && doc.get("complete").asBoolean())
+            return;
+        doc.put("complete", complete);
+    }
     
     static String[] normalize_lit(final Literal l) {
         // TODO: ewts to Unicode to ewts?
@@ -555,6 +561,8 @@ public class ESUtils {
             if (pinfo == null) {
                 if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "instanceEvent")))
                     add_event(s.getResource(), doc);
+                if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "isComplete")))
+                    add_complete(s.getBoolean(), doc);
                 if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "personEvent")))
                     add_event(s.getResource(), doc);
                 if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "placeLat")))
