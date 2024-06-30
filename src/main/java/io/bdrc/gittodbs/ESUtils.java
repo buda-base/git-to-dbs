@@ -1225,8 +1225,9 @@ public class ESUtils {
         upload_outline_children_rec(mw, olname, rootDoc);
     }
     
-    public static final List<String> fieldsToCopy = Arrays.asList(new String[] {"language", "script", "hasSourcePrintery", "printMethod", "inCollection", "firstScanSyncDate", "db_score", "db_score_in_type", "pop_score", "pop_score_in_type" });
+    public static final List<String> fieldsToCopy = Arrays.asList(new String[] { "language", "script", "hasSourcePrintery", "printMethod", "inCollection", "firstScanSyncDate", "db_score", "db_score_in_type" });
     public static final List<String> fieldsToCopyReplace = Arrays.asList(new String[] {"scans_access", "scans_freshness", "scans_quality", "etext_access", "etext_freshness", "etext_quality"});
+    public static final List<String> fieldsToCopyWithPrefix = Arrays.asList(new String[] { "pop_score", "pop_score_in_type" });
     static void copyRootFields(final ObjectNode part, final ObjectNode rootNode) {
         for (final String field : fieldsToCopy) {
             if (part.has(field) || rootNode == null || rootNode.get(field) == null)
@@ -1237,6 +1238,11 @@ public class ESUtils {
             if (rootNode == null || rootNode.get(field) == null)
                 continue;
             part.set(field, rootNode.get(field));
+        }
+        for (final String field : fieldsToCopyWithPrefix) {
+            if (rootNode == null || rootNode.get(field) == null)
+                continue;
+            part.set("root_"+field, rootNode.get(field));
         }
     }
     
