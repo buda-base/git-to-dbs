@@ -86,11 +86,19 @@ public class ESUtils {
         int pt;
         String key_base = null;
         Property subProp = null;
+        boolean addToAssociated = false;
         
         PropInfo(final int pt, final String key_base, final Property subProp) {
             this.pt = pt;
             this.key_base = key_base;
             this.subProp = subProp;
+        }
+        
+        PropInfo(final int pt, final String key_base, final Property subProp, final boolean addToAssociated) {
+            this.pt = pt;
+            this.key_base = key_base;
+            this.subProp = subProp;
+            this.addToAssociated = addToAssociated;
         }
     }
     
@@ -213,7 +221,7 @@ public class ESUtils {
         propInfoMap.put(SKOS.prefLabel, new PropInfo(PT_DIRECT, "prefLabel", null));
         propInfoMap.put(RDFS.label, new PropInfo(PT_DIRECT, "prefLabel", null));
         propInfoMap.put(SKOS.altLabel, new PropInfo(PT_DIRECT, "altLabel", null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "inCollection"), new PropInfo(PT_RES_ONLY, "inCollection", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "inCollection"), new PropInfo(PT_RES_ONLY, "inCollection", null, true));
         propInfoMap.put(SKOS.definition, new PropInfo(PT_DIRECT, "comment", null));
         propInfoMap.put(RDFS.comment, new PropInfo(PT_DIRECT, "comment", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "note"), new PropInfo(PT_SPECIAL, "comment", ResourceFactory.createProperty(Models.BDO, "noteText")));
@@ -225,13 +233,13 @@ public class ESUtils {
         
         // MW properties
         propInfoMap.put(ResourceFactory.createProperty(Models.BF, "identifiedBy"), new PropInfo(PT_SPECIAL, "other_id", RDF.value));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "instanceOf"), new PropInfo(PT_MERGE, null, null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "serialInstanceOf"), new PropInfo(PT_LABEL_EXT, "seriesName", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "instanceOf"), new PropInfo(PT_MERGE, null, null, true));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "serialInstanceOf"), new PropInfo(PT_LABEL_EXT, "seriesName", null, true));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "seriesNumber"), new PropInfo(PT_DIRECT, "issueName", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "instanceHasReproduction"), new PropInfo(PT_MERGE, null, null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "authorshipStatement"), new PropInfo(PT_DIRECT, "authorshipStatement", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "biblioNote"), new PropInfo(PT_DIRECT, "comment", null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "hasSourcePrintery"), new PropInfo(PT_RES_ONLY, "hasSourcePrintery", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "hasSourcePrintery"), new PropInfo(PT_RES_ONLY, "hasSourcePrintery", null, true));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "hasTitle"), new PropInfo(PT_SPECIAL, "altLabel", RDFS.label));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "printMethod"), new PropInfo(PT_RES_ONLY, "printMethod", RDFS.label));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "script"), new PropInfo(PT_RES_ONLY, "script", RDFS.label));
@@ -247,13 +255,17 @@ public class ESUtils {
         // WA properties
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "catalogInfo"), new PropInfo(PT_DIRECT, "summary", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "language"), new PropInfo(PT_RES_ONLY, "language", null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workIsAbout"), new PropInfo(PT_RES_ONLY, "workIsAbout", null));
-        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workGenre"), new PropInfo(PT_RES_ONLY, "workGenre", null));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workIsAbout"), new PropInfo(PT_RES_ONLY, "workIsAbout", null, true));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "workGenre"), new PropInfo(PT_RES_ONLY, "workGenre", null, true));
         
         // MW in outlines properties
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "inRootInstance"), new PropInfo(PT_RES_ONLY, "inRootInstance", null));
         //propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "partOf"), new PropInfo(PT_RES_ONLY, "partOf", null));
         propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "partType"), new PropInfo(PT_RES_ONLY, "type", null));
+        
+        // G properties
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "placeLocatedIn"), new PropInfo(PT_RES_ONLY, "locatedIn", null, true));
+        propInfoMap.put(ResourceFactory.createProperty(Models.BDO, "placeType"), new PropInfo(PT_RES_ONLY, "placeType", null));
     }
     
     static final ObjectMapper om = new ObjectMapper();
@@ -533,6 +545,7 @@ public class ESUtils {
         final StmtIterator si = m.listStatements(mainRes, null, (RDFNode) null);
         if (main_lname.startsWith("MW")) {
             doc.put("scans_access", 1);
+            doc.put("join_field", "instance");
             final Map<String,EtextInfo> MWToOPAccess = getMwToOPCache();
             if (MWToOPAccess.containsKey(main_lname)) {
                 doc.put("etext_access", MWToOPAccess.get(main_lname).access);
@@ -577,7 +590,7 @@ public class ESUtils {
                 continue;
             // hack for a bug in the data, some instances only have the SerialInstance type
             if ("type".equals(pinfo.key_base) && s.getResource().equals(SerialInstance)) {
-                add_associated(Instance, pinfo.key_base, doc);
+                add_associated(Instance, pinfo.key_base, doc, false);
                 continue;
             }
             switch (pinfo.pt) {
@@ -588,7 +601,7 @@ public class ESUtils {
                 add_nested(s.getResource(), pinfo.key_base, doc, false);
                 break;
             case PT_LABEL_EXT:
-                add_associated(s.getResource(), pinfo.key_base+"_res", doc);
+                add_associated(s.getResource(), pinfo.key_base+"_res", doc, pinfo.addToAssociated);
                 add_ext_prefLabel(pinfo.key_base, s.getResource(), doc);
                 break;
             case PT_SPECIAL:
@@ -599,10 +612,10 @@ public class ESUtils {
                 add_special(pinfo, s.getResource(), doc);
                 break;
             case PT_RES_ONLY:
-                add_associated(s.getResource(), pinfo.key_base, doc);
+                add_associated(s.getResource(), pinfo.key_base, doc, pinfo.addToAssociated);
                 break;
             case PT_MERGE:
-                add_merged(s.getResource(), doc);
+                add_merged(s.getResource(), doc, pinfo.addToAssociated);
                 break;
             case PT_IGNORE:
             default:
@@ -774,15 +787,17 @@ public class ESUtils {
             arrayNode.add(normalized[0]);
     }
     
-    static void add_associated(final Resource r, final String prop, final ObjectNode doc) {
-        add_associated(r.getLocalName(), prop, doc);
+    static void add_associated(final Resource r, final String prop, final ObjectNode doc, final boolean add_to_associated) {
+        add_associated(r.getLocalName(), prop, doc, add_to_associated);
     }
-    
-    static void add_associated(final String r, final String prop, final ObjectNode doc) {
+
+    static void add_associated(final String r, final String prop, final ObjectNode doc, final boolean add_to_associated) {
         if (!doc.has(prop))
             doc.set(prop, doc.arrayNode());
         if (!has_value_in_key(doc, prop, r))
             ((ArrayNode) doc.get(prop)).add(r);
+        if (add_to_associated)
+            add_associated(r, "associated_res", doc, false);
     }
     
     public final static Map<String, DocType> prefixToDocType = new HashMap<>();
@@ -876,7 +891,7 @@ public class ESUtils {
         return firstSyncDate;
     }
     
-    static final LocalDate startDate = LocalDate.of(2016, 5, 1);
+    static final LocalDate startDate = LocalDate.of(2016, 1, 1);
     static final LocalDate endDate = LocalDate.of(2026, 5, 1);
     static final long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
     final static void add_first_sync_date(final Model m, final ObjectNode doc, final String key) {
@@ -964,7 +979,7 @@ public class ESUtils {
         }
     }
     
-    static void add_merged(final Resource r, final ObjectNode doc) {
+    static void add_merged(final Resource r, final ObjectNode doc, final boolean addToAssociated) {
         final Model m = res_to_model(r);
         if (m == null) {
             logger.error("could not find model for "+r.getLocalName());
@@ -975,7 +990,7 @@ public class ESUtils {
             return;
         // TODO: get max for publication date?
         add_access(m, doc);
-        add_associated(r, "merged", doc);
+        add_associated(r, "merged", doc, addToAssociated);
         addModelToESDoc(m, doc, r.getLocalName(), false, false);
     }
     
@@ -984,7 +999,7 @@ public class ESUtils {
     }
     
     static void add_from_ont_label(final PropInfo pinfo, final Resource r, final ObjectNode doc) {
-        add_associated(r, pinfo.key_base, doc);
+        add_associated(r, pinfo.key_base, doc, false);
         final Model ont = TransferHelpers.ontModel;
         Property labelP = SKOS.prefLabel;
         if (ont.contains(r, RDFS.label))
@@ -1033,12 +1048,12 @@ public class ESUtils {
         if (key_base == null) return;
         final Resource agent = creatorNode.getPropertyResourceValue(ResourceFactory.createProperty(Models.BDO, "agent"));
         if (agent == null) return;
-        add_associated(agent, key_base, doc);
+        add_associated(agent, key_base, doc, true);
         final Map<String,List<String>> agentToTrad = getCreatorsTraditionCache();
         final String agentLocal = agent.getLocalName();
         if (agentToTrad.containsKey(agentLocal)) {
             for (final String t : agentToTrad.get(agentLocal)) {
-                add_associated(t, "associatedTradition", doc);
+                add_associated(t, "associatedTradition", doc, false);
             }
         }
         if ("author".equals(key_base)) {

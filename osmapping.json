@@ -1,17 +1,26 @@
 {
   "mappings": {
     "properties": {
-      "associated_res":    { "type": "keyword" },
+      "join_field": {
+        "type": "join",
+        "relations": {
+          "instance": "etext"
+        }
+      },
+      "merged": { "type": "keyword", "normalizer": "id_normalizer" },
+      "associated_res": { "type": "keyword" },
       "creation_date": {"type": "date", "doc_values": true, "ignore_malformed": true },
       "gis_coord": { "type": "geo_point", "ignore_malformed": true },
       "graphs":  { "type": "keyword"  },
-      "other_id":  { "type": "keyword" },
+      "other_id":  { "type": "keyword", "normalizer": "id_normalizer" },
       "etext_vol_id": { "type": "keyword" },
+      "etext_imagegroup_id": { "type": "keyword" },
       "volumeNumber": { "type": "short" },
       "etextNumber": { "type": "short" },
       "etext_root_instance_id": { "type": "keyword" },
       "etext_for_instance_id": { "type": "keyword" },
       "etext_for_root_instance_id": { "type": "keyword" },
+      "etext_pagination_in": { "type": "keyword" },
       "publicationDate": {"type": "date", "format" : "date_optional_time", "doc_values": true, "ignore_malformed": true },
       "firstScanSyncDate": {"type": "date", "format" : "date_optional_time", "doc_values": true, "ignore_malformed": true },
       "db_score": { "type": "half_float" },
@@ -20,10 +29,13 @@
       "pop_score_in_type": { "type": "half_float" },
       "root_pop_score": { "type": "half_float" },
       "root_pop_score_in_type": { "type": "half_float" },
+      "etext_instance_pop_score": { "type": "half_float" },
       "pop_score_rk": { "type": "rank_feature" },
       "inRootInstance":   { "type": "keyword" },
       "type":   { "type": "keyword" },
       "inCollection":   { "type": "keyword" },
+      "placeLocatedIn":   { "type": "keyword" },
+      "placeType":   { "type": "keyword" },
       "associatedTradition":   { "type": "keyword" },
       "associatedCentury":   { "type": "byte" },
       "personGender":   { "type": "keyword" },
@@ -60,6 +72,14 @@
       "publisherLocation_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
       "prefLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
       "prefLabel_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
+      "etext_authorshipStatement_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
+      "etext_authorshipStatement_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
+      "etext_publisherName_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
+      "etext_publisherLocation_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
+      "etext_publisherName_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
+      "etext_publisherLocation_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
+      "etext_prefLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
+      "etext_prefLabel_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
       "comment_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
       "comment_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
       "altLabel_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
@@ -69,10 +89,19 @@
         "properties": {
           "cstart": { "type": "integer" },
           "cend": { "type": "integer" },
-          "text_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" },
-          "text_en": { "type": "text", "analyzer": "english-lenient" },
+          "text_bo": { "type": "text", "analyzer": "tibetan-lenient" },
+          "text_en": { "type": "text", "analyzer": "english-lenient" }
+        }
+      },
+      "etext_pages": {
+        "type": "nested",
+        "properties": {
+          "cstart": { "type": "integer" },
+          "cend": { "type": "integer" },
+          "pnum": { "type": "short" }
         }
       }
+
     }
   },
   "settings": {
@@ -85,6 +114,13 @@
       }
     },
     "analysis": {
+      "normalizer": {
+        "id_normalizer": {
+          "type": "custom",
+          "char_filter": [],
+          "filter": [ "lowercase" ]
+        }
+      },
       "analyzer": {
         "tibetan-lenient": {
           "tokenizer": "tibetan",
