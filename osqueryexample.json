@@ -152,7 +152,10 @@ POST _scripts/bdrc-score
         else if (doc['type'].value.contains('Place')) {score *= 0.4;}
         else if (doc['type'].value.contains('PartTypeEditorial')) {score *= 0.01;}
         else if (doc['type'].value.contains('PartTypeTableOfContent')) {score *= 0.01;}
-        else {score *=10000}    // errors on top
+
+        // PRINT METHOD
+        if (doc['printMethod'].size() !=0 && doc['printMethod'].value.contains('PrintMethod_Modern')) {score *= 1.1;}
+
 
         // ACCESS LEVELS
         //   scans
@@ -172,7 +175,7 @@ POST _scripts/bdrc-score
             int etext_access = doc['etext_access'].size() != 0 ? (int) doc['etext_access'].value : 0;
 
             if (scans_access == 5 && etext_access == 3) { access = 1.0;}        // open scans and etext
-            else if (scans_access == 5) { access = 0.99;}                       // open scans, etext not fully open
+            else if (scans_access == 5) { access = 0.9;}                        // open scans, etext not fully open
             else if (scans_access == 4 && etext_access == 3) { access = 1.0;}   // scans iiif, open etext
             else if (scans_access == 4) { access = 0.8;}                        // scans iiif, etext not fully open
             else if (scans_access == 3 && etext_access == 3) { access = 0.9;}   // scans ia, open etext
