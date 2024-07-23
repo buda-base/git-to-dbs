@@ -790,12 +790,22 @@ public class ESUtils {
     static void add_associated(final Resource r, final String prop, final ObjectNode doc, final boolean add_to_associated) {
         add_associated(r.getLocalName(), prop, doc, add_to_associated);
     }
+    
+    // not all collections should be in the "inCollection" field (that is used for aggregation)
+    // but all collections should be in the associated_res field
+    // so that we don't have Wisdom masters, etc. in the aggregates but we still can find them
+    static final List<String> collectionsiInFacets = Arrays.asList("PR1PL480", "PR1LOKESH01", "PR1NEPAL00", "PR1KDPP00", "PR1NLM00", "PR1FPL01", "PR1NGMPP00", "PR1TIBET00", "PR1CIHTS00", "PR1VIENNA00");
+    static boolean collectionInFacets(final String collection) {
+        return collectionsiInFacets.contains(collection);
+    }
 
     static void add_associated(final String r, final String prop, final ObjectNode doc, final boolean add_to_associated) {
-        if (!doc.has(prop))
-            doc.set(prop, doc.arrayNode());
-        if (!has_value_in_key(doc, prop, r))
-            ((ArrayNode) doc.get(prop)).add(r);
+        if (!"inCollection".equals(prop) || collectionInFacets(r)) {
+            if (!doc.has(prop))
+                doc.set(prop, doc.arrayNode());
+            if (!has_value_in_key(doc, prop, r))
+                ((ArrayNode) doc.get(prop)).add(r);
+        }
         if (add_to_associated)
             add_associated(r, "associated_res", doc, false);
     }
