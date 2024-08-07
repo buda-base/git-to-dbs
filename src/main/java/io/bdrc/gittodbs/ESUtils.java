@@ -728,13 +728,25 @@ public class ESUtils {
     
     static void add_event(final Resource event, final ObjectNode doc) {
         final Resource evt_type = event.getPropertyResourceValue(RDF.type);
-        if (evt_type.getLocalName().equals("PublishedEvent")) {
-            final Statement whenSt = event.getProperty(ResourceFactory.createProperty(Models.BDO, "eventWhen"));
-            if (whenSt != null) {
-                doc.put("publicationDate", whenSt.getString());
-            }
+        final Statement whenSt = event.getProperty(ResourceFactory.createProperty(Models.BDO, "eventWhen"));
+        if (whenSt == null)
+            return;
+        switch (evt_type.getLocalName()) {
+        case "PublishedEvent":
+            doc.put("publicationDate", whenSt.getString());
+            break;
+        case "PersonBirth":
+            doc.put("birthDate", whenSt.getString());
+            break;
+        case "PersonDeath":
+            doc.put("deathDate", whenSt.getString());
+            break;
+        case "PersonFlourished":
+            doc.put("flourishedDate", whenSt.getString());
+            break;
+        default:
+            break;
         }
-        // TODO: personEvents
     }
     
     static void remove_dups(final ArrayNode prefLabels, final ArrayNode altLabels) {
