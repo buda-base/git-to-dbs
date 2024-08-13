@@ -92,8 +92,8 @@
         "properties": {
           "cstart": { "type": "integer" },
           "cend": { "type": "integer" },
-          "text_bo": { "type": "text", "analyzer": "tibetan-lenient" },
-          "text_en": { "type": "text", "analyzer": "english-lenient" }
+          "text_bo": { "type": "text", "analyzer": "tibetan-lenient" , "index_options": "offsets" },
+          "text_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" }
         }
       },
       "etext_pages": {
@@ -104,7 +104,6 @@
           "pnum": { "type": "short" }
         }
       }
-
     }
   },
   "settings": {
