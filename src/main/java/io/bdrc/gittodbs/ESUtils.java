@@ -806,7 +806,7 @@ public class ESUtils {
     // not all collections should be in the "inCollection" field (that is used for aggregation)
     // but all collections should be in the associated_res field
     // so that we don't have Wisdom masters, etc. in the aggregates but we still can find them
-    static final List<String> collectionsiInFacets = Arrays.asList("PR1PL480", "PR1LOKESH01", "PR1NEPAL00", "PR1KDPP00", "PR1NLM00", "PR1FPL01", "PR1NGMPP00", "PR1TIBET00", "PR1CIHTS00", "PR1VIENNA00");
+    static final List<String> collectionsiInFacets = Arrays.asList("PR1PL480", "PR1LOKESH01", "PR1NEPAL00", "PR1KDPP00", "PR1NLM00", "PR1FPL01", "PR1NGMPP00", "PR1TIBET00", "PR1CIHTS00", "PR1VIENNA00", "PR1NCLK");
     static boolean collectionInFacets(final String collection) {
         return collectionsiInFacets.contains(collection);
     }
