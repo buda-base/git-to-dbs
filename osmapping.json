@@ -167,7 +167,7 @@
         "khmr-lenient": {
           "tokenizer": "khmr",
           "char_filter": [ "khmr-lenient" ],
-          "filter": [ "khmr" ],
+          "filter": [ "khmr" ]
         }
       },
       "filter": {
@@ -198,7 +198,7 @@
           "language": "possessive_english"
         },
         "khmr": {
-          "type": "khmr",
+          "type": "khmr"
         }
       },
       "char_filter": {
@@ -221,6 +221,10 @@
         "khmr-lenient": {
           "type": "khmr",
           "lenient_level": 3
+        },
+        "mymr-lenient": {
+          "type": "mymr",
+          "lenient": true
         }
       },
       "tokenizer" : {
