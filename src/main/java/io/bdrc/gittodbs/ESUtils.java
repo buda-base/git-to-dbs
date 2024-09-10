@@ -522,6 +522,16 @@ public class ESUtils {
         // TODO: ewts to Unicode to ewts?
         String lexr = l.getLexicalForm();
         String lt = l.getLanguage().toLowerCase().replace('-', '_').replace("hant", "hani").replace("hans", "hani");
+        if (lt.equals("zh") || lt.endsWith("hani"))
+            lt = "hani";
+        if (lt.endsWith("twktt"))
+            lt = "iast";
+        if (lt.endsWith("iast"))
+            lt = "iast";
+        if (lt.equals("my") || lt.endsWith("mymr"))
+            lt = "mymr";
+        if (lt.equals("km") || lt.endsWith("khmr"))
+            lt = "khmr";
         if (lt.endsWith("ewts"))
             lt = "bo_x_ewts";
         if (lt.equals("bo") || lt.equals("dz") || lt.endsWith("_tibt")) {
@@ -534,7 +544,7 @@ public class ESUtils {
         }
         if (lt.equals("en_x_mixed") || lt.equals("bo_x_mixed") || lt.equals("bo_x_phon_en_m_tbrc") || lt.equals("bo_x-phon_en_m_thlib") || lt.equals("bo_x_phon_en"))
             lt = "en";
-        return new String[] {lexr, lt};
+        return new String[] {lexr, "en"};
     }
     
     static final Resource SerialInstance = ResourceFactory.createResource(Models.BDO+"SerialInstance");
