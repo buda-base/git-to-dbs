@@ -521,30 +521,49 @@ public class ESUtils {
     static String[] normalize_lit(final Literal l) {
         // TODO: ewts to Unicode to ewts?
         String lexr = l.getLexicalForm();
+        boolean foundLanguage = false;
         String lt = l.getLanguage().toLowerCase().replace('-', '_').replace("hant", "hani").replace("hans", "hani");
-        if (lt.equals("zh") || lt.endsWith("hani"))
+        if (lt.equals("zh") || lt.endsWith("hani")) {
             lt = "hani";
-        if (lt.endsWith("twktt"))
+            foundLanguage = true;
+        }
+        if (!foundLanguage && lt.endsWith("twktt")) {
             lt = "iast";
-        if (lt.endsWith("iast"))
+            foundLanguage = true;
+        }
+        if (!foundLanguage && lt.endsWith("iast")) {
             lt = "iast";
-        if (lt.equals("my") || lt.endsWith("mymr"))
+            foundLanguage = true;
+        }
+        if (!foundLanguage && lt.equals("my") || lt.endsWith("mymr")) {
             lt = "mymr";
-        if (lt.equals("km") || lt.endsWith("khmr"))
+            foundLanguage = true;
+        }
+        if (!foundLanguage && lt.equals("km") || lt.endsWith("khmr")) {
             lt = "khmr";
-        if (lt.endsWith("ewts"))
+            foundLanguage = true;
+        }
+        if (!foundLanguage && lt.endsWith("ewts")) {
             lt = "bo_x_ewts";
-        if (lt.equals("bo") || lt.equals("dz") || lt.endsWith("_tibt")) {
+            foundLanguage = true;
+        }
+        if (!foundLanguage && (lt.equals("bo") || lt.equals("dz") || lt.endsWith("_tibt"))) {
             lexr = ewtsc.toWylie(lexr);
             lt = "bo_x_ewts";
+            foundLanguage = true;
         }
-        if (lt.equals("bo-alalc97")) {
+        if (!foundLanguage && lt.equals("bo-alalc97")) {
             lexr = TransConverter.alalcToEwts(lexr);
             lt = "bo_x_ewts";
+            foundLanguage = true;
         }
-        if (lt.equals("en_x_mixed") || lt.equals("bo_x_mixed") || lt.equals("bo_x_phon_en_m_tbrc") || lt.equals("bo_x-phon_en_m_thlib") || lt.equals("bo_x_phon_en"))
+        if (!foundLanguage && (lt.equals("en_x_mixed") || lt.equals("bo_x_mixed") || lt.equals("bo_x_phon_en_m_tbrc") || lt.equals("bo_x-phon_en_m_thlib") || lt.equals("bo_x_phon_en"))) {
             lt = "en";
-        return new String[] {lexr, "en"};
+            foundLanguage = true;
+        }
+        if (foundLanguage = false)
+            lt = "en";
+        return new String[] {lexr, lt};
     }
     
     static final Resource SerialInstance = ResourceFactory.createResource(Models.BDO+"SerialInstance");
