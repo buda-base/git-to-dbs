@@ -569,6 +569,49 @@ public class ESUtils {
     static final Resource SerialInstance = ResourceFactory.createResource(Models.BDO+"SerialInstance");
     static final Resource Instance = ResourceFactory.createResource(Models.BDO+"Instance");
     
+    static void addExtent(final ObjectNode doc, final Model m, final Resource mainRes) {
+        // first try extent statement:
+        final Statement emst = mainRes.getProperty(ResourceFactory.createProperty(Models.BDO, "extentStatement"));
+        if (emst != null) {
+            final String emstr = emst.getString();
+            doc.put("extent", emstr);
+            return;
+        }
+        // then numberofvolumes:
+        final Statement nbvst = mainRes.getProperty(ResourceFactory.createProperty(Models.BDO, "numberOfVolumes"));
+        if (nbvst != null) {
+            final Integer nbv = nbvst.getInt();
+            doc.put("extent", nbv+" v.");
+            return;
+        }
+        // then contentLocation:
+        final Resource cl = mainRes.getPropertyResourceValue(ResourceFactory.createProperty(Models.BDO, "ContentLocation"));
+        if (cl != null) {
+            // first look at the number of volumes:
+            final Statement clvst = cl.getProperty(ResourceFactory.createProperty(Models.BDO, "contentLocationVolume"));
+            final Statement clevst = cl.getProperty(ResourceFactory.createProperty(Models.BDO, "contentLocationEndVolume"));
+            if (clvst != null && clevst != null) {
+                final int clv = clvst.getInt();
+                final int clev = clevst.getInt();
+                final int nbv = clev - clv + 1;
+                if (nbv > 1) {
+                    doc.put("extent", nbv+" v.");
+                    return;
+                }
+            }
+            // then number of pages
+            final Statement clpst = cl.getProperty(ResourceFactory.createProperty(Models.BDO, "contentLocationPage"));
+            final Statement clepst = cl.getProperty(ResourceFactory.createProperty(Models.BDO, "contentLocationEndPage"));
+            if (clpst != null && clepst != null) {
+                final int clp = clpst.getInt();
+                final int clep = clepst.getInt();
+                final int nbp = clep - clp + 1;
+                doc.put("extent", nbp+" p.");
+                return;
+            }
+        }
+    }
+    
     static void addModelToESDoc(final Model m, final ObjectNode doc, final String main_lname, boolean add_admin, boolean add_type) {
         final Resource mainRes = m.createResource(Models.BDR+main_lname);
         final StmtIterator si = m.listStatements(mainRes, null, (RDFNode) null);
@@ -582,6 +625,7 @@ public class ESUtils {
             } else {
                 doc.put("etext_access", 1);
             }
+            addExtent(doc, m, mainRes);
         }
         if (main_lname.startsWith("IE")) {
             // for etexts currently on the git repos, we have two cases: IE4CZ5369 and IE23703 are paginated, the rest is not:

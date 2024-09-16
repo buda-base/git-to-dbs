@@ -63,6 +63,7 @@
       "author": { "type": "keyword" },
       "translator": { "type": "keyword" },
       "complete": { "type": "boolean" },
+      "extent": { "type": "keyword" },
       "seriesName_res":  {"type": "keyword" },
       "seriesName_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
       "seriesName_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
