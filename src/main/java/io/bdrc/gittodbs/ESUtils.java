@@ -1155,6 +1155,10 @@ public class ESUtils {
             final Map<String,List<Integer>> agentToCent = getPersonsCenturyCache();
             if (agentToCent.containsKey(agentLocal))
                 add_centuries(doc, agentToCent.get(agentLocal));
+            final List<String[]> agentLabels = creator_res_to_labels(agent);
+            if (agentLabels == null) return;
+            for (final String[] norm : agentLabels)
+                add_normalized_to_key("authorName", norm, doc);
         }
     }
     
