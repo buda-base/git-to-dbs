@@ -143,6 +143,7 @@
         }
       },
       "prefLabel_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
+      "prefLabel_prePhon": { "type": "text", "index_options": "offsets" },
       "etext_authorshipStatement_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
       "etext_authorshipStatement_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
       "etext_publisherName_bo_x_ewts": { "type": "text", "analyzer": "tibetan-ewts-lenient" , "index_options": "offsets" },
