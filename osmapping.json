@@ -232,7 +232,7 @@
         "english-lenient": {
           "tokenizer": "standard",
           "filter": [ "asciifolding", "lowercase", "stop", "english-possessive", "english-synonyms", "english-stemmer" ],
-          "char_filter": [ "simple-diacritics" ]
+          "char_filter": [ "tibetan-simple-diacritics" ]
         },
         "iast-lenient": {
           "tokenizer": "iast",
@@ -254,7 +254,7 @@
         },
         "tibetan-for-english-phonetic": {
           "tokenizer": "tibetan",
-          "filter": [ "tibetan-lenient", "tibetan-for-english-phonetic" ],
+          "filter": [ "tibetan-for-english-phonetic" ],
           "char_filter": [ "tibetan-lenient" ]
         },
         "ewts-phonetic": {
@@ -264,7 +264,7 @@
         },
         "ewts-for-english-phonetic": {
           "tokenizer": "tibetan",
-          "filter": [ "tibetan-lenient", "tibetan-for-english-phonetic" ],
+          "filter": [ "tibetan-for-english-phonetic" ],
           "char_filter": [ "tibetan-ewts-lenient" ]
         },
         "tibetan-english-phonetic": {
