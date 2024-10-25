@@ -547,12 +547,16 @@ public class ESUtils {
             lt = "bo_x_ewts";
             foundLanguage = true;
         }
+        if (!foundLanguage && lt.equals("sa_alalc97")) {
+            lt = "iast";
+            foundLanguage = true;
+        }
         if (!foundLanguage && (lt.equals("bo") || lt.equals("dz") || lt.endsWith("_tibt"))) {
             lexr = ewtsc.toWylie(lexr);
             lt = "bo_x_ewts";
             foundLanguage = true;
         }
-        if (!foundLanguage && lt.equals("bo-alalc97")) {
+        if (!foundLanguage && lt.equals("bo_alalc97")) {
             lexr = TransConverter.alalcToEwts(lexr);
             lt = "bo_x_ewts";
             foundLanguage = true;
@@ -561,7 +565,7 @@ public class ESUtils {
             lt = "en";
             foundLanguage = true;
         }
-        if (foundLanguage = false)
+        if (!foundLanguage)
             lt = "en";
         return new String[] {lexr, lt};
     }
