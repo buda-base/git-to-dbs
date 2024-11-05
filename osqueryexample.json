@@ -192,10 +192,10 @@ POST _scripts/bdrc-score
 
         // POPULARITY AND DB SCORES
         // pop_scores range from 0.4 to 1
-        double pop_score = doc['pop_score'].size() != 0 ? doc['pop_score'].value - 0.25: 0.15;
+        double pop_score = doc['pop_score'].size() != 0 ? doc['pop_score'].value - 0.2: 0.2;
         score *= pop_score;
-        // db_scores range from 0.5 to 1, make them 0.07 to 0.57
-        double db_score = doc['db_score'].size() != 0 ? doc['db_score'].value - 0.43: 0.07;
+        // db_scores range from 0.5 to 1
+        double db_score = doc['db_score'].size() != 0 ? doc['db_score'].value - 0.4: 0.1;
         score *= db_score;
         
         /*
