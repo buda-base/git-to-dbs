@@ -503,6 +503,7 @@ public class TransferHelpers {
                 i = 0;
             }
         }
+        ESUtils.finishDatasetTransfers();
         ESUtils.setLastRevision(gitRev, type);
         return i;
     }

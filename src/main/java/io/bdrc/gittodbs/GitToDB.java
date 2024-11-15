@@ -25,7 +25,6 @@ public class GitToDB {
 	static String libOutputDir = null;
 	static boolean transferFuseki = false;
 	static boolean transferES = false;
-	static String esFilesRoot = "json/";
 	static int howMany = Integer.MAX_VALUE;
     static boolean transferAllDB = false;
     static boolean transferOnto = false;
@@ -50,7 +49,6 @@ public class GitToDB {
 		        + "Options:\n" 
 		        + "-fuseki             - do transfer to Fuseki\n"
 		        + "-es                 - do transfer to ElasticSearch\n"
-		        + "-esFilesRoot <dir>  - write ES documents as files in directory\n"
 		        + "-esIndex <str>      - specify ES index\n"
 		        + "-fusekiHost <host>  - host fuseki is running on. Defaults to localhost\n"
 		        + "-fusekiPort <port>  - port fuseki is running on. Defaults to 13180\n"
@@ -126,9 +124,6 @@ public class GitToDB {
             } else if (arg.equals("-fuseki")) {
                 transferFuseki = true;
             } else if (arg.equals("-es")) {
-                transferES = true;
-            } else if (arg.equals("-esFilesRoot")) {
-                esFilesRoot = (++i < args.length ? args[i] : null);
                 transferES = true;
             } else if (arg.equals("-esIndex")) {
                 ESUtils.indexName = (++i < args.length ? args[i] : null);

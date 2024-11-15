@@ -1236,7 +1236,7 @@ public class ESUtils {
             }
         if (br == null)
             br = new BulkRequest.Builder();
-        br.operations(op -> op           
+            br.operations(op -> op           
                 .index(idx -> idx            
                     .index(indexName)       
                     .id(main_lname)
@@ -1245,7 +1245,7 @@ public class ESUtils {
             );
         nb_in_batch += 1;
         if (nb_in_batch > FusekiHelpers.esBulkSize) {
-            logger.info("transfer docs");
+            logger.info("transfer {} docs", nb_in_batch);
             nb_in_batch = 0;
             BulkResponse result = null;
             try {
@@ -1325,6 +1325,7 @@ public class ESUtils {
     
     static void finishDatasetTransfers() {
         if (br != null) {
+            logger.info("transfer {} docs", nb_in_batch);
             BulkResponse result = null;
             try {
                 result = osc.bulk(br.build());
@@ -1398,8 +1399,10 @@ public class ESUtils {
     public static final Property status = ResourceFactory.createProperty(Models.ADM, "status");
     public static final Resource statusReleased = ResourceFactory.createResource(Models.BDA + "StatusReleased");
     public static void upload(DocType type, String mainId, String filePath, Model model, String graphUri) {
-        if (!model.contains(null, status, statusReleased))
+        if (!model.contains(null, status, statusReleased)) {
+            logger.info("ignore non-released {}", graphUri);
             return; // TODO: remove?
+        }
         //final String rev = GitHelpers.getLastRefOfFile(type, filePath);
         // TODO: add rev?
         if (type == DocType.OUTLINE) {
