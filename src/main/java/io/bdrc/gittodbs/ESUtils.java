@@ -875,8 +875,11 @@ public class ESUtils {
         boolean exists = has_value_in_key(doc, key_base, normalized[0]);
         if (exists)
             return;
-        if (key_base.startsWith("prefLabel"))
-            exists = has_value_in_key(doc, "altLabel"+key_base.substring(9), normalized[0]);
+        if (key_base.startsWith("altLabel")) {
+            final String prefLabelKey = "prefLabel_"+normalized[1];
+            if (doc.hasNonNull(prefLabelKey))
+                exists = has_value_in_key(doc, prefLabelKey, normalized[0]);
+        }
         // If the value is not present, add it
         if (!exists)
             arrayNode.add(normalized[0]);
