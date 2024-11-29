@@ -616,7 +616,7 @@ public class ESUtils {
         }
     }
     
-    static void addModelToESDoc(final Model m, final ObjectNode doc, final String main_lname, boolean add_admin, boolean add_type) {
+    static void addModelToESDoc(final Model m, final ObjectNode doc, final String main_lname, boolean add_admin, boolean add_type, boolean add_prefLabel) {
         final Resource mainRes = m.createResource(Models.BDR+main_lname);
         final StmtIterator si = m.listStatements(mainRes, null, (RDFNode) null);
         if (main_lname.startsWith("MW")) {
@@ -647,7 +647,7 @@ public class ESUtils {
         }
         while (si.hasNext()) {
             final Statement s = si.next();
-            final PropInfo pinfo = propInfoMap.get(s.getPredicate());
+            PropInfo pinfo = propInfoMap.get(s.getPredicate());
             if (pinfo == null) {
                 if (s.getPredicate().equals(ResourceFactory.createProperty(Models.BDO, "instanceEvent")))
                     add_event(s.getResource(), doc);
@@ -672,6 +672,8 @@ public class ESUtils {
             }
             switch (pinfo.pt) {
             case PT_DIRECT:
+                if (!add_prefLabel && "prefLabel".equals(pinfo.key_base))
+                    pinfo = new PropInfo(PT_DIRECT, "altLabel", null);
                 add_direct(pinfo, s.getLiteral(), doc);
                 break;
             case PT_NESTED:
@@ -871,6 +873,10 @@ public class ESUtils {
         ArrayNode arrayNode = (ArrayNode) doc.get(key_base);
         // Check if the value is not already in the ArrayNode
         boolean exists = has_value_in_key(doc, key_base, normalized[0]);
+        if (exists)
+            return;
+        if (key_base.startsWith("prefLabel"))
+            exists = has_value_in_key(doc, "altLabel"+key_base.substring(9), normalized[0]);
         // If the value is not present, add it
         if (!exists)
             arrayNode.add(normalized[0]);
@@ -1090,7 +1096,7 @@ public class ESUtils {
         // TODO: get max for publication date?
         add_access(m, doc);
         add_associated(r, "merged", doc, addToAssociated);
-        addModelToESDoc(m, doc, r.getLocalName(), false, false);
+        addModelToESDoc(m, doc, r.getLocalName(), false, false, false);
     }
     
     static void add_direct(final PropInfo pinfo, final Literal l, final ObjectNode doc) {
@@ -1382,7 +1388,7 @@ public class ESUtils {
             if (!childDoc.has("graphs"))
                 childDoc.set("graphs", childDoc.arrayNode());
             ((ArrayNode) childDoc.get("graphs")).add(olname);
-            addModelToESDoc(parent.getModel(), childDoc, child.getLocalName(), false, false);
+            addModelToESDoc(parent.getModel(), childDoc, child.getLocalName(), false, false, true);
             copyRootFields(childDoc, rootNode);
             upload(childDoc, child.getLocalName(), DocType.OUTLINE);
             upload_outline_children_rec(child, olname, rootNode);
@@ -1410,7 +1416,7 @@ public class ESUtils {
             return;
         }
         ObjectNode root = om.createObjectNode();
-        addModelToESDoc(model, root, mainId, true, true);
+        addModelToESDoc(model, root, mainId, true, true, true);
         upload(root, mainId, type);
     }
     

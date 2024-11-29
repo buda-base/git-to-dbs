@@ -23,12 +23,11 @@ public class ESTest {
         TransferHelpers.ontModel = TransferHelpers.getOntologyModel();
     }
     
-    
     public static void assert_trig_to_json(final String path, final DocType type, final String graph_lname, final String ref_json_path) throws StreamReadException, DatabindException, IOException {
         final Model m = TransferHelpers.modelFromPath(path, type, graph_lname);
         //final ObjectNode ref = mapper.readValue(Paths.get(ref_json_path).toFile(), ObjectNode.class);
         ObjectNode root = ESUtils.om.createObjectNode();
-        ESUtils.addModelToESDoc(m, root, graph_lname, true, true);
+        ESUtils.addModelToESDoc(m, root, graph_lname, true, true, true);
         System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root));
         //assert(ref.equals(root));
     }
