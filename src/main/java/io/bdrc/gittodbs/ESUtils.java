@@ -565,7 +565,7 @@ public class ESUtils {
             lt = "en";
             foundLanguage = true;
         }
-        if (!foundLanguage)
+        if (!foundLanguage && !lt.isEmpty())
             lt = "en";
         return new String[] {lexr, lt};
     }
