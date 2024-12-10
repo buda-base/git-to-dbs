@@ -76,6 +76,11 @@
             "analyzer": "ewts-for-english-phonetic",
             "search_analyzer": "tibetan-english-phonetic",
             "index_options": "offsets"
+          },
+          "exact": {
+            "type": "text",
+            "analyzer": "tibetan-ewts-exact",
+            "index_options": "offsets"
           }
         }
       },
@@ -106,6 +111,11 @@
             "type": "text",
             "analyzer": "ewts-for-english-phonetic",
             "search_analyzer": "tibetan-english-phonetic",
+            "index_options": "offsets"
+          },
+          "exact": {
+            "type": "text",
+            "analyzer": "tibetan-ewts-exact",
             "index_options": "offsets"
           }
         }
@@ -138,6 +148,11 @@
             "type": "text",
             "analyzer": "ewts-for-english-phonetic",
             "search_analyzer": "tibetan-english-phonetic",
+            "index_options": "offsets"
+          },
+          "exact": {
+            "type": "text",
+            "analyzer": "tibetan-ewts-exact",
             "index_options": "offsets"
           }
         }
@@ -174,6 +189,11 @@
             "analyzer": "ewts-for-english-phonetic",
             "search_analyzer": "tibetan-english-phonetic",
             "index_options": "offsets"
+          },
+          "exact": {
+            "type": "text",
+            "analyzer": "tibetan-ewts-exact",
+            "index_options": "offsets"
           }
         }
       },
@@ -183,8 +203,20 @@
         "properties": {
           "cstart": { "type": "integer" },
           "cend": { "type": "integer" },
-          "text_bo": { "type": "text", "analyzer": "tibetan-lenient" , "index_options": "offsets" },
-          "text_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" }
+          "text_en": { "type": "text", "analyzer": "english-lenient" , "index_options": "offsets" },
+          "text_hani": { "type": "text", "analyzer": "tsconvert" , "index_options": "offsets" },
+          "text_bo": { 
+            "type": "text",
+            "analyzer": "tibetan-lenient",
+            "index_options": "offsets",
+            "fields": {
+              "exact": {
+                "type": "text",
+                "analyzer": "tibetan-exact",
+                "index_options": "offsets"
+              }
+            }
+          }
         }
       },
       "etext_pages": {
@@ -217,17 +249,25 @@
       },
       "analyzer": {
         "tibetan-lenient": {
-          "tokenizer": "tibetan",
+          "tokenizer": "tibetan-default",
           "filter": [ "tibetan-lenient", "tibetan-synonyms" ],
           "char_filter": [ "tibetan-lenient" ]
         },
-        "tsconvert" : {
-          "tokenizer" : "tsconvert"
-        },
         "tibetan-ewts-lenient": {
-          "tokenizer": "tibetan",
+          "tokenizer": "tibetan-default",
           "filter": [ "tibetan-lenient", "tibetan-synonyms" ],
           "char_filter": [ "tibetan-ewts-lenient" ]
+        },
+        "tibetan-exact": {
+          "tokenizer": "tibetan-exact",
+          "char_filter": [ "tibetan-exact" ]
+        },
+        "tibetan-ewts-exact": {
+          "tokenizer": "tibetan-exact",
+          "char_filter": [ "tibetan-ewts-exact" ]
+        },
+        "tsconvert" : {
+          "tokenizer" : "tsconvert"
         },
         "english-lenient": {
           "tokenizer": "standard",
@@ -248,22 +288,22 @@
           "filter": [ "khmr" ]
         },
         "tibetan-phonetic": {
-          "tokenizer": "tibetan",
+          "tokenizer": "tibetan-default",
           "filter": [ "tibetan-lenient", "tibetan-for-tibetan-phonetic" ],
           "char_filter": [ "tibetan-lenient" ]
         },
         "tibetan-for-english-phonetic": {
-          "tokenizer": "tibetan",
+          "tokenizer": "tibetan-default",
           "filter": [ "tibetan-for-english-phonetic" ],
           "char_filter": [ "tibetan-lenient" ]
         },
         "ewts-phonetic": {
-          "tokenizer": "tibetan",
+          "tokenizer": "tibetan-default",
           "filter": [ "tibetan-lenient", "tibetan-for-tibetan-phonetic" ],
           "char_filter": [ "tibetan-ewts-lenient" ]
         },
         "ewts-for-english-phonetic": {
-          "tokenizer": "tibetan",
+          "tokenizer": "tibetan-default",
           "filter": [ "tibetan-for-english-phonetic" ],
           "char_filter": [ "tibetan-ewts-lenient" ]
         },
@@ -319,6 +359,18 @@
           "lenient": true,
           "input_method": "ewts"
         },
+        "tibetan-exact": {
+          "type": "tibetan",
+          "lenient": false,
+          "keep_shad": true
+        },
+        "tibetan-ewts-lenient": {
+          "type": "tibetan",
+          "lenient": false,
+          "input_method": "ewts",
+          "keep_shad": true
+
+        },
         "tibetan-english-phonetic": {
           "type": "tibetan-english-phonetic"
         },
@@ -343,6 +395,18 @@
           "type" : "stconvert",
           "keep_both" : false,
           "convert_type" : "t2s"
+        }
+      },
+      "tibetan-default" : {
+          "type" : "tibetan",
+          "split_non_standard" : true,
+          "keep_shad" : false
+        }
+      },
+      "tibetan-exact" : {
+          "type" : "tibetan",
+          "split_non_standard" : false,
+          "keep_shad" : true
         }
       }
     }
