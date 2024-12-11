@@ -364,12 +364,11 @@
           "lenient": false,
           "keep_shad": true
         },
-        "tibetan-ewts-lenient": {
+        "tibetan-ewts-exact": {
           "type": "tibetan",
           "lenient": false,
           "input_method": "ewts",
           "keep_shad": true
-
         },
         "tibetan-english-phonetic": {
           "type": "tibetan-english-phonetic"
@@ -395,15 +394,13 @@
           "type" : "stconvert",
           "keep_both" : false,
           "convert_type" : "t2s"
-        }
-      },
-      "tibetan-default" : {
+        },
+        "tibetan-default" : {
           "type" : "tibetan",
           "split_non_standard" : true,
           "keep_shad" : false
-        }
-      },
-      "tibetan-exact" : {
+        },
+        "tibetan-exact" : {
           "type" : "tibetan",
           "split_non_standard" : false,
           "keep_shad" : true
