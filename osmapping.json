@@ -17,6 +17,8 @@
       "graphs":  { "type": "keyword"  },
       "other_id":  { "type": "keyword", "normalizer": "id_normalizer" },
       "etext_vol": { "type": "keyword" },
+      "version": { "type": "keyword" },
+      "source_path": { "type": "keyword" },
       "etext_imagegroup": { "type": "keyword" },
       "volumeNumber": { "type": "short" },
       "etextNumber": { "type": "short" },
@@ -224,7 +226,16 @@
         "properties": {
           "cstart": { "type": "integer" },
           "cend": { "type": "integer" },
-          "pnum": { "type": "short" }
+          "pnum": { "type": "short" },
+          "pname": { "type": "keyword" }
+        }
+      },
+      "etext_spans": {
+        "type": "nested",
+        "properties": {
+          "cstart": { "type": "integer" },
+          "cend": { "type": "integer" },
+          "rend": { "type": "keyword" }
         }
       }
     }
