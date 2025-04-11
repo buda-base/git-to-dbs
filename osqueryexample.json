@@ -202,15 +202,16 @@ POST _scripts/bdrc-score
 
         // NOTE: Pop and db scores can make search ignore keywords.  If this happens, decrease both pop_boost_adjustment and db_score_adjustment.
 
-        // Decrease this to boost less by pop_score, increase to boost more.
-        double pop_boost_adjustment = 0.2;
+        // Decrease this to boost less by pop_score, increase to boost more
+        double pop_boost_adjustment = 0.15;
 
         double pop_score = doc['pop_score'].size() != 0 ? doc['pop_score'].value - pop_boost_adjustment: 0.4 - pop_boost_adjustment;
         score *= pop_score;
 
         // db_scores range from 0.5 to 1
         // Same logic as with pop_score.  Adjustment of 0.4 makes the range 0.2-0.6, and produces 3x relative boosts (0.6/0.2 = 3).
-        double db_score_adjustment = 0.4;
+        
+        double db_score_adjustment = 0.3;
 
         double db_score = doc['db_score'].size() != 0 ? doc['db_score'].value - db_score_adjustment: 0.5 - db_score_adjustment;
         score *= db_score;
