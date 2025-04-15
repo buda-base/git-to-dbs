@@ -17,7 +17,7 @@
       "graphs":  { "type": "keyword"  },
       "other_id":  { "type": "keyword", "normalizer": "id_normalizer" },
       "etext_vol": { "type": "keyword" },
-      "version": { "type": "keyword" },
+      "ocfl_version": { "type": "keyword" },
       "source_path": { "type": "keyword" },
       "etext_imagegroup": { "type": "keyword" },
       "volumeNumber": { "type": "short" },
