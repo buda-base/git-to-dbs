@@ -261,12 +261,12 @@
       "analyzer": {
         "tibetan-lenient": {
           "tokenizer": "tibetan-default",
-          "filter": [ "tibetan-lenient", "tibetan-synonyms" ],
+          "filter": [ "tibetan-lenient", "tibetan-synonyms", "tibetan_stop_words_filter" ],
           "char_filter": [ "tibetan-lenient" ]
         },
         "tibetan-ewts-lenient": {
           "tokenizer": "tibetan-default",
-          "filter": [ "tibetan-lenient", "tibetan-synonyms" ],
+          "filter": [ "tibetan-lenient", "tibetan-synonyms", "tibetan_stop_words_filter" ],
           "char_filter": [ "tibetan-ewts-lenient" ]
         },
         "tibetan-exact": {
@@ -333,6 +333,11 @@
           "type": "tibetan",
           "remove_affixes": true,
           "normalize_paba": true
+        },
+        "tibetan_stop_words_filter": {
+          "type": "stop",
+          "ignore_case": false,
+          "stopwords": [ "འི", "འིས", "ཡིས" ]
         },
         "tibetan-synonyms": {
           "type": "synonym_graph",
