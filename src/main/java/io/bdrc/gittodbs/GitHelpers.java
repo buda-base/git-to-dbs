@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.jena.rdf.model.Model;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -39,24 +40,27 @@ public class GitHelpers {
     public static Logger logger = LoggerFactory.getLogger(GitHelpers.class);
     
     public static void init() {
-        ensureGitRepo(DocType.CORPORATION);
-        ensureGitRepo(DocType.LINEAGE);
-        ensureGitRepo(DocType.OFFICE);
         ensureGitRepo(DocType.PERSON);
         ensureGitRepo(DocType.PLACE);
         ensureGitRepo(DocType.TOPIC);
-        ensureGitRepo(DocType.ITEM);
-        ensureGitRepo(DocType.WORK);
         ensureGitRepo(DocType.EINSTANCE);
         ensureGitRepo(DocType.IINSTANCE);
         ensureGitRepo(DocType.INSTANCE);
-        ensureGitRepo(DocType.ETEXT);
-        ensureGitRepo(DocType.ETEXTCONTENT);
         ensureGitRepo(DocType.COLLECTION);
         ensureGitRepo(DocType.OUTLINE);
-        ensureGitRepo(DocType.USER);
-        if (!GitToDB.ric)
-            ensureGitRepo(DocType.SUBSCRIBER);
+        ensureGitRepo(DocType.WORK);
+        
+        if (GitToDB.transferFuseki) {
+            ensureGitRepo(DocType.CORPORATION);
+            ensureGitRepo(DocType.LINEAGE);
+            ensureGitRepo(DocType.OFFICE);
+            ensureGitRepo(DocType.ITEM);
+            ensureGitRepo(DocType.ETEXT);
+            ensureGitRepo(DocType.ETEXTCONTENT);
+            ensureGitRepo(DocType.USER);
+            if (!GitToDB.ric)
+                ensureGitRepo(DocType.SUBSCRIBER);
+        }
     }
     
     // for tests only
