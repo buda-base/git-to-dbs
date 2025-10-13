@@ -63,6 +63,8 @@
       "workGenre": { "type": "keyword" },
       "workIsAbout": { "type": "keyword" },
       "author": { "type": "keyword" },
+      "cstart": { "type": "integer" },
+      "cend": { "type": "integer" },
       "authorName_bo_x_ewts": { 
         "type": "text", 
         "analyzer": "tibetan-ewts-lenient", 
