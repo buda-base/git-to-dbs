@@ -46,6 +46,8 @@ import org.opensearch.client.opensearch.core.BulkRequest;
 import org.opensearch.client.opensearch.core.BulkResponse;
 import org.opensearch.client.opensearch.core.GetResponse;
 import org.opensearch.client.opensearch.core.bulk.BulkResponseItem;
+import org.opensearch.client.opensearch.core.DeleteResponse;
+import org.opensearch.client.opensearch.core.DeleteRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1404,12 +1406,28 @@ public class ESUtils {
         final Map<String,Boolean> worksToInclude = getWorksToSend();
         return !worksToInclude.containsKey(lname);
     }
+    
+    public static void deleteDocument(final String id) {
+    	try {
+    	    osc.delete(
+    	        new DeleteRequest.Builder()
+    	            .index(indexName)
+    	            .id(id)
+    	            .build()
+    	    );
+
+    	    logger.info("Deleted " + id);
+    	} catch (Exception e) {
+    	    logger.error("could not delete document "+id, e);
+    	}
+    }
 
     public static final Property status = ResourceFactory.createProperty(Models.ADM, "status");
     public static final Resource statusReleased = ResourceFactory.createResource(Models.BDA + "StatusReleased");
     public static void upload(DocType type, String mainId, String filePath, Model model, String graphUri) {
         if (!model.contains(null, status, statusReleased)) {
             logger.info("ignore non-released {}", graphUri);
+            deleteDocument(mainId);
             return; // TODO: remove?
         }
         //final String rev = GitHelpers.getLastRefOfFile(type, filePath);
