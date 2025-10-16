@@ -892,11 +892,47 @@ public class ESUtils {
     }
     
     // not all collections should be in the "inCollection" field (that is used for aggregation)
-    // but all collections should be in the associated_res field
+    // but all collections should be in the associated_res field or in the search results
     // so that we don't have Wisdom masters, etc. in the aggregates but we still can find them
-    static final List<String> collectionsiInFacets = Arrays.asList("PR1PL480", "PR1LOKESH01", "PR1NEPAL00", "PR1KDPP00", "PR1NLM00", "PR1FPL01", "PR1NGMPP00", "PR1TIBET00", "PR1CIHTS00", "PR1VIENNA00", "PR1NCLK");
+    static final List<String> collectionsInFacets = new ArrayList<>();
     static boolean collectionInFacets(final String collection) {
-        return collectionsiInFacets.contains(collection);
+    	ensureCollPublicityInitialized();
+        return collectionsInFacets.contains(collection);
+    }
+    static final List<String> collectionsInResults = new ArrayList<>();
+    static boolean collectionInResults(final String collection) {
+    	ensureCollPublicityInitialized();
+        return collectionsInResults.contains(collection);
+    }
+    
+    static boolean collectionsInitialized = false;
+    
+    static final void add_to_collection_pub(final QuerySolution qs) {
+        final String clname = qs.getResource("?c").getLocalName();
+        final Integer pl = qs.getLiteral("?pl").getInt();
+        if (pl > 2) {
+        	collectionsInFacets.add(clname);
+        	if (pl > 4)
+        		collectionsInResults.add(clname);
+        }
+    }
+    
+    public static void ensureCollPublicityInitialized() {
+    	if (collectionsInitialized) return;
+        final String CollectionPublicityLevelQuery = "select ?c ?pl {\n"
+                + "    ?cadm <"+Models.ADM+"publicityLevel> ?pl ;\n"
+                + "               <"+Models.ADM+"adminAbout> ?c ;\n"
+                + "               <"+Models.ADM+"status> <"+Models.BDA+"StatusReleased> .\n"
+                + "}";
+        FusekiHelpers.openConnection(0);
+        final RDFConnection conn = FusekiHelpers.fuConn;
+        final Consumer<QuerySolution> add_to_cache = x -> add_to_collection_pub(x);
+        try {
+            conn.querySelect(CollectionPublicityLevelQuery, add_to_cache);
+        } catch (Exception ex) {
+            logger.error("could not run "+CollectionPublicityLevelQuery, ex);
+        }
+        collectionsInitialized = true;
     }
 
     static void add_associated(final String r, final String prop, final ObjectNode doc, final boolean add_to_associated) {
